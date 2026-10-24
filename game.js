@@ -91,7 +91,7 @@ S.nat.forEach((N,n)=>{if(n!=S.me&&N.alive&&S.t>=N.next){N.next=S.t+5+n;ai(n)}});
 const sh=owned(S.me).length/G.cells.length;if(!owned(S.me).length)finish(false);else if(sh>=.6||S.nat.every((N,n)=>n==S.me||!N.alive))finish(true)}
 function finish(w){S.end={w};localStorage.removeItem(KEY);const m=$('#modal');m.innerHTML=`<div class=card><h2>${w?'🏆 Chiến thắng!':'💀 Thất bại'}</h2><p>Thời gian: ${Math.round(S.t/60)} phút<br>Vùng đã chiếm: ${S.st.cap} · đã mất: ${S.st.lost}<br>Quân địch tiêu diệt: ${f(S.st.kills)}<br>Vùng đang giữ: ${owned(S.me).length}/${G.cells.length}</p><button onclick="start()">Chơi lại</button></div>`;m.classList.remove('hidden')}
 /* ---------- UI ---------- */
-function top(){const N=me(),n=net(S.me);$('#top').innerHTML=`<b>${N.name}</b><span>💰${f(N.money)}</span><span class="${n>=0?'g':'r'}">${n>=0?'+':''}${f(n)}/ph</span><span>👥${pop(S.me).toFixed(0)}tr</span><span>🔬${f(N.rp)}</span><button onclick="A.pause()">${S.paused?'▶':'⏸'}</button><button onclick="A.spd()">x${S.speed}</button><button onclick="A.menu()">⚙</button>`}
+function topbar(){const N=me(),n=net(S.me);$('#top').innerHTML=`<b>${N.name}</b><span>💰${f(N.money)}</span><span class="${n>=0?'g':'r'}">${n>=0?'+':''}${f(n)}/ph</span><span>👥${pop(S.me).toFixed(0)}tr</span><span>🔬${f(N.rp)}</span><button onclick="A.pause()">${S.paused?'▶':'⏸'}</button><button onclick="A.spd()">x${S.speed}</button><button onclick="A.menu()">⚙</button>`}
 function draw(){document.querySelectorAll('.t').forEach(p=>{const k=+p.dataset.k,T=S.terr[k],c=S.nat[T.o].c,s=p.style;s.fill=c;s.stroke=T.occ?mix(c,S.nat[T.occ.n].c,T.cap):'#08121a';s.strokeWidth=T.occ?5:2;if(k==S.sel||S.pick&&S.pick.k==k){s.stroke='#fff';s.strokeWidth=5}});
 $('#lb').innerHTML=G.cells.map((c,k)=>`<text x=${c.x} y=${c.y-4}>${TR[c.t][2]}${c.n}</text><text class=s x=${c.x} y=${c.y+14}>⚔ ${cnt(S.terr[k].tr)}${S.terr[k].occ?' / '+cnt(S.terr[k].occ.u):''}</text>`).join('');
 $('#mv').innerHTML=S.mv.map(m=>{const a=G.cells[m.f],b=G.cells[m.t],p=1-m.left/m.tot;return`<circle cx=${a.x+(b.x-a.x)*p} cy=${a.y+(b.y-a.y)*p} r=11 fill=${S.nat[m.n].c} stroke=#fff stroke-width=2 /><text x=${a.x+(b.x-a.x)*p} y=${a.y+(b.y-a.y)*p+4}>${cnt(m.u)}</text>`}).join('')}
@@ -112,11 +112,11 @@ const b=w?`<button onclick="A.peace(${o})">Đề nghị hòa</button>`:`${al?`<b
 return`<div class=it style="display:block"><b style="color:${N.c}">${N.name}</b> <small>${owned(o).length} vùng · sức mạnh ${f(tot(o))} · thiện cảm ${Math.round(N.rel[S.me])} · ${st}</small><div class=row>${b}</div></div>`}).join('')},
 res(){return`<p>🔬 Điểm nghiên cứu: <b>${f(me().rp)}</b></p>`+Object.keys(TECH).map(b=>{const l=tech(S.me,b),c=30*(l+1),need=b!='eco'&&tech(S.me,'eco')<l;return`<div class=it><div><b>${TECH[b][0]}</b> – cấp ${l}/3<small>${TECH[b][1]}</small>${l<3?`<small>Chi phí ${c}${need?' · cần Kinh tế cấp '+l:''}</small>`:''}</div>${l<3?`<button onclick="A.tech('${b}')">Nâng</button>`:'✔'}</div>`}).join('')}};
 const TT={shop:'🛒 MILITARY SHOP',army:'🪖 Quân đội',eco:'💰 Kinh tế',dip:'🤝 Ngoại giao',res:'🔬 Nghiên cứu'};
-function sheet(){const s=$('#sheet');if(!S.panel||S.panel=='map'){s.classList.add('hidden');return}$('#shT').textContent=TT[S.panel];$('#shB').innerHTML=PN[S.panel]();s.classList.remove('hidden')}
-function R(){if(!S)return;top();draw();info();sheet()}
+function sheet(){const s=$("#sheet");if(S.end){s.classList.add("hidden");return}if(!S.panel||S.panel=='map'){s.classList.add('hidden');return}$('#shT').textContent=TT[S.panel];$('#shB').innerHTML=PN[S.panel]();s.classList.remove('hidden')}
+function R(){if(!S)return;topbar();draw();info();sheet()}
 const A={
 close(){$('#modal').classList.add('hidden')},panel(p){S.panel=p;sheet()},
-pause(){S.paused=!S.paused;top()},spd(){S.speed=S.speed==1?2:S.speed==2?4:1;top()},
+pause(){S.paused=!S.paused;topbar()},spd(){S.speed=S.speed==1?2:S.speed==2?4:1;topbar()},
 tap(k){if(k==null||isNaN(k)){if(S.pick){S.pick=null;toast('Đã hủy điều quân')}S.sel=null;return R()}
 if(S.pick){const p=S.pick;S.pick=null;A.order(p.k,k,p.f);return R()}S.sel=k;R()},
 go(fr){S.pick={k:S.sel,f:fr};toast('Chạm vùng đích trên bản đồ');R()},
@@ -138,7 +138,7 @@ menu(){const m=$('#modal');m.innerHTML=`<div class=card><h2>Menu</h2><div class=
 save(){localStorage.setItem(KEY,JSON.stringify(S));toast('Đã lưu game');A.close()},
 load(){const d=localStorage.getItem(KEY);if(!d){A.close();return toast('Chưa có bản lưu',1)}S=JSON.parse(d);A.close();R();toast('Đã tải game')},
 fresh(){ask('Bỏ trận hiện tại và chơi mới?',start)}};
-function start(){const m=$('#modal'),has=!!localStorage.getItem(KEY);m.innerHTML=`<div class=card><h2>World Conquest – Đế Chế</h2><label>Chế độ</label><select id=sm><option value=dom>World Domination</option><option value=sbx>Sandbox</option><option value=bat>Custom Battle</option></select><label>Quốc gia</label><select id=sn>${NAT.map((x,i)=>`<option value=${i}>${x.n} (${x.d})</option>`).join('')}</select><label>Độ khó AI</label><select id=sa><option value=0>Dễ</option><option value=1 selected>Bình thường</option><option value=2>Khó</option></select><label>Tiền khởi đầu (Sandbox)</label><input id=sg type=number value=20000><div class=row><button id=go>Bắt đầu</button>${has?'<button onclick="A.load()">Tiếp tục</button>':''}</div></div>`;m.classList.remove('hidden');
+function start(){const m=$('#modal'),has=!!localStorage.getItem(KEY);m.innerHTML=`<div class=card><h2>NationCountry</h2><label>Chế độ</label><select id=sm><option value=dom>World Domination</option><option value=sbx>Sandbox</option><option value=bat>Custom Battle</option></select><label>Quốc gia</label><select id=sn>${NAT.map((x,i)=>`<option value=${i}>${x.n} (${x.d})</option>`).join('')}</select><label>Độ khó AI</label><select id=sa><option value=0>Dễ</option><option value=1 selected>Bình thường</option><option value=2>Khó</option></select><label>Tiền khởi đầu (Sandbox)</label><input id=sg type=number value=20000><div class=row><button id=go>Bắt đầu</button>${has?'<button onclick="A.load()">Tiếp tục</button>':''}</div></div>`;m.classList.remove('hidden');
 $('#go').onclick=()=>newGame({mode:$('#sm').value,me:+$('#sn').value,ai:+$('#sa').value,money:Math.max(0,+$('#sg').value||0)})}
 /* ---------- map input ---------- */
 function setVB(){const r=$('#map').getBoundingClientRect();$('#map').setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.w*r.height/r.width}`)}
@@ -152,5 +152,5 @@ if(P.size==1){const dx=e.clientX-o[0],dy=e.clientY-o[1];mv+=Math.abs(dx)+Math.ab
 else if(P.size==2){const a=[...P.values()],d=D();zoom(d0/d,(a[0][0]+a[1][0])/2,(a[0][1]+a[1][1])/2);d0=d;mv+=10}};
 svg.onpointerup=svg.onpointercancel=e=>{if(P.size==1&&mv<8&&S)A.tap(dn==null?null:+dn);P.delete(e.pointerId)};
 svg.onwheel=e=>{e.preventDefault();zoom(e.deltaY>0?1.12:.89,e.clientX,e.clientY)};addEventListener('resize',setVB)}
-addEventListener('DOMContentLoaded',()=>{initMap();start();setInterval(()=>{if(!S)return;tick(.25);if(S.end)return;top();draw();if(++A._c%4==0){info();if(['shop','army','dip'].includes(S.panel)||S.panel=='eco'&&document.activeElement.tagName!='INPUT')sheet()}},250);
+addEventListener('DOMContentLoaded',()=>{initMap();start();setInterval(()=>{if(!S)return;tick(.25);if(S.end)return;topbar();draw();if(++A._c%4==0){info();if(['shop','army','dip'].includes(S.panel)||S.panel=='eco'&&document.activeElement.tagName!='INPUT')sheet()}},250);
 setInterval(()=>{if(S&&!S.end)localStorage.setItem(KEY,JSON.stringify(S))},20000)});A._c=0;
