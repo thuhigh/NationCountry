@@ -17,11 +17,13 @@ button{font:inherit;cursor:pointer}
 #fxcv{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
 #hit{position:fixed;inset:0;pointer-events:none;z-index:3;box-shadow:inset 0 0 140px 36px #e53935;opacity:0;transition:opacity .5s}
 #hit.on{opacity:.75;transition:opacity .08s}
-.country{stroke:var(--sk,var(--line));stroke-width:.4;vector-effect:non-scaling-stroke;cursor:pointer;transition:fill .3s}
-.country.own{stroke-width:1.6;stroke-linejoin:round}
-.country.hot{animation:hot .8s ease-in-out infinite alternate}
-@keyframes hot{from{filter:none}to{filter:brightness(1.35) saturate(1.3)}}
-.lbl{text-anchor:middle;fill:var(--tx);pointer-events:none;paint-order:stroke;stroke:var(--sf);stroke-width:2px}
+.country{stroke:var(--line);stroke-width:.4;vector-effect:non-scaling-stroke;stroke-linejoin:round;cursor:pointer}
+.ownl{stroke-width:1.3;stroke-linejoin:round;vector-effect:non-scaling-stroke;pointer-events:none}
+.zedge{fill:none;stroke-width:1.8;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
+.hotp{fill:#fff;pointer-events:none;opacity:.16;animation:hotp .8s ease-in-out infinite alternate}
+.lite .hotp{animation:none}
+@keyframes hotp{from{opacity:.04}to{opacity:.34}}
+.lbl{text-anchor:middle;fill:var(--tx);pointer-events:none;paint-order:stroke;stroke:var(--sf);font-size:calc(9px * var(--ik,1));stroke-width:calc(2px * var(--ik,1))}
 .nlbl{text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-opacity:.9;font-weight:800;letter-spacing:.3px}
 .outl{fill:none;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
 .march{animation:march .7s linear infinite}
@@ -321,6 +323,12 @@ function buildGeo(layoutIn) {
         dur: 4000 + 1.4e5 * Math.sqrt(area / K / MA) };
       regions.push(r); regOf[r.id] = r; return r;
     });
+    if (K > 1) {   // đoạn biên chung giữa hai vùng cùng nước (để chỉ vẽ biên khi hai bên khác chủ)
+      const rs = rByIso[iso], key = p => Math.round(p[0] * 20) + ',' + Math.round(p[1] * 20), ks = rs.map(r => new Set(r.cell.map(key)));
+      rs.forEach(r => { r.shared = {}; r.nb.forEach(id => { const j = rs.findIndex(x => x.id === id); if (j < 0) return;
+        const u = [], seen = new Set(); r.cell.forEach(p => { const k = key(p); if (ks[j].has(k) && !seen.has(k)) { seen.add(k); u.push(p); } });
+        if (u.length >= 2) r.shared[id] = [u[0], u[u.length - 1]]; }); });
+    }
   });
 
   // ---- Kề nhau giữa các nước (đỉnh chung) + cạnh để vẽ biên giới ----
@@ -386,17 +394,19 @@ const stab = (n, c) => Math.max(.35, 1 - .06 * Math.max(0, c - admLimit(n)));
 const attMul = n => (1 + .12 * n.tech.mil) * (n.policy === 'mil' ? 1.2 : 1);
 const isOcc = (st, rid) => (st.occ[rid] || 0) > st.t;
 function avgRegions(st) { const m = ownedMap(st), ids = Object.keys(st.nations).filter(i => (m[i] || []).length); return ids.length ? ids.reduce((a, i) => a + m[i].length, 0) / ids.length : 1; }
+const upkeepOf = c => .06 * Math.pow(c, 1.4);        // phí quản lý/giây: 10 vùng ≈1.5 · 30 vùng ≈7 · 60 vùng ≈18
 function incomeOf(st, id) {
   const n = st.nations[id], own = regionsOf(st, id); if (!n || !own.length) return 0;
   let s = 0; for (const r of own) s += r.inc * (isOcc(st, r.id) ? CFG.occIncome : 1);
   const avg = Math.max(3, avgRegions(st)), catchUp = 1 + .35 * clamp((avg - own.length) / avg, 0, 1);   // kéo kẻ yếu lên
-  return s * stab(n, own.length) * (1 + .15 * n.tech.eco) * (n.policy === 'mil' ? .85 : 1.2) * catchUp * (n.bonus || 1);
+  const gross = s * stab(n, own.length) * (1 + .15 * n.tech.eco) * (n.policy === 'mil' ? .85 : 1.2) * catchUp * (n.bonus || 1);
+  return Math.max(gross * .3, gross - upkeepOf(own.length));   // trừ phí quản lý lãnh thổ (tăng nhanh theo số vùng)
 }
 const popOf = (st, id) => regionsOf(st, id).reduce((a, r) => a + r.pop, 0);
 const maxArmy = (st, id) => Math.floor(40 + 6 * Math.sqrt(popOf(st, id)));
-const recruitCost = (st, id) => Math.round(100 * (1 + .08 * regionsOf(st, id).length));
-const expandCost = c => Math.round(40 * (1 + .1 * c));
-const fortCost = (st, rid) => Math.round(90 * ((st.fort[rid] || 0) + 1) * (1 + .03 * (regionsOf(st, st.owner[rid]).length)));
+const recruitCost = (st, id) => Math.round(100 * Math.pow(1 + .08 * regionsOf(st, id).length, 1.3));
+const expandCost = c => Math.round(40 * Math.pow(1 + .12 * c, 1.45));   // 10 vùng ≈130 · 30 vùng ≈370 · 60 vùng ≈850
+const fortCost = (st, rid) => Math.round(90 * ((st.fort[rid] || 0) + 1) * Math.pow(1 + .03 * (regionsOf(st, st.owner[rid]).length), 1.3));
 const techCost = lv => Math.round(120 * Math.pow(lv + 1, 1.6));
 const opsMax = (st, id) => 2 + Math.floor(regionsOf(st, id).length / 8);
 function defOf(st, r) {
@@ -500,7 +510,7 @@ const Sim = (() => {
 
   // ---------- đóng gói cho mạng ----------
   const pubN = n => ({ id: n.id, name: n.name, leader: n.leader, color: n.color, flag: n.flag, ai: !!n.ai, capital: n.capital, money: r1(n.money), army: r1(n.army),
-    tech: n.tech, policy: n.policy, war: n.war, ally: n.ally, truce: n.truce, shield: n.shield || 0, inc: r2(incomeOf(S, n.id)), online: n.ai ? true : !!n.online, auto: !!n.auto });
+    tech: n.tech, policy: n.policy, war: n.war, ally: n.ally, truce: n.truce, shield: n.shield || 0, inc: r2(incomeOf(S, n.id)), up: r2(upkeepOf(regionsOf(S, n.id).length)), online: n.ai ? true : !!n.online, auto: !!n.auto });
   const dynN = n => { const p = pubN(n); delete p.name; delete p.leader; delete p.color; delete p.flag; delete p.ai; return p; };
   function snap(full) {
     const n = {}; for (const id in S.nations) n[id] = dynN(S.nations[id]);
@@ -912,9 +922,12 @@ addEventListener('pagehide', () => {
 //  P4a — VIEW: dựng bản đồ SVG, tô màu, biên giới, cờ, nhãn, zoom
 // =====================================================================================
 let V = null;                                // bản sao trạng thái công khai nhận từ chủ phòng
+const MOBILE = matchMedia('(pointer:coarse)').matches;
+const LITE = MOBILE || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4 || matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (LITE) document.documentElement.classList.add('lite');
 const ME = { pid: null, nid: null };
 const busy = new Set();                      // vùng đang có chiến dịch
-let worldBuilt = false, svg, gMap, defs, paths, lineG, outG, sweepG, arrowG, selP, labels, nlabG, flagsG, fxG, zoomB, LAND = '#d9d3c7';
+let worldBuilt = false, svg, gMap, defs, baseG, ownG, hotG, zoneG, areaOf = {}, bbOf = {}, nlCache = null, paintSig = '', outCache = new Map(), outG, sweepG, arrowG, selP, labels, nlabG, flagsG, fxG, zoomB, LAND = '#d9d3c7';
 let zoomT = d3.zoomIdentity;
 const cid = r => 'c' + r.id.replace(/\W/g, '_');
 const darker = c => d3.color(c).darker(.9).formatHex();
@@ -925,33 +938,54 @@ function buildMap() {
   const dark = matchMedia('(prefers-color-scheme: dark)').matches; LAND = dark ? '#3b3b44' : '#d9d3c7';
   svg = d3.select('#map').append('svg').attr('viewBox', `0 0 ${VW} ${VH}`).attr('preserveAspectRatio', 'xMidYMid meet');
   gMap = svg.append('g'); defs = svg.append('defs');
-  defs.selectAll().data(regions.filter(r => r.cell)).join('clipPath').attr('id', cid).append('path').attr('d', cellD);
-  paths = gMap.append('g').selectAll('path').data(regions).join('path').attr('class', 'country')
-    .attr('d', r => d0[r.iso]).attr('clip-path', r => r.cell ? `url(#${cid(r)})` : null).attr('fill', colorOf).on('click', (ev, r) => onRegionClick(r));
-  lineG = gMap.append('g').attr('pointer-events', 'none');     // đường chia vùng mờ trong nước lớn
-  Object.keys(rByIso).filter(i => rByIso[i][0].cell).forEach(i => {
-    const kid = 'k' + i.replace(/\W/g, '_');
-    defs.append('clipPath').attr('id', kid).append('path').attr('d', d0[i]);
-    lineG.append('path').attr('d', rByIso[i].map(cellD).join('')).attr('clip-path', `url(#${kid})`)
-      .attr('fill', 'none').attr('stroke', '#fff').attr('stroke-opacity', .45).attr('stroke-width', .6).attr('vector-effect', 'non-scaling-stroke');
-  });
+  defs.selectAll().data(regions.filter(r => r.cell)).join('clipPath').attr('id', cid).append('path').attr('d', cellD);   // cắt theo từng vùng (hiệu ứng chiếm)
+  Object.keys(rByIso).filter(i => rByIso[i][0].cell).forEach(i => defs.append('clipPath').attr('id', 'k' + i.replace(/\W/g, '_')).append('path').attr('d', d0[i]));
+  features.forEach(f => { const i = idOf(f); areaOf[i] = path.area(f); bbOf[i] = path.bounds(f); f._t = Math.max(2.2, 30 / Math.sqrt(areaOf[i] || 1)); });
+  // lớp 1: nền đất, MỖI NƯỚC MỘT path (trước đây mỗi vùng một bản sao cả nước → rất nặng)
+  baseG = gMap.append('g'); baseG.selectAll('path').data(features).join('path').attr('class', 'country').attr('d', f => d0[idOf(f)]).attr('fill', LAND);
+  ownG = gMap.append('g').attr('pointer-events', 'none');      // lớp 2: màu theo chủ, vùng cùng chủ liền một khối
+  hotG = gMap.append('g').attr('pointer-events', 'none');      // vùng đang có chiến dịch
+  zoneG = gMap.append('g').attr('pointer-events', 'none');     // biên vùng: chỉ nơi hai bên khác chủ
   outG = gMap.append('g').attr('pointer-events', 'none'); sweepG = gMap.append('g').attr('pointer-events', 'none'); arrowG = gMap.append('g').attr('pointer-events', 'none');
   selP = gMap.append('path').attr('fill', 'var(--pr)').attr('fill-opacity', .35).attr('pointer-events', 'none');
   nlabG = gMap.append('g').attr('pointer-events', 'none');
-  labels = gMap.append('g').selectAll('text').data(features.filter(posOf)).join('text').attr('class', 'lbl')
+  const labG = gMap.append('g');
+  labels = labG.selectAll('text').data(features.filter(posOf)).join('text').attr('class', 'lbl').style('display', 'none')
     .attr('transform', f => `translate(${posOf(f)})`).text(f => f.properties.NAME);
   flagsG = gMap.append('g').attr('pointer-events', 'none'); fxG = gMap.append('g').attr('pointer-events', 'none');
 
-  zoomB = d3.zoom().scaleExtent([1, 40]).translateExtent([[0, 0], [VW, VH]]).on('zoom', ev => {
-    zoomT = ev.transform; gMap.attr('transform', zoomT); const k = zoomT.k;
-    labels.style('font-size', (9 / k) + 'px').style('stroke-width', (2 / k) + 'px').style('display', f => (k > 2.2 && path.area(f) * k * k > 900) ? null : 'none');
+  // zoom: gMap cập nhật ngay; nhãn/cờ chỉ cập nhật 1 lần mỗi khung hình
+  let zq = false;
+  const afterZoom = () => {
+    zq = false; const k = zoomT.k; labG.node().style.setProperty('--ik', 1 / k);
+    labels.each(function (f) { const v = k > f._t; if (v !== this._v) { this._v = v; this.style.display = v ? '' : 'none'; } });
     drawFlags(); drawNationLabels();
+  };
+  zoomB = d3.zoom().scaleExtent([1, 40]).translateExtent([[0, 0], [VW, VH]]).on('zoom', ev => {
+    zoomT = ev.transform; gMap.attr('transform', zoomT); if (!zq) { zq = true; requestAnimationFrame(afterZoom); }
   });
   svg.call(zoomB);
+  svg.on('click', ev => { const r = regionAt(d3.pointer(ev, gMap.node())); if (r) onRegionClick(r); });
   $('zin').onclick = () => svg.transition().call(zoomB.scaleBy, 1.7);
   $('zout').onclick = () => svg.transition().call(zoomB.scaleBy, 1 / 1.7);
   svg.call(zoomB.transform, d3.zoomIdentity);
   worldBuilt = true;
+}
+// chạm → vùng (1 bộ lắng nghe cho cả bản đồ thay cho hàng trăm path); chạm gần đảo nhỏ vẫn trúng
+function regionAt(p) {
+  const q = proj.invert(p); let iso = null;
+  if (q && isFinite(q[0])) for (const f of features) {
+    const i = idOf(f), b = bbOf[i]; if (!b || p[0] < b[0][0] || p[0] > b[1][0] || p[1] < b[0][1] || p[1] > b[1][1]) continue;
+    if (d3.geoContains(f, q)) { iso = i; break; }
+  }
+  if (iso) { const rs = rByIso[iso]; return rs.length === 1 ? rs[0] : (rs.find(r => inCell(r, p)) || rs.reduce((a, r) => dist2(r.seed, p) < dist2(a.seed, p) ? r : a)); }
+  let bd = (MOBILE ? 16 : 9) / zoomT.k, br = null;
+  for (const r of regions) { if (r.K > 1) continue; const d = dist2(r.seed, p); if (d < bd) { bd = d; br = r; } }
+  return br;
+}
+function updateHot() {
+  const rs = [...busy].map(id => regOf[id]).filter(Boolean);
+  hotG.selectAll('path').data(rs, r => r.id).join(en => en.append('path').attr('class', 'hotp').attr('d', r => d0[r.iso]).attr('clip-path', r => r.cell ? `url(#${cid(r)})` : null));
 }
 const sel = r => selP.attr('d', r ? d0[r.iso] : null).attr('clip-path', r && r.cell ? `url(#${cid(r)})` : null);
 
@@ -964,43 +998,55 @@ function drawFlags() {
 }
 function drawNationLabels() {
   if (!V) return; const k = zoomT.k;
-  const items = Object.values(V.nations).map(n => {
+  const items = nlCache || (nlCache = Object.values(V.nations).map(n => {
     const own = regionsOf(V, n.id); if (!own.length) return null;
     const mx = d3.mean(own, o => o.seed[0]), my = d3.mean(own, o => o.seed[1]);
     return { n, p: own.reduce((b, o) => dist2(o.seed, [mx, my]) < dist2(b.seed, [mx, my]) ? o : b).seed, cnt: own.length };
-  }).filter(Boolean);
+  }).filter(Boolean));
   nlabG.selectAll('text').data(items, d => d.n.id).join('text').attr('class', 'nlbl')
     .attr('transform', d => `translate(${d.p[0]},${d.p[1] + 11 / k})`).style('font-size', d => ((8.5 + Math.min(9, Math.sqrt(d.cnt) * 1.6)) / k) + 'px')
     .style('stroke-width', (2.5 / k) + 'px').attr('fill', d => darker(d.n.color)).style('display', k > 7 ? 'none' : null).text(d => d.n.name);
 }
 
-// ----- biên giới hợp nhất: cạnh chung giữa hai nước cùng chủ triệt tiêu -----
-function outlineOf(owner) {
-  const ids = [...new Set(regions.filter(r => V.owner[r.id] === owner).map(r => r.iso))], cnt = new Map(), segs = [];
+// ----- tô màu + biên giới: cùng chủ thì liền một khối (không đường chia, không khe hở), chỉ còn viền ngoài -----
+function outlineOf(ids) {   // cạnh chung giữa hai nước cùng chủ triệt tiêu
+  const cnt = new Map(), segs = [];
   ids.forEach(i => edgesOf[i].forEach(e => cnt.set(e[0], (cnt.get(e[0]) || 0) + 1)));
   ids.forEach(i => edgesOf[i].forEach(e => { if (cnt.get(e[0]) === 1) segs.push([e[1], e[2]]); }));
   return path({ type: 'MultiLineString', coordinates: segs }) || '';
 }
-function drawOutlines(fade) {
-  const owners = [...new Set(Object.values(V.owner))].filter(o => V.nations[o]);
-  const cur_ = () => outG.selectAll('path.outl:not(.ghost)');
-  if (fade) cur_().each(function () {
-    const c = this.cloneNode(); c.classList.add('ghost'); outG.node().appendChild(c);
-    d3.select(c).transition().duration(900).attr('stroke-opacity', 0).remove();
-  });
-  defs.selectAll('clipPath.oc').remove();
-  owners.forEach(o => {
-    const cp = defs.append('clipPath').attr('class', 'oc').attr('id', 'oc' + o);
-    regions.filter(r => V.owner[r.id] === o).forEach(r => cp.append('path').attr('d', r.cell ? cellD(r) : d0[r.iso]));
-  });
-  const u = cur_().data(owners, d => d).join('path').attr('class', 'outl').attr('clip-path', o => `url(#oc${o})`)
-    .attr('d', outlineOf).attr('stroke', o => darker(V.nations[o].color));
-  if (fade) u.attr('stroke-opacity', 0).transition().duration(900).attr('stroke-opacity', 1); else u.attr('stroke-opacity', 1);
-}
+const safeId = x => String(x).replace(/\W/g, '_');
 function paint(fade) {
-  paths.attr('fill', colorOf).classed('own', r => !!V.owner[r.id]).classed('hot', r => busy.has(r.id))
-    .style('--sk', r => { const n = V.nations[V.owner[r.id]]; return n ? n.color : null; });
-  drawOutlines(fade);
+  updateHot();
+  // chỉ vẽ lại khi quyền sở hữu/màu thật sự đổi (snapshot đến liên tục nhưng hầu như không đổi)
+  let sig = ''; for (const k in V.owner) sig += k + '=' + V.owner[k] + ';'; sig += '|' + Object.values(V.nations).map(n => n.id + n.color).join(',');
+  if (sig === paintSig) return; paintSig = sig; nlCache = null;
+  const by = {}; for (const r of regions) { const o = V.owner[r.id]; if (o && V.nations[o]) (by[o] || (by[o] = [])).push(r); }
+  const owners = Object.keys(by), cur_ = () => outG.selectAll('path.outl:not(.ghost)');
+  if (fade) cur_().each(function () { const c = this.cloneNode(); c.classList.add('ghost'); outG.node().appendChild(c); d3.select(c).transition().duration(900).attr('stroke-opacity', 0).remove(); });
+  cur_().remove(); ownG.selectAll('*').remove(); zoneG.selectAll('*').remove(); defs.selectAll('clipPath.oc,clipPath.oz').remove();
+  owners.forEach(o => {
+    const col = V.nations[o].color, dk = darker(col), rs = by[o], g = ownG.append('g'), byIso = {};
+    rs.forEach(r => (byIso[r.iso] || (byIso[r.iso] = [])).push(r));
+    const cp = defs.append('clipPath').attr('class', 'oc').attr('id', 'oc' + o);
+    rs.forEach(r => cp.append('path').attr('d', r.cell ? cellD(r) : d0[r.iso]));
+    const ids = Object.keys(byIso).sort(), ck = col + '|' + ids.join(',');
+    let oc = outCache.get(o); if (!oc || oc.key !== ck) { oc = { key: ck, d: outlineOf(ids) }; outCache.set(o, oc); }
+    for (const iso of ids) {
+      const mine = byIso[iso], full = mine.length === rByIso[iso].length;
+      const p = g.append('path').attr('class', 'ownl').attr('d', d0[iso]).attr('fill', col).attr('stroke', col);
+      if (full) continue;
+      const zid = 'oz' + safeId(o) + '_' + safeId(iso);   // vùng được sở hữu = MỘT path (không khe giữa các vùng liền kề)
+      defs.append('clipPath').attr('class', 'oz').attr('id', zid).append('path').attr('d', mine.map(cellD).join(''));
+      p.attr('clip-path', `url(#${zid})`);
+      const segs = [];
+      mine.forEach(r => r.nb.forEach(j => { if (V.owner[j] === o) return; const sh = r.shared && r.shared[j]; if (sh) segs.push('M' + sh[0][0].toFixed(1) + ',' + sh[0][1].toFixed(1) + 'L' + sh[1][0].toFixed(1) + ',' + sh[1][1].toFixed(1)); }));
+      if (segs.length) zoneG.append('g').attr('clip-path', `url(#k${safeId(iso)})`).append('path').attr('class', 'zedge').attr('d', segs.join('')).attr('stroke', dk).attr('stroke-opacity', .9).attr('clip-path', `url(#${zid})`);
+    }
+    const u = outG.append('path').attr('class', 'outl').attr('clip-path', `url(#oc${o})`).attr('d', oc.d).attr('stroke', dk);
+    if (fade) u.attr('stroke-opacity', 0).transition().duration(900).attr('stroke-opacity', 1); else u.attr('stroke-opacity', 1);
+  });
+  for (const k of [...outCache.keys()]) if (!by[k]) outCache.delete(k);
 }
 
 // ----- hướng tiến + điểm xuất phát của mũi tiến vào một vùng -----
@@ -1059,14 +1105,14 @@ const SND = (() => {
 const FX = (() => {
   const cv = $('fxcv'), ctx = cv.getContext('2d'), parts = [], troops = [];
   let dpr = 1, running = false, last = 0;
-  const resize = () => { dpr = Math.min(2, devicePixelRatio || 1); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; };
+  const resize = () => { dpr = Math.min(LITE ? 1.5 : 2, devicePixelRatio || 1); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; };
   addEventListener('resize', resize); resize();
   function scale() {          // toạ độ ảo (1600×820) → màn hình, kể cả zoom/pan
     const r = $('map').getBoundingClientRect(), s = Math.min(r.width / VW, r.height / VH), ox = r.left + (r.width - VW * s) / 2, oy = r.top + (r.height - VH * s) / 2;
     return { s: s * zoomT.k, tx: ox + s * zoomT.x, ty: oy + s * zoomT.y };
   }
   const kick = () => { if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); } };
-  const add = p => { if (parts.length < 1400) parts.push(p); kick(); };
+  const add = p => { if (parts.length < (LITE ? 500 : 1400) && (!LITE || 'semc'.indexOf(p.k) < 0 || Math.random() < .55)) parts.push(p); kick(); };
   const spark = (x, y, col, spd = 70, life = .5, size = 2) => { const a = rnd(0, 6.283), v = rnd(.3, 1) * spd; add({ k: 's', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life, t: 0, col, size }); };
   const ember = (x, y, col, life = 1.1) => add({ k: 'e', x, y, vx: rnd(-14, 14), vy: rnd(-50, -16), life, t: 0, col, size: rnd(1.2, 2.5) });
   const smoke = (x, y, life = 1.5, size = 5) => add({ k: 'm', x, y, vx: rnd(-8, 8), vy: rnd(-16, -6), life, t: 0, size });
@@ -1169,6 +1215,7 @@ function startSweep(r, E, color, dur, win, ratio, kind, update) {
   const inReg = p => inCell(r, p) && (d3.geoContains(byId[r.iso], proj.invert(p) || [0, 0]) || true);
   function frame(now) {
     if (stopped) return;
+    if (LITE && now - lastNow < 30 && now - t0 < dur) { requestAnimationFrame(frame); return; }   // máy yếu/điện thoại: ~30fps
     const dtt = Math.min(.05, (now - lastNow) / 1000); lastNow = now;
     const x = Math.min(1, Math.max(0, (now - t0) / dur));
     const base = win ? x : (x < .62 ? peak * x / .62 : peak * (1 - (x - .62) / .38));
@@ -1220,7 +1267,7 @@ function captureFx(r, n, e) {
   }
 }
 function hitFx() {
-  const m = $('map'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake');
+  const m = $('map'); if (!LITE) { m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake'); }
   $('hit').classList.add('on'); setTimeout(() => $('hit').classList.remove('on'), 140); SND.play('cap');
 }
 
@@ -1228,7 +1275,7 @@ function hitFx() {
 const anims = new Map();
 function onOp(e) {
   const r = regOf[e.rid], n = V.nations[e.nid]; if (!r || !n) return;
-  busy.add(e.rid); paths.classed('hot', rr => busy.has(rr.id));
+  busy.add(e.rid); updateHot();
   const own = regionsOf(V, e.nid), srcR = regOf[e.src], from = srcR ? srcR.seed : (own[0] ? own[0].seed : r.seed);
   const E = entryOf(r, new Set(own.map(o => o.id)), from), mine = e.nid === ME.nid, victim = !!e.o && e.o === ME.nid;
   const chip = (mine || victim) ? mkChip((e.kind === 'expand' ? '🌱 ' : victim ? '🛡️ ' : '⚔️ ') + nameOf(r), victim ? 'def' : '', n.color) : null;
@@ -1247,7 +1294,7 @@ function dropAnim(id, delay = 0) {
   if (a.chip) a.chip.rm(); if (a.arrow) a.arrow.remove(); if (a.sweep) { const sw = a.sweep; delay ? setTimeout(() => sw.stop(), delay) : sw.stop(); }
 }
 function onOpEnd(e) {
-  const r = regOf[e.rid], n = V.nations[e.nid]; busy.delete(e.rid);
+  const r = regOf[e.rid], n = V.nations[e.nid]; busy.delete(e.rid); updateHot();
   if (e.to) setOwner(V, e.rid, e.to);
   if (e.occ) V.occ[e.rid] = e.occ;
   if (e.fort !== undefined) { if (e.fort) V.fort[e.rid] = e.fort; else delete V.fort[e.rid]; }
@@ -1439,7 +1486,7 @@ function drawMenu() {
   const R = (k, l, d) => `<div class="mrow"><span>${l} Lv${n.tech[k]}<small>${d}</small></span><button data-act="tech" data-k="${k}" ${n.tech[k] >= CFG.techMax ? 'disabled' : ''}>${n.tech[k] >= CFG.techMax ? 'Tối đa' : rc(k) + '💰'}</button></div>`;
   const occN = own.filter(r => isOcc(V, r.id)).length;
   el.innerHTML = `<h2>${flagImg(n)}${esc(n.name)}</h2>
-    <p class="muted">Lãnh thổ ${own.length}/${admLimit(n)} · ổn định ${Math.round(stab(n, own.length) * 100)}% · thu +${n.inc.toFixed(1)}/giây${occN ? ` · ${occN} vùng đang chiếm đóng (thu 40%, hao quân)` : ''}. Vượt trần thì thu nhập giảm và có thể nổi loạn.</p>
+    <p class="muted">Lãnh thổ ${own.length}/${admLimit(n)} · ổn định ${Math.round(stab(n, own.length) * 100)}% · thu +${n.inc.toFixed(1)}/giây (đã trừ phí quản lý −${(n.up || 0).toFixed(1)})${occN ? ` · ${occN} vùng đang chiếm đóng (thu 40%, hao quân)` : ''}. Lãnh thổ càng rộng thì mở rộng, tuyển quân, pháo đài và phí quản lý càng đắt. Vượt trần thì thu nhập giảm và có thể nổi loạn.</p>
     <div class="mrow"><span>Chính sách: ${n.policy === 'mil' ? 'Quân sự' : 'Tăng trưởng'}<small>${n.policy === 'mil' ? 'lực +20%, lương quân −40%, thu nhập ×0.85' : 'thu nhập ×1.2'}</small></span><button data-act="policy">Đổi</button></div>
     <h3>Nghiên cứu</h3>${R('mil', '⚔️ Quân sự', '+12% lực tấn công mỗi cấp')}${R('eco', '💰 Kinh tế', '+15% thu nhập mỗi cấp')}${R('adm', '🏛️ Hành chính', '+3 trần lãnh thổ mỗi cấp')}
     <p class="muted" style="margin-top:12px">Mẹo: nước nhỏ hơn bình quân được cộng tới +35% thu nhập (hỗ trợ kẻ yếu). Pháo đài tăng +25% phòng thủ mỗi cấp. Thủ đô phòng thủ ×${CFG.capDef}.</p>`;
