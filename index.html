@@ -17,13 +17,16 @@ button{font:inherit;cursor:pointer}
 #fxcv{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
 #hit{position:fixed;inset:0;pointer-events:none;z-index:3;box-shadow:inset 0 0 140px 36px #e53935;opacity:0;transition:opacity .5s}
 #hit.on{opacity:.75;transition:opacity .08s}
-.country{stroke:var(--line);stroke-width:.4;vector-effect:non-scaling-stroke;stroke-linejoin:round;cursor:pointer}
-.ownl{stroke-width:1.3;stroke-linejoin:round;vector-effect:non-scaling-stroke;pointer-events:none}
-.zedge{fill:none;stroke-width:1.8;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
-.hotp{fill:#fff;pointer-events:none;opacity:.16;animation:hotp .8s ease-in-out infinite alternate}
-.lite .hotp{animation:none}
-@keyframes hotp{from{opacity:.04}to{opacity:.34}}
-.lbl{text-anchor:middle;fill:var(--tx);pointer-events:none;paint-order:stroke;stroke:var(--sf);font-size:calc(9px * var(--ik,1));stroke-width:calc(2px * var(--ik,1))}
+.country{stroke:var(--sk,var(--line));stroke-width:.4;vector-effect:non-scaling-stroke;cursor:pointer;transition:fill .3s}
+.country.own{stroke:none}
+.pl{fill:none;vector-effect:non-scaling-stroke;pointer-events:none;stroke-linecap:round}
+.pl.s{display:none}.pl.n{display:none;stroke:#fff;stroke-opacity:.35;stroke-width:.6}.zin .pl.n{display:inline}
+.pl.d{stroke:#1c1b1f;stroke-opacity:.5;stroke-width:1.2}
+.moving .lbl,.moving .nlbl{visibility:hidden}
+.lowq .country{transition:none}.lowq .country.hot{animation:none;filter:brightness(1.25)}.lowq #lb{backdrop-filter:none}
+.country.hot{animation:hot .8s ease-in-out infinite alternate}
+@keyframes hot{from{filter:none}to{filter:brightness(1.35) saturate(1.3)}}
+.lbl{text-anchor:middle;fill:var(--tx);pointer-events:none;paint-order:stroke;stroke:var(--sf);stroke-width:2px}
 .nlbl{text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-opacity:.9;font-weight:800;letter-spacing:.3px}
 .outl{fill:none;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
 .march{animation:march .7s linear infinite}
@@ -112,9 +115,16 @@ img.fl{width:24px;height:16px;border-radius:3px;vertical-align:-3px;margin-right
 #lobby .err{color:#f2b8b5}
 .grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 #loading{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:#101826;color:#fff;font-size:16px}
-#code{letter-spacing:6px;text-transform:uppercase;text-align:center;font-weight:800;font-size:22px}
+#codeX{letter-spacing:6px;text-transform:uppercase;text-align:center;font-weight:800;font-size:22px}
 .invite{display:flex;gap:8px;align-items:center;background:#2d2a35;border-radius:14px;padding:10px 12px;margin-top:10px;font-size:13px}
 .invite b{letter-spacing:3px;font-size:18px}
+#lobby details{margin-top:12px;font-size:13px}#lobby summary{cursor:pointer;color:#cac4d0}
+#lobby label.chk{display:flex;gap:8px;align-items:center;margin-top:10px}#lobby label.chk input{width:auto;margin:0}
+.rhead{display:flex;justify-content:space-between;align-items:center;margin-top:12px}.mini{border:0;border-radius:12px;padding:6px 10px;background:#2d2a35;color:#e6e0e9;font-size:12px}
+.rooms{max-height:30vh;overflow:auto;margin-top:6px;display:flex;flex-direction:column;gap:6px}
+.room{display:flex;align-items:center;gap:10px;background:#2d2a35;border-radius:14px;padding:10px 12px;cursor:pointer;border:0;color:inherit;text-align:left;width:100%}
+.room:hover{background:#3a3645}.room b{display:block}.room small{color:#cac4d0;font-size:11.5px}.room .go{margin-left:auto;background:#d0bcff;color:#1c1b1f;border-radius:12px;padding:6px 12px;font-weight:700;font-size:13px}
+#lbSaves .room{margin-top:8px}
 </style>
 </head>
 <body>
@@ -202,11 +212,17 @@ img.fl{width:24px;height:16px;border-radius:3px;vertical-align:-3px;margin-right
     <h1>🌍 Grand Strategy</h1>
     <p class="muted">Lập quốc gia, mở rộng, ngoại giao và chinh phục thế giới — chơi cùng bạn bè hoặc với AI.</p>
     <div class="seg" id="lbMode">
-      <button data-m="solo" class="on">Solo + AI</button><button data-m="host">Tạo phòng</button><button data-m="join">Vào phòng</button>
+      <button data-m="solo" class="on">Solo + AI</button><button data-m="host">Tạo phòng</button><button data-m="join">Phòng online</button>
     </div>
-    <div id="lbJoinBox" class="hidden">
-      <label>Mã phòng (5 ký tự)</label>
-      <input id="code" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" placeholder="ABCDE">
+    <div id="lbHostBox" class="hidden">
+      <label>Tên phòng</label><input id="rName" type="text" maxlength="30" placeholder="vd: Phòng của Bình" autocomplete="off">
+      <label class="chk"><input id="rPub" type="checkbox" checked> Hiện trong danh sách phòng (cần Firebase)</label>
+    </div>
+    <div id="lbSrv" class="hidden">
+  <details><summary>Máy chủ ghép nối: IP / Port (nâng cao)</summary>
+        <label>IP hoặc tên máy chủ PeerJS (để trống = PeerJS Cloud)</label><input id="rHost" type="text" placeholder="vd: 203.0.113.5 hoặc peer.example.com" autocomplete="off">
+        <div class="grid2"><div><label>Port</label><input id="rPort" type="text" inputmode="numeric" placeholder="443"></div><div><label>Path</label><input id="rPath" type="text" placeholder="/"></div><div><label>TLS (https)</label><select id="rTls"><option value="1">Bật</option><option value="0">Tắt</option></select></div></div>
+      </details>
     </div>
     <div id="lbOpts">
       <div class="grid2">
@@ -214,11 +230,21 @@ img.fl{width:24px;height:16px;border-radius:3px;vertical-align:-3px;margin-right
         <div><label>Tốc độ</label><select id="oSpd"><option value="1" selected>1×</option><option value="2">2×</option><option value="3">3×</option></select></div>
         <div><label>Độ khó AI</label><select id="oLvl"><option value="1">Dễ</option><option value="2" selected>Thường</option><option value="3">Khó</option></select></div>
       </div>
+      <div id="lbMax" class="hidden"><label>Số người chơi tối đa</label><select id="oMax"><option>2</option><option>3</option><option>4</option><option selected>6</option><option>8</option></select></div>
+    </div>
+    <div id="lbJoinBox" class="hidden">
+      <div class="rhead"><b>Phòng đang mở</b><button id="rRefresh" class="mini" type="button">⟳ Làm mới</button></div>
+      <div id="rooms" class="rooms"><p class="muted">Đang tải…</p></div>
+      <label>Hoặc nhập mã phòng</label><input id="code" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" placeholder="ABCDE">
     </div>
     <div class="row"><button id="lbGo" class="filled" type="button">Bắt đầu</button></div>
-    <div class="row"><button id="lbResume" class="tonal hidden" type="button"></button></div>
+    <div id="lbSaves"></div>
     <p id="lbMsg" class="err"></p>
-    <p class="muted" style="font-size:12px;margin-bottom:0">Online: chủ phòng chạy mô phỏng, người chơi khác kết nối trực tiếp (WebRTC). Chủ phòng thoát thì ván kết thúc — ván được tự lưu và có thể tiếp tục.</p>
+    <details id="fbBox"><summary>⚙ Firebase (danh sách phòng + lưu ván online)</summary>
+      <label>URL Realtime Database</label><input id="fbUrl" type="text" placeholder="https://ten-du-an-default-rtdb.firebaseio.com" autocomplete="off">
+      <div class="row"><button id="fbSave" class="tonal" type="button">Lưu &amp; kiểm tra</button><button id="fbShare" class="tonal" type="button">Chép link chia sẻ</button></div><p id="fbStat" class="muted"></p>
+    </details>
+    <p class="muted" style="font-size:12px;margin-bottom:0">Chủ phòng chạy mô phỏng, người chơi kết nối trực tiếp qua WebRTC. Ván tự lưu (máy + Firebase) nên chủ phòng thoát vẫn tiếp tục được.</p>
   </div>
 </div>
 <div id="loading">Đang tạo thế giới…</div>
@@ -254,6 +280,16 @@ const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().repla
 const idOf = f => f.properties.ADM0_A3 || f.properties.ISO_A3 || f.properties.NAME;
 const fmt = x => x >= 10000 ? (x / 1000).toFixed(0) + 'k' : x >= 1000 ? (x / 1000).toFixed(1) + 'k' : String(Math.floor(x));
 
+// ---- Chất lượng đồ hoạ: tự giảm hiệu ứng trên điện thoại / máy yếu (đổi được trong menu hoặc ?q=low|high) ----
+const PERF = (() => {
+  let q = null; try { q = localStorage.getItem('gs_q'); } catch (e) {}
+  const u = new URLSearchParams(location.search).get('q'); if (u) q = u;
+  const auto = /Android|iPhone|iPad|Mobi/i.test(navigator.userAgent) || (navigator.hardwareConcurrency || 8) <= 4;
+  const low = q === 'low' || (q !== 'high' && auto);
+  return { low, mode: q === 'low' || q === 'high' ? q : 'auto', dpr: low ? 1.25 : 2, maxParts: low ? 420 : 1400, spark: low ? .4 : 1, glow: !low, N: low ? 26 : 48, frameMs: low ? 33 : 0 };
+})();
+if (PERF.low) document.documentElement.classList.add('lowq');
+
 // ---- Hằng số cân bằng (một chỗ duy nhất để chỉnh) ----
 const CFG = {
   startMoney: 250, startArmy: 12,
@@ -265,6 +301,7 @@ const CFG = {
   capDef: 1.6, capFallArmy: .75, capFallMoney: .8,
   navalRange: 90, islandRange: 220, seaPower: .6, seaCost: 1.5,
   minCapDist: 45,       // thủ đô mới phải cách thủ đô khác tối thiểu
+  terrUpkeep: .03,      // phí duy trì mỗi vùng (nhân với kích thước vùng): đất càng bự càng tốn
   techMax: 8, maxNations: 16, victoryShare: .5, victoryHold: 90
 };
 
@@ -320,15 +357,10 @@ function buildGeo(layoutIn) {
         // cân bằng: nén theo log để nước đông dân không áp đảo
         inc: (1.2 + .8 * pf) / K,
         defR: Math.round((10 + 11 * pf) / Math.sqrt(K)),
-        dur: 4000 + 1.4e5 * Math.sqrt(area / K / MA) };
+        dur: 4000 + 1.4e5 * Math.sqrt(area / K / MA),
+        sz: clamp(.5 + 14 * Math.sqrt(area / K / MA), .5, 2.2) };    // kích thước vùng: quyết định giá mở rộng + phí duy trì
       regions.push(r); regOf[r.id] = r; return r;
     });
-    if (K > 1) {   // đoạn biên chung giữa hai vùng cùng nước (để chỉ vẽ biên khi hai bên khác chủ)
-      const rs = rByIso[iso], key = p => Math.round(p[0] * 20) + ',' + Math.round(p[1] * 20), ks = rs.map(r => new Set(r.cell.map(key)));
-      rs.forEach(r => { r.shared = {}; r.nb.forEach(id => { const j = rs.findIndex(x => x.id === id); if (j < 0) return;
-        const u = [], seen = new Set(); r.cell.forEach(p => { const k = key(p); if (ks[j].has(k) && !seen.has(k)) { seen.add(k); u.push(p); } });
-        if (u.length >= 2) r.shared[id] = [u[0], u[u.length - 1]]; }); });
-    }
   });
 
   // ---- Kề nhau giữa các nước (đỉnh chung) + cạnh để vẽ biên giới ----
@@ -394,19 +426,18 @@ const stab = (n, c) => Math.max(.35, 1 - .06 * Math.max(0, c - admLimit(n)));
 const attMul = n => (1 + .12 * n.tech.mil) * (n.policy === 'mil' ? 1.2 : 1);
 const isOcc = (st, rid) => (st.occ[rid] || 0) > st.t;
 function avgRegions(st) { const m = ownedMap(st), ids = Object.keys(st.nations).filter(i => (m[i] || []).length); return ids.length ? ids.reduce((a, i) => a + m[i].length, 0) / ids.length : 1; }
-const upkeepOf = c => .06 * Math.pow(c, 1.4);        // phí quản lý/giây: 10 vùng ≈1.5 · 30 vùng ≈7 · 60 vùng ≈18
 function incomeOf(st, id) {
   const n = st.nations[id], own = regionsOf(st, id); if (!n || !own.length) return 0;
   let s = 0; for (const r of own) s += r.inc * (isOcc(st, r.id) ? CFG.occIncome : 1);
   const avg = Math.max(3, avgRegions(st)), catchUp = 1 + .35 * clamp((avg - own.length) / avg, 0, 1);   // kéo kẻ yếu lên
-  const gross = s * stab(n, own.length) * (1 + .15 * n.tech.eco) * (n.policy === 'mil' ? .85 : 1.2) * catchUp * (n.bonus || 1);
-  return Math.max(gross * .3, gross - upkeepOf(own.length));   // trừ phí quản lý lãnh thổ (tăng nhanh theo số vùng)
+  let up = 0; for (const r of own) up += r.sz * CFG.terrUpkeep;
+  return Math.max(0, s * stab(n, own.length) * (1 + .15 * n.tech.eco) * (n.policy === 'mil' ? .85 : 1.2) * catchUp * (n.bonus || 1) - up);
 }
 const popOf = (st, id) => regionsOf(st, id).reduce((a, r) => a + r.pop, 0);
 const maxArmy = (st, id) => Math.floor(40 + 6 * Math.sqrt(popOf(st, id)));
-const recruitCost = (st, id) => Math.round(100 * Math.pow(1 + .08 * regionsOf(st, id).length, 1.3));
-const expandCost = c => Math.round(40 * Math.pow(1 + .12 * c, 1.45));   // 10 vùng ≈130 · 30 vùng ≈370 · 60 vùng ≈850
-const fortCost = (st, rid) => Math.round(90 * ((st.fort[rid] || 0) + 1) * Math.pow(1 + .03 * (regionsOf(st, st.owner[rid]).length), 1.3));
+const recruitCost = (st, id) => Math.round(100 * (1 + .08 * regionsOf(st, id).length));
+const expandCost = (c, r) => Math.round(40 * (1 + .1 * c) * (r ? r.sz : 1));   // càng nhiều vùng + vùng càng bự càng đắt
+const fortCost = (st, rid) => Math.round(90 * ((st.fort[rid] || 0) + 1) * (1 + .03 * (regionsOf(st, st.owner[rid]).length)));
 const techCost = lv => Math.round(120 * Math.pow(lv + 1, 1.6));
 const opsMax = (st, id) => 2 + Math.floor(regionsOf(st, id).length / 8);
 function defOf(st, r) {
@@ -483,7 +514,7 @@ const Sim = (() => {
   // ---------- khởi tạo ----------
   function create(cfg, lay) {
     layout = lay; hostPid = cfg.pid;
-    S = { v: 1, code: cfg.code || '', speed: cfg.speed, level: cfg.level, t: 0, ver: 0, seq: 0, nations: {}, owner: {}, occ: {}, fort: {}, players: {}, log: [], cap: CFG.maxNations, vic: null, wonAt: -1e9 };
+    S = { v: 1, name: cfg.name || '', maxH: cfg.maxH || 8, code: cfg.code || '', speed: cfg.speed, level: cfg.level, t: 0, ver: 0, seq: 0, nations: {}, owner: {}, occ: {}, fort: {}, players: {}, log: [], cap: CFG.maxNations, vic: null, wonAt: -1e9 };
     spawnAI(cfg.ai); start();
   }
   function restore(obj, lay, pid) {
@@ -510,7 +541,7 @@ const Sim = (() => {
 
   // ---------- đóng gói cho mạng ----------
   const pubN = n => ({ id: n.id, name: n.name, leader: n.leader, color: n.color, flag: n.flag, ai: !!n.ai, capital: n.capital, money: r1(n.money), army: r1(n.army),
-    tech: n.tech, policy: n.policy, war: n.war, ally: n.ally, truce: n.truce, shield: n.shield || 0, inc: r2(incomeOf(S, n.id)), up: r2(upkeepOf(regionsOf(S, n.id).length)), online: n.ai ? true : !!n.online, auto: !!n.auto });
+    tech: n.tech, policy: n.policy, war: n.war, ally: n.ally, truce: n.truce, shield: n.shield || 0, inc: r2(incomeOf(S, n.id)), online: n.ai ? true : !!n.online, auto: !!n.auto });
   const dynN = n => { const p = pubN(n); delete p.name; delete p.leader; delete p.color; delete p.flag; delete p.ai; return p; };
   function snap(full) {
     const n = {}; for (const id in S.nations) n[id] = dynN(S.nations[id]);
@@ -521,7 +552,7 @@ const Sim = (() => {
   function welcome(pid) {
     const nations = {}; for (const id in S.nations) nations[id] = pubN(S.nations[id]);
     return { t: 'welcome', you: { pid, nid: S.players[pid] || null }, layout, host: hostPid,
-      S: { code: S.code, speed: S.speed, level: S.level, t: S.t, nations, owner: S.owner, occ: S.occ, fort: S.fort, log: S.log, cap: S.cap }, ops: [...ops.values()].map(o => o.rid) };
+      S: { name: S.name || '', maxH: S.maxH || 8, code: S.code, speed: S.speed, level: S.level, t: S.t, nations, owner: S.owner, occ: S.occ, fort: S.fort, log: S.log, cap: S.cap }, ops: [...ops.values()].map(o => o.rid) };
   }
   function save() {
     try { localStorage.setItem('gs4_host', JSON.stringify({ at: Date.now(), S }, (k, v) => k[0] === '_' ? undefined : v)); } catch (e) {}
@@ -539,6 +570,7 @@ const Sim = (() => {
   function found(pid, m) {
     if (S.players[pid]) return toastP(pid, 'Bạn đã có quốc gia');
     if (Object.keys(S.nations).length >= S.cap) return toastP(pid, 'Phòng đã đầy');
+    if (Object.values(S.nations).filter(x => !x.ai).length >= (S.maxH || 8)) return toastP(pid, `Phòng chỉ cho ${S.maxH || 8} người chơi`);
     const name = String(m.name || '').trim(), leader = String(m.leader || '').trim(), err = checkNation(S, name, leader, m.color, m.flag);
     if (err) return toastP(pid, err);
     const r = regOf[m.rid];
@@ -565,7 +597,7 @@ const Sim = (() => {
     const op = { id: ++opSeq, nid, rid, kind, src: src.id, sea, o: o || null, sent: 0, cost: 0, def: 0 };
     if (kind === 'expand') {
       if (o) return 'Vùng đã có chủ';
-      op.cost = Math.round(expandCost(regionsOf(S, nid).length) * (sea ? CFG.seaCost : 1)); if (n.money < op.cost) return 'Không đủ tiền';
+      op.cost = Math.round(expandCost(regionsOf(S, nid).length, r) * (sea ? CFG.seaCost : 1)); if (n.money < op.cost) return 'Không đủ tiền';
       n.money -= op.cost; op.win = true; op.ratio = 3; op.dur = r.dur * (sea ? 1.4 : 1) / S.speed;
     } else {
       const en = S.nations[o]; if (!en || o === nid) return 'Không thể tấn công vùng này';
@@ -722,9 +754,9 @@ const Sim = (() => {
     // nghiên cứu khi dư tiền
     if (full) { const ks = own.length >= admLimit(n) - 1 ? ['adm', 'eco', 'mil'] : ['eco', 'mil', 'adm']; for (const k of ks) { const c = techCost(n.tech[k]); if (n.tech[k] < 5 && n.money > c * 1.8) { n.money -= c; n.tech[k]++; break; } } }
     // mở rộng
-    if (nOps(n.id) < cap && own.length < admLimit(n) + (full ? 3 : 0) && n.money >= expandCost(own.length)) {
+    if (nOps(n.id) < cap && own.length < admLimit(n) + (full ? 3 : 0) && n.money >= expandCost(own.length, { sz: .5 })) {
       const c0 = [d3.mean(own, o => o.seed[0]), d3.mean(own, o => o.seed[1])];
-      const cand = fr.filter(r => !S.owner[r.id] && !busyMap.has(r.id) && !r.anta).sort((a, b) => (b.inc * 3 - dist2(b.seed, c0) * .02) - (a.inc * 3 - dist2(a.seed, c0) * .02));
+      const cand = fr.filter(r => !S.owner[r.id] && !busyMap.has(r.id) && !r.anta && n.money >= expandCost(own.length, r)).sort((a, b) => (b.inc * 3 - dist2(b.seed, c0) * .02) - (a.inc * 3 - dist2(a.seed, c0) * .02));
       if (cand.length) startOp(n.id, pick(cand.slice(0, 3)).id, 'expand');
     }
     if (!full) return;
@@ -792,7 +824,71 @@ const Sim = (() => {
     if (ticks % 10 === 0) save();
   }
 
-  return { create, restore, stop, handle, joined, left, welcome, save, snap, get S() { return S; }, get ops() { return ops; } };
+  const exportJSON = () => JSON.stringify({ at: Date.now(), S }, (k, v) => k[0] === '_' ? undefined : v);
+  return { exportJSON, create, restore, stop, handle, joined, left, welcome, save, snap, get S() { return S; }, get ops() { return ops; } };
+})();
+// =====================================================================================
+//  P3b — FIREBASE Realtime Database (REST, không cần SDK): danh sách phòng công khai + lưu ván online
+//  Dán URL database vào FB_DEFAULT (hoặc nhập trong sảnh ⚙). Rules gợi ý ở cuối file README/hướng dẫn.
+// =====================================================================================
+const FB_DEFAULT = '';      // vd: 'https://ten-du-an-default-rtdb.firebaseio.com'
+// Máy chủ ghép nối WebRTC (PeerJS broker). Để trống host = dùng PeerJS Cloud mặc định.
+const NETCFG = { host: '', port: 0, path: '/', secure: true };
+try { Object.assign(NETCFG, JSON.parse(localStorage.getItem('gs_netcfg') || '{}')); } catch (e) {}
+const peerLabel = c => c && c.host ? `${c.host}:${c.port || (c.secure ? 443 : 9000)}` : '0.peerjs.com:443';
+
+const FB = (() => {
+  let url = '', skew = 0, owner = '', beat = null, beatCode = null, beats = 0;
+  try { url = localStorage.getItem('gs_fb') || ''; } catch (e) {}
+  // link chia sẻ dạng  https://trang-cua-ban/#fb=<url>  : phần # không gửi lên server/GitHub; lưu vào máy rồi xoá khỏi thanh địa chỉ
+  try { const m = /[#&]fb=([^&]+)/.exec(location.hash); if (m) { url = decodeURIComponent(m[1]); localStorage.setItem('gs_fb', url); history.replaceState(null, '', location.pathname + location.search); } } catch (e) {}
+  if (!url) url = new URLSearchParams(location.search).get('fb') || FB_DEFAULT;
+  url = url.trim().replace(/\/+$/, '');
+  const ok = () => /^https?:\/\/[^\s]+$/.test(url);
+  const call = async (method, p, body, opt) => {
+    const r = await fetch(`${url}/${p}.json`, Object.assign({ method, body: body === undefined ? undefined : JSON.stringify(body) }, opt || {}));
+    if (!r.ok) throw new Error('Firebase ' + r.status + (r.status === 401 || r.status === 403 ? ' (kiểm tra Rules)' : ''));
+    return r.json();
+  };
+  async function hashOf(s) {            // danh tính chủ phòng ẩn danh: băm pid, không lộ pid
+    try { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('gs|' + s)); return [...new Uint8Array(b)].slice(0, 8).map(x => x.toString(16).padStart(2, '0')).join(''); }
+    catch (e) { let h = 5381; for (const c of 'gs|' + s) h = ((h << 5) + h + c.charCodeAt(0)) >>> 0; return 'h' + h.toString(16); }
+  }
+  async function init(pid) {
+    owner = await hashOf(pid); if (!ok()) return false;
+    try { const ts = await call('PUT', 'gs_clock/' + owner, { '.sv': 'timestamp' }); if (typeof ts === 'number') skew = ts - Date.now(); return true; }   // lệch đồng hồ so với server
+    catch (e) { return false; }
+  }
+  const now = () => Date.now() + skew;
+  async function list() {
+    const all = (await call('GET', 'gs_rooms')) || {}, t = now(), out = [];
+    for (const code in all) { const r = all[code]; if (!r || typeof r !== 'object') continue; if (t - (r.ts || 0) > 50000) { if (t - (r.ts || 0) > 600000) call('DELETE', 'gs_rooms/' + code).catch(() => {}); continue; } out.push(Object.assign({ code }, r)); }
+    return out.sort((a, b) => (b.players || 0) - (a.players || 0) || (b.ts || 0) - (a.ts || 0));
+  }
+  const TS = { '.sv': 'timestamp' };
+  const publish = (code, info) => call('PUT', 'gs_rooms/' + code, Object.assign({}, info, { ts: TS }));
+  const remove = code => call('DELETE', 'gs_rooms/' + code);
+  // ---- lưu ván: gs_saves/<owner>/<code> (chuỗi JSON vì khoá Firebase không được chứa . # $ / [ ]) ----
+  const saveGame = (code, name, json) => call('PUT', `gs_saves/${owner}/${code}`, { name, at: TS, data: json });
+  async function saves() { const all = (await call('GET', 'gs_saves/' + owner)) || {}; return Object.keys(all).map(code => ({ code, name: all[code].name, at: all[code].at, data: all[code].data })).sort((a, b) => b.at - a.at); }
+  const delSave = code => call('DELETE', `gs_saves/${owner}/${code}`);
+  // ---- chủ phòng: nhịp tim 15s (cập nhật số người) + lưu ván mỗi 30s ----
+  function startBeacon(code, info, stats, exportJson) {
+    stopBeacon(); if (!ok()) return; beatCode = code; beats = 0;
+    const go = async () => {
+      try {
+        if (info.pub) { const s = stats(); await call('PATCH', 'gs_rooms/' + code, { players: s.players, nations: s.nations, ts: TS }); }
+        if (beats++ % 2 === 0) await saveGame(code, info.name, exportJson());
+      } catch (e) { console.warn('beacon', e.message); }
+    };
+    (info.pub ? publish(code, Object.assign({ players: 1, nations: 1 }, info.rec)) : Promise.resolve()).catch(e => console.warn('publish', e.message)).then(go);
+    beat = setInterval(go, 15000);
+  }
+  function stopBeacon() { clearInterval(beat); beat = null; }
+  addEventListener('pagehide', () => { if (beat && beatCode && ok()) try { fetch(`${url}/gs_rooms/${beatCode}.json`, { method: 'DELETE', keepalive: true }); } catch (e) {} });
+  const shareLink = () => location.origin + location.pathname + '#fb=' + encodeURIComponent(url);
+  return { shareLink, init, ok, list, publish, remove, saveGame, saves, delSave, startBeacon, stopBeacon, get url() { return url; },
+    setUrl(u) { url = (u || '').trim().replace(/\/+$/, ''); try { localStorage.setItem('gs_fb', url); } catch (e) {} } };
 })();
 // =====================================================================================
 //  P3 — MẠNG: chủ phòng có thẩm quyền (host-authoritative) qua PeerJS/WebRTC, không cần server riêng.
@@ -802,8 +898,9 @@ const PEER_PREFIX = 'gsmp4-';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const genCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < 5; i++) s += A[Math.floor(Math.random() * A.length)]; return s; };
 function peerOpts() {
-  const q = new URLSearchParams(location.search), o = { debug: 0 };
-  if (q.get('peerhost')) { o.host = q.get('peerhost'); o.port = +q.get('peerport') || 9000; o.path = q.get('peerpath') || '/'; o.secure = q.get('peersecure') === '1'; }   // tự dựng broker: ?peerhost=...
+  const o = { debug: 0 }, q = new URLSearchParams(location.search);
+  if (NETCFG.host) { o.host = NETCFG.host; o.port = +NETCFG.port || (NETCFG.secure ? 443 : 9000); o.path = NETCFG.path || '/'; o.secure = !!NETCFG.secure; }
+  else if (q.get('peerhost')) { o.host = q.get('peerhost'); o.port = +q.get('peerport') || 9000; o.path = q.get('peerpath') || '/'; o.secure = q.get('peersecure') === '1'; }
   return o;
 }
 async function getPid() {
@@ -922,12 +1019,10 @@ addEventListener('pagehide', () => {
 //  P4a — VIEW: dựng bản đồ SVG, tô màu, biên giới, cờ, nhãn, zoom
 // =====================================================================================
 let V = null;                                // bản sao trạng thái công khai nhận từ chủ phòng
-const MOBILE = matchMedia('(pointer:coarse)').matches;
-const LITE = MOBILE || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4 || matchMedia('(prefers-reduced-motion: reduce)').matches;
-if (LITE) document.documentElement.classList.add('lite');
 const ME = { pid: null, nid: null };
 const busy = new Set();                      // vùng đang có chiến dịch
-let worldBuilt = false, svg, gMap, defs, baseG, ownG, hotG, zoneG, areaOf = {}, bbOf = {}, nlCache = null, paintSig = '', outCache = new Map(), outG, sweepG, arrowG, selP, labels, nlabG, flagsG, fxG, zoomB, LAND = '#d9d3c7';
+let prevOwn = {}, ownCache = {}, pairEls = null, pairsOf = {}, lastK = -1, lastHot = new Set(), zraf = 0, movingT = 0;
+let worldBuilt = false, svg, gMap, defs, paths, innerG, ownG, outG, sweepG, arrowG, selP, labels, nlabG, flagsG, fxG, zoomB, LAND = '#d9d3c7';
 let zoomT = d3.zoomIdentity;
 const cid = r => 'c' + r.id.replace(/\W/g, '_');
 const darker = c => d3.color(c).darker(.9).formatHex();
@@ -938,54 +1033,54 @@ function buildMap() {
   const dark = matchMedia('(prefers-color-scheme: dark)').matches; LAND = dark ? '#3b3b44' : '#d9d3c7';
   svg = d3.select('#map').append('svg').attr('viewBox', `0 0 ${VW} ${VH}`).attr('preserveAspectRatio', 'xMidYMid meet');
   gMap = svg.append('g'); defs = svg.append('defs');
-  defs.selectAll().data(regions.filter(r => r.cell)).join('clipPath').attr('id', cid).append('path').attr('d', cellD);   // cắt theo từng vùng (hiệu ứng chiếm)
+  defs.selectAll().data(regions.filter(r => r.cell)).join('clipPath').attr('id', cid).append('path').attr('d', cellD);
+  paths = gMap.append('g').selectAll('path').data(regions).join('path').attr('class', 'country')
+    .attr('d', r => d0[r.iso]).attr('clip-path', r => r.cell ? `url(#${cid(r)})` : null).attr('fill', colorOf).on('click', (ev, r) => onRegionClick(r));
   Object.keys(rByIso).filter(i => rByIso[i][0].cell).forEach(i => defs.append('clipPath').attr('id', 'k' + i.replace(/\W/g, '_')).append('path').attr('d', d0[i]));
-  features.forEach(f => { const i = idOf(f); areaOf[i] = path.area(f); bbOf[i] = path.bounds(f); f._t = Math.max(2.2, 30 / Math.sqrt(areaOf[i] || 1)); });
-  // lớp 1: nền đất, MỖI NƯỚC MỘT path (trước đây mỗi vùng một bản sao cả nước → rất nặng)
-  baseG = gMap.append('g'); baseG.selectAll('path').data(features).join('path').attr('class', 'country').attr('d', f => d0[idOf(f)]).attr('fill', LAND);
-  ownG = gMap.append('g').attr('pointer-events', 'none');      // lớp 2: màu theo chủ, vùng cùng chủ liền một khối
-  hotG = gMap.append('g').attr('pointer-events', 'none');      // vùng đang có chiến dịch
-  zoneG = gMap.append('g').attr('pointer-events', 'none');     // biên vùng: chỉ nơi hai bên khác chủ
+  ownG = gMap.append('g').attr('pointer-events', 'none');      // mỗi quốc gia MỘT khối tô liền, không kẽ hở giữa các vùng
+  innerG = gMap.append('g').attr('pointer-events', 'none');    // đường chia vùng: chỉ hiện giữa hai bên khác chủ (hoặc mờ khi zoom gần ở đất trống)
+  const pairs = buildPairs(); pairsOf = {};
+  pairEls = innerG.selectAll('path').data(pairs).join('path').attr('class', 'pl s').attr('d', p => p.d).attr('clip-path', p => `url(#k${p.iso.replace(/\W/g, '_')})`).nodes();
+  pairs.forEach((p, i) => { (pairsOf[p.a] = pairsOf[p.a] || []).push(i); (pairsOf[p.b] = pairsOf[p.b] || []).push(i); pairEls[i].__p = p; });
   outG = gMap.append('g').attr('pointer-events', 'none'); sweepG = gMap.append('g').attr('pointer-events', 'none'); arrowG = gMap.append('g').attr('pointer-events', 'none');
   selP = gMap.append('path').attr('fill', 'var(--pr)').attr('fill-opacity', .35).attr('pointer-events', 'none');
   nlabG = gMap.append('g').attr('pointer-events', 'none');
-  const labG = gMap.append('g');
-  labels = labG.selectAll('text').data(features.filter(posOf)).join('text').attr('class', 'lbl').style('display', 'none')
+  labels = gMap.append('g').selectAll('text').data(features.filter(posOf)).join('text').attr('class', 'lbl')
     .attr('transform', f => `translate(${posOf(f)})`).text(f => f.properties.NAME);
   flagsG = gMap.append('g').attr('pointer-events', 'none'); fxG = gMap.append('g').attr('pointer-events', 'none');
 
-  // zoom: gMap cập nhật ngay; nhãn/cờ chỉ cập nhật 1 lần mỗi khung hình
-  let zq = false;
-  const afterZoom = () => {
-    zq = false; const k = zoomT.k; labG.node().style.setProperty('--ik', 1 / k);
-    labels.each(function (f) { const v = k > f._t; if (v !== this._v) { this._v = v; this.style.display = v ? '' : 'none'; } });
-    drawFlags(); drawNationLabels();
-  };
   zoomB = d3.zoom().scaleExtent([1, 40]).translateExtent([[0, 0], [VW, VH]]).on('zoom', ev => {
-    zoomT = ev.transform; gMap.attr('transform', zoomT); if (!zq) { zq = true; requestAnimationFrame(afterZoom); }
+    zoomT = ev.transform; gMap.attr('transform', zoomT);
+    const m = $('map'); m.classList.add('moving'); clearTimeout(movingT); movingT = setTimeout(() => m.classList.remove('moving'), 160);
+    if (!zraf) zraf = requestAnimationFrame(() => { zraf = 0; zoomUpdate(); });
   });
   svg.call(zoomB);
-  svg.on('click', ev => { const r = regionAt(d3.pointer(ev, gMap.node())); if (r) onRegionClick(r); });
   $('zin').onclick = () => svg.transition().call(zoomB.scaleBy, 1.7);
   $('zout').onclick = () => svg.transition().call(zoomB.scaleBy, 1 / 1.7);
-  svg.call(zoomB.transform, d3.zoomIdentity);
+  svg.call(zoomB.transform, d3.zoomIdentity); zoomUpdate();
   worldBuilt = true;
 }
-// chạm → vùng (1 bộ lắng nghe cho cả bản đồ thay cho hàng trăm path); chạm gần đảo nhỏ vẫn trúng
-function regionAt(p) {
-  const q = proj.invert(p); let iso = null;
-  if (q && isFinite(q[0])) for (const f of features) {
-    const i = idOf(f), b = bbOf[i]; if (!b || p[0] < b[0][0] || p[0] > b[1][0] || p[1] < b[0][1] || p[1] > b[1][1]) continue;
-    if (d3.geoContains(f, q)) { iso = i; break; }
-  }
-  if (iso) { const rs = rByIso[iso]; return rs.length === 1 ? rs[0] : (rs.find(r => inCell(r, p)) || rs.reduce((a, r) => dist2(r.seed, p) < dist2(a.seed, p) ? r : a)); }
-  let bd = (MOBILE ? 16 : 9) / zoomT.k, br = null;
-  for (const r of regions) { if (r.K > 1) continue; const d = dist2(r.seed, p); if (d < bd) { bd = d; br = r; } }
-  return br;
+function zoomUpdate() {            // chỉ làm việc nặng khi mức zoom đổi (kéo bản đồ thì bỏ qua)
+  const k = zoomT.k; if (k === lastK) return; lastK = k;
+  labels.style('font-size', (9 / k) + 'px').style('stroke-width', (2 / k) + 'px').style('display', f => (k > 2.2 && path.area(f) * k * k > 900) ? null : 'none');
+  $('map').classList.toggle('zin', k > 2.2); drawFlags(); drawNationLabels();
 }
-function updateHot() {
-  const rs = [...busy].map(id => regOf[id]).filter(Boolean);
-  hotG.selectAll('path').data(rs, r => r.id).join(en => en.append('path').attr('class', 'hotp').attr('d', r => d0[r.iso]).attr('clip-path', r => r.cell ? `url(#${cid(r)})` : null));
+// cạnh chung giữa hai vùng cùng nước (từ các đỉnh Voronoi trùng nhau)
+function buildPairs() {
+  const out = [], key = p => p[0].toFixed(2) + ',' + p[1].toFixed(2);
+  Object.values(rByIso).forEach(rs => {
+    if (!rs[0].cell) return; const sets = rs.map(r => new Map(r.cell.map(p => [key(p), p])));
+    rs.forEach(a => a.nb.forEach(bid => {
+      const b = regOf[bid]; if (!b || b.i <= a.i) return; const sh = []; sets[a.i].forEach((p, k) => { if (sets[b.i].has(k)) sh.push(p); }); if (sh.length < 2) return;
+      let bp = [sh[0], sh[1]], bd = -1; for (let i = 0; i < sh.length; i++) for (let j = i + 1; j < sh.length; j++) { const d = dist2(sh[i], sh[j]); if (d > bd) { bd = d; bp = [sh[i], sh[j]]; } }
+      out.push({ a: a.id, b: b.id, iso: a.iso, d: `M${bp[0][0].toFixed(1)},${bp[0][1].toFixed(1)}L${bp[1][0].toFixed(1)},${bp[1][1].toFixed(1)}` });
+    }));
+  });
+  return out;
+}
+function paintLines(dirty) {
+  const idx = dirty ? [...new Set([...dirty].flatMap(id => pairsOf[id] || []))] : pairEls.map((_, i) => i);
+  idx.forEach(i => { const el = pairEls[i], p = el.__p, oa = V.owner[p.a], ob = V.owner[p.b]; el.setAttribute('class', 'pl ' + (oa === ob ? (oa ? 's' : 'n') : 'd')); });
 }
 const sel = r => selP.attr('d', r ? d0[r.iso] : null).attr('clip-path', r && r.cell ? `url(#${cid(r)})` : null);
 
@@ -998,55 +1093,48 @@ function drawFlags() {
 }
 function drawNationLabels() {
   if (!V) return; const k = zoomT.k;
-  const items = nlCache || (nlCache = Object.values(V.nations).map(n => {
+  const items = Object.values(V.nations).map(n => {
     const own = regionsOf(V, n.id); if (!own.length) return null;
     const mx = d3.mean(own, o => o.seed[0]), my = d3.mean(own, o => o.seed[1]);
     return { n, p: own.reduce((b, o) => dist2(o.seed, [mx, my]) < dist2(b.seed, [mx, my]) ? o : b).seed, cnt: own.length };
-  }).filter(Boolean));
+  }).filter(Boolean);
   nlabG.selectAll('text').data(items, d => d.n.id).join('text').attr('class', 'nlbl')
     .attr('transform', d => `translate(${d.p[0]},${d.p[1] + 11 / k})`).style('font-size', d => ((8.5 + Math.min(9, Math.sqrt(d.cnt) * 1.6)) / k) + 'px')
     .style('stroke-width', (2.5 / k) + 'px').attr('fill', d => darker(d.n.color)).style('display', k > 7 ? 'none' : null).text(d => d.n.name);
 }
 
-// ----- tô màu + biên giới: cùng chủ thì liền một khối (không đường chia, không khe hở), chỉ còn viền ngoài -----
-function outlineOf(ids) {   // cạnh chung giữa hai nước cùng chủ triệt tiêu
-  const cnt = new Map(), segs = [];
+// ----- biên giới hợp nhất: cạnh chung giữa hai nước cùng chủ triệt tiêu -----
+function outlineOf(owner) {
+  const ids = [...new Set(regions.filter(r => V.owner[r.id] === owner).map(r => r.iso))], cnt = new Map(), segs = [];
   ids.forEach(i => edgesOf[i].forEach(e => cnt.set(e[0], (cnt.get(e[0]) || 0) + 1)));
   ids.forEach(i => edgesOf[i].forEach(e => { if (cnt.get(e[0]) === 1) segs.push([e[1], e[2]]); }));
   return path({ type: 'MultiLineString', coordinates: segs }) || '';
 }
-const safeId = x => String(x).replace(/\W/g, '_');
-function paint(fade) {
-  updateHot();
-  // chỉ vẽ lại khi quyền sở hữu/màu thật sự đổi (snapshot đến liên tục nhưng hầu như không đổi)
-  let sig = ''; for (const k in V.owner) sig += k + '=' + V.owner[k] + ';'; sig += '|' + Object.values(V.nations).map(n => n.id + n.color).join(',');
-  if (sig === paintSig) return; paintSig = sig; nlCache = null;
-  const by = {}; for (const r of regions) { const o = V.owner[r.id]; if (o && V.nations[o]) (by[o] || (by[o] = [])).push(r); }
-  const owners = Object.keys(by), cur_ = () => outG.selectAll('path.outl:not(.ghost)');
-  if (fade) cur_().each(function () { const c = this.cloneNode(); c.classList.add('ghost'); outG.node().appendChild(c); d3.select(c).transition().duration(900).attr('stroke-opacity', 0).remove(); });
-  cur_().remove(); ownG.selectAll('*').remove(); zoneG.selectAll('*').remove(); defs.selectAll('clipPath.oc,clipPath.oz').remove();
-  owners.forEach(o => {
-    const col = V.nations[o].color, dk = darker(col), rs = by[o], g = ownG.append('g'), byIso = {};
-    rs.forEach(r => (byIso[r.iso] || (byIso[r.iso] = [])).push(r));
-    const cp = defs.append('clipPath').attr('class', 'oc').attr('id', 'oc' + o);
-    rs.forEach(r => cp.append('path').attr('d', r.cell ? cellD(r) : d0[r.iso]));
-    const ids = Object.keys(byIso).sort(), ck = col + '|' + ids.join(',');
-    let oc = outCache.get(o); if (!oc || oc.key !== ck) { oc = { key: ck, d: outlineOf(ids) }; outCache.set(o, oc); }
-    for (const iso of ids) {
-      const mine = byIso[iso], full = mine.length === rByIso[iso].length;
-      const p = g.append('path').attr('class', 'ownl').attr('d', d0[iso]).attr('fill', col).attr('stroke', col);
-      if (full) continue;
-      const zid = 'oz' + safeId(o) + '_' + safeId(iso);   // vùng được sở hữu = MỘT path (không khe giữa các vùng liền kề)
-      defs.append('clipPath').attr('class', 'oz').attr('id', zid).append('path').attr('d', mine.map(cellD).join(''));
-      p.attr('clip-path', `url(#${zid})`);
-      const segs = [];
-      mine.forEach(r => r.nb.forEach(j => { if (V.owner[j] === o) return; const sh = r.shared && r.shared[j]; if (sh) segs.push('M' + sh[0][0].toFixed(1) + ',' + sh[0][1].toFixed(1) + 'L' + sh[1][0].toFixed(1) + ',' + sh[1][1].toFixed(1)); }));
-      if (segs.length) zoneG.append('g').attr('clip-path', `url(#k${safeId(iso)})`).append('path').attr('class', 'zedge').attr('d', segs.join('')).attr('stroke', dk).attr('stroke-opacity', .9).attr('clip-path', `url(#${zid})`);
+// Mỗi chủ một cụm: khối tô liền (clip = MỘT path gộp nên không có kẽ hở) + viền ngoài. Chỉ dựng lại cụm nào thay đổi.
+function drawOwners(fade) {
+  const byO = {}; regions.forEach(r => { const o = V.owner[r.id]; if (o && V.nations[o]) (byO[o] = byO[o] || []).push(r); });
+  Object.keys(ownCache).forEach(o => { if (!byO[o]) { const c = ownCache[o]; c.cp.remove(); c.fill.remove(); c.out.transition().duration(fade ? 700 : 0).attr('stroke-opacity', 0).remove(); delete ownCache[o]; } });
+  Object.keys(byO).forEach(o => {
+    const rs = byO[o], col = V.nations[o].color, sig = col + '|' + rs.map(r => r.id).join('|'); let c = ownCache[o]; if (c && c.sig === sig) return;
+    if (!c) {
+      const cp = defs.append('clipPath').attr('id', 'oc' + o);
+      c = ownCache[o] = { cp, clip: cp.append('path'), fill: ownG.append('path').attr('clip-path', `url(#oc${o})`).attr('pointer-events', 'none'), out: outG.append('path').attr('class', 'outl').attr('clip-path', `url(#oc${o})`).attr('stroke-opacity', 0) };
     }
-    const u = outG.append('path').attr('class', 'outl').attr('clip-path', `url(#oc${o})`).attr('d', oc.d).attr('stroke', dk);
-    if (fade) u.attr('stroke-opacity', 0).transition().duration(900).attr('stroke-opacity', 1); else u.attr('stroke-opacity', 1);
+    c.sig = sig; c.clip.attr('d', rs.map(r => r.cell ? cellD(r) : d0[r.iso]).join(''));
+    c.fill.attr('d', [...new Set(rs.map(r => r.iso))].map(i => d0[i]).join('')).attr('fill', col);
+    if (fade && c.out.attr('d')) { const g = c.out.node().cloneNode(); g.classList.add('ghost'); outG.node().appendChild(g); d3.select(g).transition().duration(700).attr('stroke-opacity', 0).remove(); }
+    c.out.attr('d', outlineOf(o)).attr('stroke', darker(col));
+    c.out.transition().duration(fade ? 700 : 0).attr('stroke-opacity', 1);
   });
-  for (const k of [...outCache.keys()]) if (!by[k]) outCache.delete(k);
+}
+function paint(fade) {
+  const dirty = new Set(); regions.forEach(r => { const o = V.owner[r.id] || null; if (prevOwn[r.id] !== o) { prevOwn[r.id] = o; dirty.add(r.id); } });
+  if (dirty.size) {
+    paths.filter(r => dirty.has(r.id)).attr('fill', colorOf).classed('own', r => !!V.owner[r.id]).style('--sk', r => { const n = V.nations[V.owner[r.id]]; return n ? n.color : null; });
+    paintLines(dirty.size > 40 ? null : dirty);
+  }
+  const hot = new Set(busy); paths.filter(r => hot.has(r.id) !== lastHot.has(r.id)).classed('hot', r => hot.has(r.id)); lastHot = hot;
+  drawOwners(fade);
 }
 
 // ----- hướng tiến + điểm xuất phát của mũi tiến vào một vùng -----
@@ -1105,14 +1193,14 @@ const SND = (() => {
 const FX = (() => {
   const cv = $('fxcv'), ctx = cv.getContext('2d'), parts = [], troops = [];
   let dpr = 1, running = false, last = 0;
-  const resize = () => { dpr = Math.min(LITE ? 1.5 : 2, devicePixelRatio || 1); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; };
+  const resize = () => { dpr = Math.min(PERF.dpr, devicePixelRatio || 1); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; };
   addEventListener('resize', resize); resize();
   function scale() {          // toạ độ ảo (1600×820) → màn hình, kể cả zoom/pan
     const r = $('map').getBoundingClientRect(), s = Math.min(r.width / VW, r.height / VH), ox = r.left + (r.width - VW * s) / 2, oy = r.top + (r.height - VH * s) / 2;
     return { s: s * zoomT.k, tx: ox + s * zoomT.x, ty: oy + s * zoomT.y };
   }
   const kick = () => { if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); } };
-  const add = p => { if (parts.length < (LITE ? 500 : 1400) && (!LITE || 'semc'.indexOf(p.k) < 0 || Math.random() < .55)) parts.push(p); kick(); };
+  const add = p => { if (document.hidden || parts.length >= PERF.maxParts) return; parts.push(p); kick(); };
   const spark = (x, y, col, spd = 70, life = .5, size = 2) => { const a = rnd(0, 6.283), v = rnd(.3, 1) * spd; add({ k: 's', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life, t: 0, col, size }); };
   const ember = (x, y, col, life = 1.1) => add({ k: 'e', x, y, vx: rnd(-14, 14), vy: rnd(-50, -16), life, t: 0, col, size: rnd(1.2, 2.5) });
   const smoke = (x, y, life = 1.5, size = 5) => add({ k: 'm', x, y, vx: rnd(-8, 8), vy: rnd(-16, -6), life, t: 0, size });
@@ -1200,10 +1288,10 @@ function startSweep(r, E, color, dur, win, ratio, kind, update) {
   const grp = add(sweepG.append('g')); if (r.cell) grp.attr('clip-path', `url(#${cid(r)})`);
   grp.append('path').attr('d', d).attr('fill', `url(#hat${u})`).attr('clip-path', `url(#ch${u})`);
   grp.append('path').attr('d', d).attr('fill', color).attr('clip-path', `url(#cs${u})`);
-  const glow = grp.append('path').attr('fill', 'none').attr('stroke', atk ? '#ffab40' : color).attr('stroke-opacity', .4).attr('stroke-width', 10).attr('stroke-linejoin', 'round').attr('vector-effect', 'non-scaling-stroke').attr('clip-path', `url(#cc${u})`);
+  const glow = !PERF.glow ? { attr() { return glow; } } : grp.append('path').attr('fill', 'none').attr('stroke', atk ? '#ffab40' : color).attr('stroke-opacity', .4).attr('stroke-width', 10).attr('stroke-linejoin', 'round').attr('vector-effect', 'non-scaling-stroke').attr('clip-path', `url(#cc${u})`);
   const front = grp.append('path').attr('fill', 'none').attr('stroke', '#fff').attr('stroke-opacity', .95).attr('stroke-width', 2).attr('stroke-dasharray', '7 4')
     .attr('vector-effect', 'non-scaling-stroke').attr('clip-path', `url(#cc${u})`);
-  const N = 48, A = band * .75, closeness = Math.min(1, 1 / ratio);
+  const N = PERF.N, A = band * .75, closeness = Math.min(1, 1 / ratio);
   const line = (s, now) => Array.from({ length: N + 1 }, (_, i) => {   // đường mặt trận lởm chởm, ngoằn ngoèo theo thời gian
     const t = -T + 2 * T * i / N, a = t / T, o = s + A * (Math.sin(a * 8 + now / 420 + u) * .55 + Math.sin(a * 21 - now / 210) * .3 + Math.sin(a * 47 + now / 130) * .15);
     return [ex + dx * o + nx * t, ey + dy * o + ny * t];
@@ -1215,7 +1303,7 @@ function startSweep(r, E, color, dur, win, ratio, kind, update) {
   const inReg = p => inCell(r, p) && (d3.geoContains(byId[r.iso], proj.invert(p) || [0, 0]) || true);
   function frame(now) {
     if (stopped) return;
-    if (LITE && now - lastNow < 30 && now - t0 < dur) { requestAnimationFrame(frame); return; }   // máy yếu/điện thoại: ~30fps
+    if (PERF.frameMs && now - lastNow < PERF.frameMs) return requestAnimationFrame(frame);
     const dtt = Math.min(.05, (now - lastNow) / 1000); lastNow = now;
     const x = Math.min(1, Math.max(0, (now - t0) / dur));
     const base = win ? x : (x < .62 ? peak * x / .62 : peak * (1 - (x - .62) / .38));
@@ -1225,7 +1313,7 @@ function startSweep(r, E, color, dur, win, ratio, kind, update) {
     front.attr('d', P(f1)).attr('stroke-dashoffset', -now / 45); glow.attr('d', P(f1));
     // hạt dọc mặt trận (chỉ ở phần nằm trong vùng đất)
     if (p > .02 && p < .995 || !win) {
-      acc += dtt * (atk ? 16 + 34 * closeness : 9); boomT -= dtt;
+      acc += dtt * PERF.spark * (atk ? 16 + 34 * closeness : 9); boomT -= dtt;
       while (acc >= 1) { acc--; const q = f1[Math.floor(Math.random() * f1.length)]; if (!inCell(r, q)) continue;
         FX.spark(q[0], q[1], pick(cols), atk ? 90 : 45, atk ? .55 : .8, atk ? 2.2 : 1.8); if (atk && Math.random() < .45) FX.ember(q[0], q[1], '#ff7043'); }
       if (atk && boomT <= 0) { boomT = .5 + 1.4 * (1 - closeness) + Math.random() * .7;
@@ -1256,7 +1344,7 @@ function captureFx(r, n, e) {
   if (e.win) {
     flashRegion(r, '#fff'); FX.flash(x, y, c, big ? 40 : 28, .55);
     FX.ring(x, y, '#fff', big ? 46 : 30, .9, 3.5); FX.ring(x, y, c, big ? 64 : 40, 1.1, 3, .12); FX.ring(x, y, c, big ? 84 : 52, 1.3, 2, .26);
-    FX.confetti(x, y, [c, '#fff', '#ffd54f'], e.cap ? 100 : big ? 60 : 28, big ? 190 : 130);
+    FX.confetti(x, y, [c, '#fff', '#ffd54f'], Math.round((e.cap ? 100 : big ? 60 : 28) * PERF.spark), big ? 190 : 130);
     if (big) { for (let i = 0; i < 6; i++) { FX.flash(x + rnd(-8, 8) / k, y + rnd(-8, 8) / k, '#ffb74d', 14, .3); FX.smoke(x + rnd(-6, 6) / k, y + rnd(-6, 6) / k, 1.8, 6); } }
     plantFlag(r, n); FX.text(x, y - 24 / k, (e.cap ? '👑 ' : '+ ') + nameOf(r), '#fff', 2, 13);
     if (e.nid === ME.nid) SND.play(big ? 'win' : 'coin'); else if (big) SND.play('boom');
@@ -1267,7 +1355,7 @@ function captureFx(r, n, e) {
   }
 }
 function hitFx() {
-  const m = $('map'); if (!LITE) { m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake'); }
+  const m = $('map'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake');
   $('hit').classList.add('on'); setTimeout(() => $('hit').classList.remove('on'), 140); SND.play('cap');
 }
 
@@ -1275,7 +1363,7 @@ function hitFx() {
 const anims = new Map();
 function onOp(e) {
   const r = regOf[e.rid], n = V.nations[e.nid]; if (!r || !n) return;
-  busy.add(e.rid); updateHot();
+  busy.add(e.rid); paths.classed('hot', rr => busy.has(rr.id));
   const own = regionsOf(V, e.nid), srcR = regOf[e.src], from = srcR ? srcR.seed : (own[0] ? own[0].seed : r.seed);
   const E = entryOf(r, new Set(own.map(o => o.id)), from), mine = e.nid === ME.nid, victim = !!e.o && e.o === ME.nid;
   const chip = (mine || victim) ? mkChip((e.kind === 'expand' ? '🌱 ' : victim ? '🛡️ ' : '⚔️ ') + nameOf(r), victim ? 'def' : '', n.color) : null;
@@ -1294,7 +1382,7 @@ function dropAnim(id, delay = 0) {
   if (a.chip) a.chip.rm(); if (a.arrow) a.arrow.remove(); if (a.sweep) { const sw = a.sweep; delay ? setTimeout(() => sw.stop(), delay) : sw.stop(); }
 }
 function onOpEnd(e) {
-  const r = regOf[e.rid], n = V.nations[e.nid]; busy.delete(e.rid); updateHot();
+  const r = regOf[e.rid], n = V.nations[e.nid]; busy.delete(e.rid);
   if (e.to) setOwner(V, e.rid, e.to);
   if (e.occ) V.occ[e.rid] = e.occ;
   if (e.fort !== undefined) { if (e.fort) V.fort[e.rid] = e.fort; else delete V.fort[e.rid]; }
@@ -1317,7 +1405,7 @@ const flagImg = n => `<img class="fl" src="${n.flag}" alt="">`;
 function updateRoomChip() {
   const b = $('bRoom'); if (!net.code || !V) { b.classList.add('hidden'); return; }
   const humans = Object.values(V.nations).filter(n => !n.ai && n.online).length;
-  b.classList.remove('hidden'); b.textContent = `🌐 ${net.code} · 👤${humans}`;
+  b.classList.remove('hidden'); b.textContent = `🌐 ${(V.name || net.code).slice(0, 14)} · 👤${humans}`; b.title = `Phòng ${net.code} — chạm để chép link mời`;
 }
 function updateHud() {
   if (!V) return; $('hud').classList.remove('hidden'); const n = me();
@@ -1360,7 +1448,7 @@ function refreshInfo() {
   const tags = []; if (on) { if (isOcc(V, id)) tags.push('⛑️ đang chiếm đóng'); if (V.fort[id]) tags.push(`🏰 cấp ${V.fort[id]}`); if (on.capital === id) tags.push('👑 thủ đô'); }
   $('iMeta').textContent = `👥 ${r.pop.toFixed(1)}M · ` + (mineR ? 'Lãnh thổ của bạn' : on ? `Thuộc ${on.name}${war ? ' ⚔️' : n && allied(n, on) ? ' 🤝' : ''} · 🛡️ ~${Math.round(defOf(V, r))}` : 'Đất trống')
     + (tags.length ? ' · ' + tags.join(' · ') : '') + (bz ? ' · đang có chiến dịch' : '');
-  const cost = n ? Math.round(expandCost(regionsOf(V, n.id).length) * (k === 'sea' ? CFG.seaCost : 1)) : 0, cr = n ? recruitCost(V, n.id) : 0;
+  const cost = n ? Math.round(expandCost(regionsOf(V, n.id).length, r) * (k === 'sea' ? CFG.seaCost : 1)) : 0, cr = n ? recruitCost(V, n.id) : 0;
   $('bRecruit').style.display = n ? '' : 'none'; if (n) { $('bRecruit').textContent = `+10 quân (${cr}💰)`; $('bRecruit').disabled = n.money < cr || n.army + 10 > maxArmy(V, n.id); }
   const fl = V.fort[id] || 0; $('bFort').style.display = mineR ? '' : 'none';
   if (mineR) { $('bFort').textContent = fl >= CFG.fortMax ? '🏰 Tối đa' : `🏰 Pháo đài ${fl + 1} (${fortCost(V, id)}💰)`; $('bFort').disabled = fl >= CFG.fortMax || n.money < fortCost(V, id) || bz; }
@@ -1486,13 +1574,15 @@ function drawMenu() {
   const R = (k, l, d) => `<div class="mrow"><span>${l} Lv${n.tech[k]}<small>${d}</small></span><button data-act="tech" data-k="${k}" ${n.tech[k] >= CFG.techMax ? 'disabled' : ''}>${n.tech[k] >= CFG.techMax ? 'Tối đa' : rc(k) + '💰'}</button></div>`;
   const occN = own.filter(r => isOcc(V, r.id)).length;
   el.innerHTML = `<h2>${flagImg(n)}${esc(n.name)}</h2>
-    <p class="muted">Lãnh thổ ${own.length}/${admLimit(n)} · ổn định ${Math.round(stab(n, own.length) * 100)}% · thu +${n.inc.toFixed(1)}/giây (đã trừ phí quản lý −${(n.up || 0).toFixed(1)})${occN ? ` · ${occN} vùng đang chiếm đóng (thu 40%, hao quân)` : ''}. Lãnh thổ càng rộng thì mở rộng, tuyển quân, pháo đài và phí quản lý càng đắt. Vượt trần thì thu nhập giảm và có thể nổi loạn.</p>
+    <p class="muted">Lãnh thổ ${own.length}/${admLimit(n)} · ổn định ${Math.round(stab(n, own.length) * 100)}% · thu +${n.inc.toFixed(1)}/giây${occN ? ` · ${occN} vùng đang chiếm đóng (thu 40%, hao quân)` : ''}. Vượt trần thì thu nhập giảm và có thể nổi loạn.</p>
     <div class="mrow"><span>Chính sách: ${n.policy === 'mil' ? 'Quân sự' : 'Tăng trưởng'}<small>${n.policy === 'mil' ? 'lực +20%, lương quân −40%, thu nhập ×0.85' : 'thu nhập ×1.2'}</small></span><button data-act="policy">Đổi</button></div>
+    <div class="mrow"><span>Đồ hoạ: ${PERF.mode === 'auto' ? 'Tự động' : PERF.mode === 'low' ? 'Thấp (mượt)' : 'Cao'}${PERF.low ? ' · đang giảm hiệu ứng' : ''}<small>Đổi sẽ tải lại trang (ván solo được lưu)</small></span><button data-act="quality">Đổi</button></div>
     <h3>Nghiên cứu</h3>${R('mil', '⚔️ Quân sự', '+12% lực tấn công mỗi cấp')}${R('eco', '💰 Kinh tế', '+15% thu nhập mỗi cấp')}${R('adm', '🏛️ Hành chính', '+3 trần lãnh thổ mỗi cấp')}
     <p class="muted" style="margin-top:12px">Mẹo: nước nhỏ hơn bình quân được cộng tới +35% thu nhập (hỗ trợ kẻ yếu). Pháo đài tăng +25% phòng thủ mỗi cấp. Thủ đô phòng thủ ×${CFG.capDef}.</p>`;
 }
 $('mBody').onclick = ev => {
   const b = ev.target.closest('button'); if (!b || b.disabled) return; const a = b.dataset.act, i = b.dataset.i;
+  if (a === 'quality') { const nx = { auto: 'low', low: 'high', high: 'auto' }[PERF.mode]; try { localStorage.setItem('gs_q', nx); if (net.isHost) Sim.save(); } catch (e) {} location.reload(); return; }
   if (a === 'policy') cmd('policy'); else if (a === 'tech') cmd('tech', { k: b.dataset.k }); else if (a === 'gift') cmd('gift', { to: i });
   else if (['war', 'peace', 'ally', 'break'].includes(a)) { if (a === 'war' && !confirm(`Tuyên chiến với ${nname(i)}?`)) return; cmd(a, { to: i }); }
 };
@@ -1527,7 +1617,7 @@ const View = {
 function applyWelcome(m) {
   if (!worldBuilt) { buildGeo(m.layout); buildMap(); }
   V = m.S; V.ver = 0; V.occ = V.occ || {}; V.fort = V.fort || {}; ME.pid = m.you.pid; ME.nid = m.you.nid;
-  busy.clear(); m.ops.forEach(rid => busy.add(rid)); [...anims.keys()].forEach(id => dropAnim(id)); FX.clear(); fxG.selectAll('*').remove(); sweepG.selectAll('*').remove(); arrowG.selectAll('*').remove();
+  prevOwn = {}; busy.clear(); m.ops.forEach(rid => busy.add(rid)); [...anims.keys()].forEach(id => dropAnim(id)); FX.clear(); fxG.selectAll('*').remove(); sweepG.selectAll('*').remove(); arrowG.selectAll('*').remove();
   chatLog.length = 0; (V.log || []).forEach(s => chatLog.push({ sys: true, m: s })); renderChat();
   $('lobby').classList.add('hidden'); $('loading').classList.add('hidden'); setBanner(null);
   refreshAll(false);
@@ -1562,32 +1652,82 @@ function showVictory(m) {
   FX.confetti(VW / 2, VH / 2, ['#ffd54f', '#fff', n ? n.color : '#f44'], 120, 300);
 }
 // =====================================================================================
-//  P5 — KHỞI ĐỘNG: sảnh (solo / tạo phòng / vào phòng), tiếp tục ván đã lưu
+//  P5 — KHỞI ĐỘNG: sảnh (solo / tạo phòng / danh sách phòng Firebase), tiếp tục ván đã lưu
 // =====================================================================================
-let layoutCache = null, lbMode = 'solo';
+let layoutCache = null, lbMode = 'solo', peerOk = false, roomsTimer = null;
 function ensureWorld() { if (!worldBuilt) { layoutCache = buildGeo(null); buildMap(); } return layoutCache; }
 const lbMsg = m => { $('lbMsg').textContent = m || ''; };
 function loading(t) { $('loading').textContent = t; $('loading').classList.remove('hidden'); }
+const errText = e => ({ 'peer-unavailable': 'Không tìm thấy phòng — chủ phòng phải đang mở trang', nopeer: 'Không tải được thư viện mạng (PeerJS) — kiểm tra Internet', timeout: 'Hết thời gian chờ máy chủ ghép nối — kiểm tra IP/port rồi thử lại', network: 'Lỗi mạng khi ghép nối (IP/port đúng chưa?)', 'server-error': 'Máy chủ ghép nối không phản hồi', 'unavailable-id': 'Không tạo được mã phòng — thử lại', socket: 'Không kết nối được máy chủ ghép nối (IP/port/TLS?)' }[e && e.type] || ('Lỗi: ' + ((e && (e.type || e.message)) || 'không rõ')));
+
 function setLbMode(m) {
   lbMode = m; [...$('lbMode').children].forEach(b => b.classList.toggle('on', b.dataset.m === m));
-  $('lbJoinBox').classList.toggle('hidden', m !== 'join'); $('lbOpts').classList.toggle('hidden', m === 'join');
-  $('lbGo').textContent = m === 'solo' ? 'Bắt đầu chơi' : m === 'host' ? 'Tạo phòng' : 'Vào phòng'; lbMsg('');
+  $('lbHostBox').classList.toggle('hidden', m !== 'host'); $('lbSrv').classList.toggle('hidden', m === 'solo');
+  $('lbJoinBox').classList.toggle('hidden', m !== 'join'); $('lbOpts').classList.toggle('hidden', m === 'join'); $('lbMax').classList.toggle('hidden', m !== 'host');
+  $('lbGo').textContent = m === 'solo' ? 'Bắt đầu chơi' : m === 'host' ? 'Tạo phòng' : 'Vào bằng mã'; lbMsg('');
+  clearInterval(roomsTimer); if (m === 'join') { refreshRooms(); roomsTimer = setInterval(refreshRooms, 5000); }
 }
-const errText = e => ({ 'peer-unavailable': 'Không tìm thấy phòng — kiểm tra lại mã (chủ phòng phải đang mở trang)', nopeer: 'Không tải được thư viện mạng (PeerJS) — hãy kiểm tra kết nối Internet', timeout: 'Hết thời gian chờ máy chủ ghép nối — thử lại', network: 'Lỗi mạng khi ghép nối', 'server-error': 'Máy chủ ghép nối không phản hồi', 'unavailable-id': 'Không tạo được mã phòng — thử lại' }[e && e.type] || ('Lỗi: ' + ((e && (e.type || e.message)) || 'không rõ')));
 
+// ---- cấu hình máy chủ ghép nối (IP / port) ----
+function readNetCfg() {
+  const host = $('rHost').value.trim(), port = $('rPort').value.trim(), path = $('rPath').value.trim() || '/';
+  if (!host) return { host: '', port: 0, path: '/', secure: true };
+  if (!/^[\w.\-]+$/.test(host)) throw { message: 'IP/tên máy chủ không hợp lệ' };
+  if (port && !(/^\d+$/.test(port) && +port > 0 && +port < 65536)) throw { message: 'Port phải từ 1 đến 65535' };
+  return { host, port: +port || 0, path: path[0] === '/' ? path : '/' + path, secure: $('rTls').value === '1' };
+}
+function fillNetCfg() { $('rHost').value = NETCFG.host || ''; $('rPort').value = NETCFG.port || ''; $('rPath').value = NETCFG.path && NETCFG.path !== '/' ? NETCFG.path : ''; $('rTls').value = NETCFG.secure === false ? '0' : '1'; }
+
+// ---- danh sách phòng (Firebase) ----
+async function refreshRooms() {
+  const el = $('rooms'); if (lbMode !== 'join') return;
+  if (!FB.ok()) { el.innerHTML = '<p class="muted">Chưa cấu hình Firebase — mở “⚙ Firebase” bên dưới để dán URL, hoặc nhập mã phòng.</p>'; return; }
+  try {
+    const L = await FB.list(); el.innerHTML = '';
+    if (!L.length) { el.innerHTML = '<p class="muted">Chưa có phòng nào đang mở. Hãy tạo phòng đầu tiên!</p>'; return; }
+    L.forEach(r => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'room'; const d = document.createElement('div'), t = document.createElement('b'), s = document.createElement('small'), g = document.createElement('span');
+      t.textContent = String(r.name || 'Phòng ' + r.code).slice(0, 30);
+      s.textContent = `👤 ${r.players || 0}/${r.max || 8} · 🤖 ${r.ai || 0} AI · ${r.speed || 1}× · ${peerLabel(r.srv)} · #${r.code}`; g.className = 'go'; g.textContent = 'Vào';
+      d.append(t, s); b.append(d, g); b.onclick = () => startJoin(String(r.code).toUpperCase(), r.srv || null); el.appendChild(b);
+    });
+  } catch (e) { el.innerHTML = ''; const p = document.createElement('p'); p.className = 'err'; p.textContent = 'Không đọc được danh sách: ' + e.message; el.appendChild(p); }
+}
+// ---- ván đã lưu (máy này + Firebase) ----
+async function refreshSaves() {
+  const box = $('lbSaves'); box.innerHTML = ''; const items = [];
+  try { const l = JSON.parse(localStorage.getItem('gs4_host') || 'null'); if (l && l.S && Date.now() - l.at < 7 * 864e5 && Object.keys(l.S.nations || {}).length) items.push({ S: l.S, at: l.at, src: 'máy này' }); } catch (e) {}
+  if (FB.ok()) try { (await FB.saves()).forEach(c => { try { const o = JSON.parse(c.data); if (!items.some(i => i.S.code === o.S.code && i.at >= o.at)) items.push({ S: o.S, at: o.at, src: 'Firebase' }); } catch (e) {} }); } catch (e) {}
+  items.sort((a, b) => b.at - a.at).slice(0, 4).forEach(it => {
+    const humans = Object.values(it.S.nations).filter(n => !n.ai).length, b = document.createElement('button'); b.type = 'button'; b.className = 'room';
+    const d = document.createElement('div'), t = document.createElement('b'), s = document.createElement('small'), g = document.createElement('span');
+    t.textContent = '▶ Tiếp tục: ' + String(it.S.name || it.S.code || 'Ván solo').slice(0, 30); s.textContent = `${humans} người chơi · ${it.src} · ${new Date(it.at).toLocaleString('vi-VN')}`; g.className = 'go'; g.textContent = 'Chơi';
+    d.append(t, s); b.append(d, g);
+    b.onclick = () => { $('oSpd').value = String(it.S.speed || 1); $('oLvl').value = String(it.S.level || 2); startLocal(peerOk && !!it.S.code, it.S); }; box.appendChild(b);
+  });
+}
+
+// ---- bắt đầu ----
 async function startLocal(asHost, saved) {
+  let cfg0; try { cfg0 = asHost ? (saved && lbMode !== 'host' ? NETCFG : readNetCfg()) : null; } catch (e) { return lbMsg(e.message); }
+  const name = ($('rName').value.trim() || (saved && saved.name) || '').slice(0, 30), pub = $('rPub').checked && FB.ok();
   loading('Đang tạo thế giới…'); await sleep(40);
   try {
     const layout = ensureWorld(); let code = '';
-    if (asHost) { loading('Đang mở phòng…'); code = await hostRoom(saved && saved.code); }
+    if (asHost) { Object.assign(NETCFG, cfg0); try { localStorage.setItem('gs_netcfg', JSON.stringify(NETCFG)); } catch (e) {} loading('Đang mở phòng…'); code = await hostRoom(saved && saved.code); }
     net.isHost = true; net.mode = asHost ? 'host' : 'solo'; net.code = code;
-    const cfg = { ai: +$('oAI').value, speed: +$('oSpd').value, level: +$('oLvl').value, code, pid: net.pid };
-    if (saved) { saved.code = code; Sim.restore(saved, layout, net.pid); } else Sim.create(cfg, layout);
+    const cfg = { ai: +$('oAI').value, speed: +$('oSpd').value, level: +$('oLvl').value, code, pid: net.pid, name: name || (asHost ? 'Phòng ' + code : ''), maxH: +$('oMax').value };
+    if (saved) { saved.code = code; if (name) saved.name = name; saved.name = saved.name || (asHost ? 'Phòng ' + code : ''); Sim.restore(saved, layout, net.pid); } else Sim.create(cfg, layout);
     View.onMsg(JSON.parse(JSON.stringify(Sim.welcome(net.pid))));
-    if (asHost) toast(`Phòng ${code} đã mở — bấm 🌐 để chép link mời bạn bè`);
+    if (asHost) {
+      const S = Sim.S, rec = { name: S.name, srv: NETCFG.host ? { host: NETCFG.host, port: NETCFG.port, path: NETCFG.path, secure: NETCFG.secure } : null, ai: Object.values(S.nations).filter(n => n.ai).length, speed: S.speed, level: S.level, max: S.maxH || 8 };
+      FB.startBeacon(code, { pub, name: S.name, rec }, () => ({ players: Object.values(Sim.S.nations).filter(n => !n.ai && n.online).length || 1, nations: Object.keys(Sim.S.nations).length }), Sim.exportJSON);
+      toast(`Phòng “${S.name}” (${code}) đã mở` + (pub ? ' và hiện trong danh sách' : ' — bấm 🌐 để chép link mời'));
+    }
   } catch (e) { console.error(e); $('loading').classList.add('hidden'); lbMsg(errText(e)); }
 }
-async function startJoin(code) {
+async function startJoin(code, srv) {
+  try { Object.assign(NETCFG, srv ? { host: srv.host || '', port: srv.port || 0, path: srv.path || '/', secure: srv.secure !== false } : readNetCfg()); } catch (e) { return lbMsg(e.message); }
   loading('Đang kết nối tới phòng ' + code + '…');
   try { await joinRoom(code); }
   catch (e) { $('loading').classList.add('hidden'); lbMsg(errText(e)); }
@@ -1597,25 +1737,27 @@ $('lbGo').onclick = () => {
   lbMsg('');
   if (lbMode === 'solo') startLocal(false, null);
   else if (lbMode === 'host') startLocal(true, null);
-  else { const c = $('code').value.trim().toUpperCase(); if (!/^[A-Z0-9]{5}$/.test(c)) return lbMsg('Mã phòng gồm 5 ký tự'); startJoin(c); }
+  else { const c = $('code').value.trim().toUpperCase(); if (!/^[A-Z0-9]{5}$/.test(c)) return lbMsg('Chọn một phòng trong danh sách hoặc nhập mã 5 ký tự'); startJoin(c, null); }
 };
 $('code').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+$('rRefresh').onclick = refreshRooms;
+$('fbSave').onclick = async () => {
+  FB.setUrl($('fbUrl').value); $('fbStat').textContent = 'Đang kiểm tra…';
+  const ok = await FB.init(net.pid); $('fbStat').textContent = !FB.url ? 'Đã xoá URL.' : ok ? '✓ Kết nối Firebase thành công' : '✗ Không kết nối được — kiểm tra URL và Rules (read/write cho gs_rooms, gs_saves, gs_clock)';
+  refreshRooms(); refreshSaves();
+};
 
+$('fbShare').onclick = () => { if (!FB.ok()) return ($('fbStat').textContent = 'Hãy lưu URL Firebase trước'); const l = FB.shareLink(); (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(() => $('fbStat').textContent = '✓ Đã chép link — gửi riêng cho bạn bè, đừng đăng công khai', () => $('fbStat').textContent = l); };
 (async function boot() {
   net.pid = ME.pid = await getPid();
-  const peerOk = await window.__peerReady;
+  peerOk = await window.__peerReady;
   if (!peerOk) { [...$('lbMode').children].forEach(b => { if (b.dataset.m !== 'solo') b.disabled = true; }); lbMsg('Không tải được thư viện mạng — chỉ chơi solo được.'); }
-  let saved = null; try { saved = JSON.parse(localStorage.getItem('gs4_host') || 'null'); } catch (e) {}
-  if (saved && saved.S && Date.now() - saved.at < 7 * 864e5 && Object.keys(saved.S.nations || {}).length) {
-    const b = $('lbResume'); b.classList.remove('hidden');
-    const humans = Object.values(saved.S.nations).filter(n => !n.ai).length;
-    b.textContent = `▶ Tiếp tục ván đã lưu${saved.S.code ? ' (phòng ' + saved.S.code + ')' : ''} · ${humans} người chơi`;
-    b.onclick = () => { $('oSpd').value = String(saved.S.speed || 1); $('oLvl').value = String(saved.S.level || 2); startLocal(peerOk && !!saved.S.code, saved.S); };
-  }
+  fillNetCfg(); $('fbUrl').value = FB.url; await FB.init(net.pid); refreshSaves();
   const q = new URLSearchParams(location.search).get('room');
-  if (q && peerOk) { setLbMode('join'); $('code').value = q.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); } else setLbMode('solo');
+  if (q && peerOk) { setLbMode('join'); $('code').value = q.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); }
+  else setLbMode(peerOk && FB.ok() ? 'join' : 'solo');
   $('loading').classList.add('hidden'); $('lobby').classList.remove('hidden');
 })();
-window.__GS = { get V() { return V; }, ME, Sim, net, busy, anims };
+window.__GS = { get V() { return V; }, ME, Sim, net, busy, anims, FB, NETCFG };
 </script>
 </body></html>
