@@ -1030,7 +1030,7 @@ const Sim = (() => {
 //  P3b — FIREBASE Realtime Database (REST, không cần SDK): danh sách phòng công khai + lưu ván online
 //  Dán URL database vào FB_DEFAULT (hoặc nhập trong sảnh ⚙). Rules gợi ý ở cuối file README/hướng dẫn.
 // =====================================================================================
-const FB_DEFAULT = '';      // vd: 'https://ten-du-an-default-rtdb.firebaseio.com'
+const FB_DEFAULT = 'https://nationcountry-default-rtdb.asia-southeast1.firebasedatabase.app/';      // vd: 'https://ten-du-an-default-rtdb.firebaseio.com'
 // Máy chủ ghép nối WebRTC (PeerJS broker). Để trống host = dùng PeerJS Cloud mặc định.
 const NETCFG = { host: '', port: 0, path: '/', secure: true };
 try { Object.assign(NETCFG, JSON.parse(localStorage.getItem('gs_netcfg') || '{}')); } catch (e) {}
