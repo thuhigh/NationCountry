@@ -166,6 +166,28 @@ img.fl{width:24px;height:16px;border-radius:3px;vertical-align:-3px;margin-right
 .tabs{box-shadow:inset 0 1px 3px #0002}.tabs .on,.seg .on{box-shadow:0 2px 8px color-mix(in srgb,var(--pr) 50%,transparent)}
 .mrow.item{background:var(--bg);border:1px solid color-mix(in srgb,var(--tx) 7%,transparent);border-radius:16px;padding:10px 12px;margin:7px 0}
 .mrow.item:hover{border-color:var(--pr)}
+.mi.emo{font-family:system-ui,'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif;font-size:1.05em;vertical-align:-.1em}
+.noicon .mi{font-family:system-ui,'Noto Color Emoji',sans-serif}
+.mi.big{font-size:1.5em}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0}
+.tcard{background:var(--bg);border:1px solid color-mix(in srgb,var(--tx) 8%,transparent);border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.tcard .th{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.tcard small{color:var(--mu);font-size:11px;line-height:1.35}
+.tcard button{border:0;border-radius:12px;padding:9px 10px;background:var(--pr);color:var(--sf);font-weight:600;font-size:13px;margin-top:auto}
+.tcard button:disabled{background:color-mix(in srgb,var(--mu) 25%,transparent);color:var(--mu);opacity:.8}
+.tcard.max{border-color:var(--ok)}
+.pips{display:flex;gap:3px}
+.pips i{flex:1;height:7px;border-radius:4px;background:color-mix(in srgb,var(--mu) 28%,transparent)}
+.pips i.on{background:var(--pr)}
+.pips i.ov{background:color-mix(in srgb,var(--warn) 25%,transparent)}
+.pips i.on.ov{background:#e040fb}
+.tcard.ovr{border-color:#e040fb}
+.pips i.ms{outline:1.5px solid var(--warn);outline-offset:1px}
+.pips i.on.ms{background:var(--warn)}
+.mrow.item>span:first-child{flex:1;min-width:0}
+.mrow.item>span:last-child{display:flex;flex-direction:column;gap:5px;align-items:stretch;flex-shrink:0}
+.mrow.item button{margin:0;white-space:nowrap}
+.sheetbox{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 #mBody h3{display:flex;align-items:center;gap:8px;margin:18px 0 4px;font-family:var(--disp);letter-spacing:.8px;text-transform:uppercase;font-size:13px;color:var(--pr)}
 #mBody h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--pr) 50%,transparent),transparent)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--pr);outline-offset:2px}
@@ -244,6 +266,8 @@ input:focus{border-color:var(--pr)}
 <section id="info" class="sheetbox hidden">
   <h2 id="iName">—</h2><p id="iMeta" class="muted"></p><p id="iOdds" class="odds"></p>
   <div class="row"><button id="bRecruit" class="tonal" type="button"></button><button id="bFort" class="tonal" type="button"></button></div>
+  <div class="row" id="rowMine" style="display:none"><button id="bMine" class="tonal" type="button"></button></div>
+  <div class="row" id="rowSell" style="display:none"><button id="bSell" class="tonal" type="button"></button></div>
   <div class="row" id="rowCap" style="display:none"><button id="bSub" class="tonal" type="button"></button><button id="bMove" class="tonal" type="button"></button></div>
   <div class="row" id="rowSbx" style="display:none"><button id="bTake" class="tonal" type="button">🧪 Chiếm ngay</button><button id="bFree2" class="tonal" type="button">🧪 Xoá chủ</button></div>
   <div class="row" id="rowSurvey" style="display:none"><button id="bSurvey" class="tonal" type="button"></button></div>
@@ -295,6 +319,7 @@ input:focus{border-color:var(--pr)}
       <div class="grid2">
         <div><label>Số AI</label><select id="oAI"><option>0</option><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select></div>
         <div><label>Tốc độ</label><select id="oSpd"><option value="1" selected>1×</option><option value="2">2×</option><option value="3">3×</option></select></div>
+        <div><label>Bản đồ</label><select id="oMap"><option value="world" selected>Thế giới</option><option value="eurasia">Âu – Á</option><option value="europe">Châu Âu</option><option value="asia">Châu Á</option><option value="africa">Châu Phi</option><option value="namerica">Bắc Mỹ</option><option value="samerica">Nam Mỹ</option><option value="oceania">Châu Đại Dương</option></select></div>
         <div><label>Độ khó AI</label><select id="oLvl"><option value="1">Dễ</option><option value="2" selected>Thường</option><option value="3">Khó</option></select></div>
       </div>
       <div id="lbMax" class="hidden"><label>Số người chơi tối đa</label><select id="oMax"><option>2</option><option>3</option><option>4</option><option selected>6</option><option>8</option></select></div>
@@ -369,10 +394,15 @@ const CFG = {
   navalRange: 90, islandRange: 220, seaPower: .5, seaCost: 1.5,
   minCapDist: 45,       // thủ đô mới phải cách thủ đô khác tối thiểu
   terrUpkeep: .04,      // phí duy trì mỗi vùng (nhân với kích thước vùng): đất càng bự càng tốn
-  techMax: 8, maxNations: 16, victoryShare: .5, coalShare: .6, victoryHold: 90,
+  techMax: 8, techOver: 4, overEff: .6, overCost: 1.7,   // ĐỘT PHÁ: thêm 4 cấp sau Lv8 (hiệu quả 60%/cấp, giá ×1.7)
+  sellCool: 15, sellRate: .5, powerPrice: .25, powerPriceMax: .75,   // BÁN ĐẤT: hồi 50% giá mở rộng, chờ 15s/lần · GIÁ THEO SỨC MẠNH: nước lớn hơn trung bình ×2 trả thêm +25% (tối đa +75%)
+  maxNations: 16, victoryShare: .5, coalShare: .6, victoryHold: 90,
   lateBuff: .6, lateMaxT: 900,        // BUFF: vào muộn được cộng tối đa +60% tiền/quân khởi đầu (theo thời gian ván)
   underdog: .25,                      // BUFF: nước nhỏ (<60% số vùng trung bình) phòng thủ +25%
   fatigue: .08, fatigueMax: 4, fatigueWin: 70,   // NERF: đánh chiếm liên tục — mỗi vùng vừa chiếm trong 70s làm đợt tấn công sau −8% (tối đa −32%)
+  leaderShare: .3, leaderTax: .6,   // CÂN BẰNG: nước nắm >30% tổng số vùng bị thuế bá chủ (thu nhập giảm dần, tối đa −60%)
+  itemInflate: .15,                 // CÂN BẰNG: giá vật phẩm +15% cho mỗi cái đang tồn kho (chống tích trữ bom)
+  comeback: .12, comebackMax: 3,    // CÂN BẰNG: nước vừa mất vùng được +12% phòng thủ mỗi vùng mất gần đây (tối đa +36%)
   retreatBack: .7, queueMax: 6, opsBase: 3,
   rebelChance: .01,   // 1/100 mỗi lần kiểm tra (25s) của mỗi nước ≥6 vùng: phiến quân ly khai lập quốc gia mới
   retakeWin: 300, retakeDur: .6, retakeAtk: 1.3, resistEvery: 20   // GIẢI PHÓNG: chiếm lại vùng vừa mất (300s) nhanh ×0.6 và +30% lực; dân vùng bị chiếm có thể nổi dậy
@@ -384,23 +414,45 @@ const ITEMS = {
   bunker:   { n: 'Bom xuyên hầm', ic: 'bomb', g: 'strike', t: 'strike', cost: 280, max: 6, range: 150, d: 'Phá sạch pháo đài, giảm 25% phòng thủ trong 90s, hạ 8% quân.' },
   cruise:   { n: 'Tên lửa hành trình', ic: 'flight_takeoff', g: 'strike', t: 'strike', cost: 500, max: 5, range: 420, d: 'Tầm xa. Giảm 40% phòng thủ 100s, hạ 18% quân, phá 1 cấp pháo đài.' },
   sabotage: { n: 'Gián điệp phá hoại', ic: 'visibility_off', g: 'strike', t: 'strike', cost: 450, max: 3, range: 260, d: 'Kích động nổi loạn: vùng mục tiêu (không phải thủ đô) mất chủ.' },
-  nuke:     { n: 'Bom nguyên tử', ic: 'explosion', g: 'strike', t: 'strike', cost: 1500, max: 2, range: 380, req: 3, icp: .7, d: 'Cần Quân sự Lv3. Xoá sổ vùng mục tiêu, vùng kề giảm 50% phòng thủ, địch mất 30% quân + 10% tiền.' },
-  tsar:     { n: 'Bom Sa Hoàng', ic: 'crisis_alert', g: 'strike', t: 'strike', cost: 4000, max: 1, range: 520, req: 5, icp: .4, d: 'Cần Quân sự Lv5. Huỷ diệt tới 8 vùng quanh mục tiêu, địch mất 55% quân + 35% tiền. Cả thế giới ghét bạn.' },
+  drone:    { n: 'Đàn UAV tự sát', ic: 'flight', g: 'strike', t: 'strike', cost: 110, max: 10, range: 260, icp: .5, d: 'Rẻ, tầm trung. Hạ 5% quân, giảm 20% phòng thủ 45s. Khó bị phòng không bắn hạ (chặn 50%).' },
+  napalm:   { n: 'Bom cháy Napalm', ic: 'local_fire_department', g: 'strike', t: 'strike', cost: 650, max: 4, range: 200, req: 2, d: 'Cần Quân sự Lv2. Hạ 20% quân, giảm 30% phòng thủ 90s, vùng kề giảm thêm 15% trong 60s.' },
+  cluster:  { n: 'Bom chùm', ic: 'scatter_plot', g: 'strike', t: 'strike', cost: 900, max: 3, range: 300, req: 3, d: 'Cần Quân sự Lv3. Phá pháo đài vùng đó, hạ 15% quân, giảm 30% phòng thủ 80s cho vùng đó và 3 vùng kề.' },
+  emp:      { n: 'Xung điện từ EMP', ic: 'bolt', g: 'strike', t: 'strike', cost: 700, max: 3, range: 300, req: 2, emp: 1, d: 'Cần Quân sự Lv2. Vô hiệu TOÀN BỘ phòng không của địch, địch mất 7% tiền, giảm 35% phòng thủ 80s. Không thể bị chặn.' },
+  hyper:    { n: 'Tên lửa siêu thanh', ic: 'rocket', g: 'strike', t: 'strike', cost: 1500, max: 3, range: 480, req: 4, icp: .5, d: 'Cần Quân sự Lv4. Tầm rất xa, khó chặn (50%). Hạ 25% quân, giảm 50% phòng thủ 100s, phá 1 cấp pháo đài.' },
+  orbital:  { n: 'Laser quỹ đạo', ic: 'satellite_alt', g: 'strike', t: 'strike', cost: 3200, max: 2, range: 600, req: 4, icp: .6, big: 1, d: 'Cần Quân sự Lv4. Tầm toàn cầu. Xoá sổ tối đa 3 vùng gần mục tiêu nhất (kể cả thủ đô), địch mất 25% quân.' },
+  nuke:     { n: 'Bom nguyên tử', ic: 'explosion', g: 'strike', t: 'strike', cost: 1800, max: 2, range: 380, req: 3, icp: .7, big: 1, d: 'Cần Quân sự Lv3. Xoá sổ vùng mục tiêu, vùng kề giảm 50% phòng thủ, địch mất 30% quân + 10% tiền.' },
+  tsar:     { n: 'Bom Sa Hoàng', ic: 'crisis_alert', g: 'strike', t: 'strike', cost: 5200, max: 1, range: 520, req: 5, icp: .4, big: 1, d: 'Cần Quân sự Lv5. Huỷ diệt tới 8 vùng quanh mục tiêu, địch mất 55% quân + 35% tiền. Cả thế giới ghét bạn.' },
   dome:     { n: 'Hệ thống phòng không', ic: 'shield', g: 'def', t: 'passive', cost: 250, max: 3, d: 'Tự động đánh chặn 1 đòn tấn công. Nguyên tử bị chặn 70%, Sa Hoàng 40%.' },
   reinf:    { n: 'Tăng viện khẩn cấp', ic: 'military_tech', g: 'buff', t: 'inst', cost: 200, max: 10, army: 25, d: '+25 quân ngay lập tức.' },
   mobil:    { n: 'Tổng động viên', ic: 'groups', g: 'buff', t: 'inst', cost: 700, max: 3, army: 90, d: '+90 quân ngay lập tức.' },
   haste:    { n: 'Lệnh thần tốc', ic: 'speed', g: 'buff', t: 'buff', cost: 300, max: 5, dur: 60, d: 'Chiến dịch nhanh hơn 40% trong 60s.' },
   propaganda:{ n: 'Tuyên truyền', ic: 'campaign', g: 'pol', t: 'buff', cost: 300, max: 4, dur: 120, d: 'Trong 120s dân chúng đoàn kết: chặn nổi loạn và ly khai trong nước.' },
   amnesty:  { n: 'Ân xá & trấn an', ic: 'volunteer_activism', g: 'pol', t: 'inst', cost: 400, max: 3, calm: 1, d: 'Chấm dứt tình trạng chiếm đóng ở mọi vùng của bạn (thu nhập và phòng thủ về bình thường).' },
-  envoy:    { n: 'Đặc phái viên', ic: 'diplomacy', g: 'pol', t: 'inst', cost: 350, max: 3, rel: 25, d: '+25 thiện cảm với mọi nước AI: dễ xin hoà bình và liên minh hơn.' },
+  envoy:    { n: 'Đặc phái viên', ic: 'handshake', g: 'pol', t: 'inst', cost: 350, max: 3, rel: 25, d: '+25 thiện cảm với mọi nước AI: dễ xin hoà bình và liên minh hơn.' },
   reform:   { n: 'Cải cách hành chính', ic: 'account_balance', g: 'pol', t: 'inst', cost: 650, max: 2, adm: 1, d: '+1 cấp Hành chính ngay lập tức: nâng giới hạn vùng, giảm bất ổn.' },
   boost:    { n: 'Kinh tế thời chiến', ic: 'trending_up', g: 'buff', t: 'buff', cost: 350, max: 5, dur: 90, d: 'Thu nhập ×1.5 trong 90s.' }
 };
 // ---- Icon: đổi emoji → Google Material Symbols (tự động cho mọi chuỗi hiển thị) ----
-const EMO = { '💰': 'payments', '🪙': 'paid', '🪖': 'military_tech', '🗺': 'map', '👥': 'groups', '🛡': 'shield', '⚔': 'swords', '🤝': 'handshake', '🕊': 'spa', '👑': 'workspace_premium', '🏰': 'fort', '🏴': 'flag', '🏳': 'flag', '🔥': 'local_fire_department', '☠': 'dangerous', '🌐': 'public', '🌍': 'public', '🎁': 'redeem', '🤖': 'smart_toy', '👤': 'person', '💤': 'bedtime', '📡': 'wifi', '📴': 'wifi_off', '🌱': 'eco', '🔁': 'replay', '↩': 'undo', '⏳': 'hourglass_top', '🏆': 'emoji_events', '🔊': 'volume_up', '🔇': 'volume_off', '⚠': 'warning', '❌': 'cancel', '✖': 'close', '💔': 'heart_broken', '⛑': 'health_and_safety', '⚙': 'settings', '🛒': 'storefront', '🚀': 'rocket_launch', '💥': 'explosion', '✓': 'check', '✗': 'close', '▶': 'play_arrow', '☰': 'menu', '⟳': 'refresh', '⛵': 'sailing' };
+const EMO = { '🛢': 'oil_barrel', '🌾': 'grass', '🏭': 'factory', '🏛': 'account_balance', '🚚': 'local_shipping', '📦': 'package_2', '✏': 'edit', '🧪': 'science', '📉': 'trending_down', '☀': 'wb_sunny', '🦠': 'coronavirus', '🔬': 'biotech', '💰': 'payments', '🪙': 'paid', '🪖': 'military_tech', '🗺': 'map', '👥': 'groups', '🛡': 'shield', '⚔': 'swords', '🤝': 'handshake', '🕊': 'spa', '👑': 'workspace_premium', '🏰': 'fort', '🏴': 'flag', '🏳': 'flag', '🔥': 'local_fire_department', '☠': 'dangerous', '🌐': 'public', '🌍': 'public', '🎁': 'redeem', '🤖': 'smart_toy', '👤': 'person', '💤': 'bedtime', '📡': 'wifi', '📴': 'wifi_off', '🌱': 'eco', '🔁': 'replay', '↩': 'undo', '⏳': 'hourglass_top', '🏆': 'emoji_events', '🔊': 'volume_up', '🔇': 'volume_off', '⚠': 'warning', '❌': 'cancel', '✖': 'close', '💔': 'heart_broken', '⛑': 'health_and_safety', '⚙': 'settings', '🛒': 'storefront', '🚀': 'rocket_launch', '💥': 'explosion', '✓': 'check', '✗': 'close', '▶': 'play_arrow', '☰': 'menu', '⟳': 'refresh', '⛵': 'sailing' };
 const EMO_RE = new RegExp('(' + Object.keys(EMO).sort((a, b) => b.length - a.length).join('|') + ')\\uFE0F?', 'g');
-const I = (n, c) => '<span class="mi' + (c ? ' ' + c : '') + '">' + n + '</span>';
-const MIS = n => '<tspan class="mis">' + n + '</tspan> ';
+let ICON_OK = true;
+const EXTRA_E = { flight: '🛩️', scatter_plot: '🎆', bolt: '⚡', rocket: '🚀', satellite_alt: '🛰️', sell: '💸', local_fire_department: '🔥',  bomb: '💣', crisis_alert: '☢️', diplomacy: '🤝', flight_takeoff: '✈️', visibility_off: '🕵️', campaign: '📢', volunteer_activism: '🎁', speed: '⚡', trending_up: '📈', my_location: '🎯', rocket_launch: '🚀', swords: '⚔️', explosion: '💥' };
+const ICE = (() => { const m = Object.assign({}, EXTRA_E); for (const e in EMO) if (!m[EMO[e]]) m[EMO[e]] = e; return m; })();
+let FONT_READY = false; const _icv = document.createElement('canvas').getContext('2d'), _icc = {};
+function iconOk(n) {   // ligature không có trong font sẽ vẽ thành CHỮ dài → đo bề rộng để phát hiện
+  if (!FONT_READY) return true; if (n in _icc) return _icc[n];
+  _icv.font = "48px 'Material Symbols Outlined'"; const w = _icv.measureText(n).width; return (_icc[n] = w < 90);
+}
+const I = (n, c) => ICON_OK && iconOk(n) ? '<span class="mi' + (c ? ' ' + c : '') + '">' + n + '</span>' : '<span class="mi emo' + (c ? ' ' + c : '') + '">' + (ICE[n] || '•') + '</span>';
+const MIS = n => ICON_OK && iconOk(n) ? '<tspan class="mis">' + n + '</tspan> ' : '<tspan>' + (ICE[n] || '•') + '</tspan> ';
+(function () {   // kiểm tra font icon; nếu offline/bị chặn thì dùng emoji thay vì hiện chữ "rocket_launch"
+  const bad = () => { if (!ICON_OK) return; ICON_OK = false; document.documentElement.classList.add('noicon'); document.querySelectorAll('.mi').forEach(e => { if (!e.classList.contains('emo')) { e.textContent = ICE[e.textContent.trim()] || '•'; e.classList.add('emo'); } }); };
+  if (!document.fonts || !document.fonts.load) return;
+  const fixAll = () => document.querySelectorAll('.mi:not(.emo)').forEach(e => { const nm = e.textContent.trim(); if (!iconOk(nm)) { e.textContent = ICE[nm] || '•'; e.classList.add('emo'); } });
+  setInterval(() => { if (FONT_READY) fixAll(); }, 1500);
+  const t = setTimeout(bad, 6000);
+  document.fonts.load("24px 'Material Symbols Outlined'", 'payments').then(f => { clearTimeout(t); if (!f || !f.length) bad(); else FONT_READY = true; }).catch(() => { clearTimeout(t); bad(); });
+})();
 const icoHtml = s => String(s).replace(EMO_RE, (m, g) => I(EMO[g]));
 
 // ---- Thế giới (điền bởi buildGeo) ----
@@ -413,8 +465,11 @@ const inCell = (r, p) => !r.cell || d3.polygonContains(r.cell, p);
 const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
 
 // Chia mỗi nước thành K vùng (Voronoi). layoutIn (từ chủ phòng) bảo đảm mọi máy có cùng vùng.
+let MAPSEL = 'world';
+const MAPS = { world: { n: 'Thế giới' }, europe: { n: 'Châu Âu', c: ['Europe'] }, asia: { n: 'Châu Á', c: ['Asia'] }, africa: { n: 'Châu Phi', c: ['Africa'] }, namerica: { n: 'Bắc Mỹ', c: ['North America'] }, samerica: { n: 'Nam Mỹ', c: ['South America'] }, oceania: { n: 'Châu Đại Dương', c: ['Oceania'] }, eurasia: { n: 'Âu – Á', c: ['Europe', 'Asia'] } };
 function buildGeo(layoutIn) {
-  features = window.GEO.features;
+  const mp = MAPS[MAPSEL] || MAPS.world;
+  features = window.GEO.features.filter(f => mp.c ? mp.c.includes(f.properties.CONTINENT) : true);
   proj = d3.geoNaturalEarth1().fitSize([VW, VH], { type: 'FeatureCollection', features });
   path = d3.geoPath(proj);
   byId = {}; d0 = {};
@@ -513,15 +568,27 @@ function navalOK(a, b) {          // đường từ vùng a sang vùng b có đo
 //  Luật chơi — hàm thuần theo trạng thái st = {t, nations, owner, occ, fort, ver}
 //  (chủ phòng và mọi client dùng CHUNG các hàm này để ước tính giống nhau)
 // =====================================================================================
-function setOwner(st, rid, nid) { if (nid) st.owner[rid] = nid; else delete st.owner[rid]; st.ver = (st.ver || 0) + 1; }
+function setOwner(st, rid, nid) { if (st.mine && st.mine[rid] && st.owner[rid] !== nid) delete st.mine[rid]; if (nid) st.owner[rid] = nid; else delete st.owner[rid]; st.ver = (st.ver || 0) + 1; }
 function ownedMap(st) {
   if (st._ov !== st.ver) { const m = {}; for (const rid in st.owner) { const n = st.owner[rid]; (m[n] || (m[n] = [])).push(regOf[rid]); } st._om = m; st._ov = st.ver; }
   return st._om;
 }
 const regionsOf = (st, id) => ownedMap(st)[id] || [];
-const admLimit = n => 5 + 3 * n.tech.adm;
+const TECHS = {
+  mil: { n: 'Quân sự', ic: '⚔️', m: 1, d: '+12% lực tấn công mỗi cấp', p: 'Mốc Lv4/8/12: thêm +5% lực tấn công' },
+  eco: { n: 'Kinh tế', ic: '💰', m: 1, d: '+15% thu nhập mỗi cấp', p: 'Mốc Lv4/8/12: thêm +8% thu nhập' },
+  adm: { n: 'Hành chính', ic: '🏛️', m: 1.1, d: '+3 trần lãnh thổ mỗi cấp', p: 'Mốc Lv4/8/12: thêm +2 trần lãnh thổ' },
+  def: { n: 'Phòng thủ', ic: '🛡️', m: 1.15, d: '+7% phòng thủ mọi vùng mỗi cấp', p: 'Mốc Lv4/8/12: thêm +6% phòng thủ, pháo đài rẻ 10%' },
+  log: { n: 'Hậu cần', ic: '🚚', m: 1.05, d: '−4% giá tuyển quân, +5 trần quân mỗi cấp', p: 'Mốc Lv4/8/12: thêm +8 trần quân' }
+};
+const TK = Object.keys(TECHS);
+const tl = (n, k) => (n.tech && n.tech[k]) || 0;   // an toàn với ván lưu cũ (chưa có nhánh mới)
+const perk = (n, k) => (tl(n, k) >= 4 ? 1 : 0) + (tl(n, k) >= 8 ? 1 : 0) + (tl(n, k) >= 12 ? 1 : 0);
+const TMAX = () => CFG.techMax + CFG.techOver;
+const te = (n, k) => { const l = tl(n, k); return Math.min(l, CFG.techMax) + CFG.overEff * Math.max(0, l - CFG.techMax); };   // cấp hiệu dụng (cấp Đột phá chỉ hiệu quả 60%)
+const admLimit = n => 5 + Math.floor(3 * te(n, 'adm')) + 2 * perk(n, 'adm');
 const stab = (n, c) => Math.max(.35, 1 - .06 * Math.max(0, c - admLimit(n)));
-const attMul = n => (1 + .12 * n.tech.mil) * (n.policy === 'mil' ? 1.2 : 1);
+const attMul = n => (1 + .12 * te(n, 'mil') + .05 * perk(n, 'mil')) * (n.policy === 'mil' ? 1.2 : 1);
 const isOcc = (st, rid) => (st.occ[rid] || 0) > st.t;
 function avgRegions(st) { const m = ownedMap(st), ids = Object.keys(st.nations).filter(i => (m[i] || []).length); return ids.length ? ids.reduce((a, i) => a + m[i].length, 0) / ids.length : 1; }
 const RES = { oil: { n: 'Dầu mỏ', ic: '🛢️', inc: .6 }, farm: { n: 'Nông nghiệp', ic: '🌾', inc: .25 }, ind: { n: 'Công nghiệp', ic: '🏭', inc: .4 } };
@@ -536,7 +603,8 @@ const EVENTS = {
   aid: { n: 'Quỹ viện trợ quốc tế', ic: '🎁', cash: 60, d: 'mọi nước nhận +60💰' }
 };
 let resG = null;
-const resOf = r => { if (r.res === undefined) { let h = 2166136261; for (const ch of 'r' + r.id) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); h = (h >>> 0) % 100; r.res = h < 4 ? 'oil' : h < 14 ? 'farm' : h < 22 ? 'ind' : ''; } return r.res; };
+const FOUNDG = {};   // mỏ do người chơi tự tìm thấy (đồng bộ từ S.found)
+const resOf = r => { if (FOUNDG[r.id]) return FOUNDG[r.id]; if (r.res === undefined) { let h = 2166136261; for (const ch of 'r' + r.id) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); h = (h >>> 0) % 100; r.res = h < 4 ? 'oil' : h < 14 ? 'farm' : h < 22 ? 'ind' : ''; } return r.res; };
 const evNow = st => st.ev && st.ev.until > st.t ? EVENTS[st.ev.k] : null;
 const evMul = (st, k) => { const e = evNow(st); return e && e.m && e.m[k] !== undefined ? e.m[k] : 1; };
 const evAll = st => { const e = evNow(st); return e && e.all ? e.all : 1; };
@@ -549,17 +617,31 @@ function tradeMul(st, n) {   // mỗi đối tác +5% (tối đa 6), mỗi loạ
 }
 function incomeOf(st, id) {
   const n = st.nations[id], own = regionsOf(st, id); if (!n || !own.length) return 0;
-  let s = 0; for (const r of own) { const k = resOf(r); let m = isOcc(st, r.id) ? CFG.occIncome : 1; if (k) m *= 1 + RES[k].inc * evMul(st, k); if (n.sub && n.sub.includes(r.id)) m *= 1.25; s += r.inc * m; }
+  let s = 0; for (const r of own) { const k = resOf(r); let m = isOcc(st, r.id) ? CFG.occIncome : 1; if (k) m *= 1 + RES[k].inc * evMul(st, k) * (1 + .6 * ((st.mine && st.mine[r.id]) || 0)); if (n.sub && n.sub.includes(r.id)) m *= 1.25; s += r.inc * m; }
   const avg = Math.max(3, avgRegions(st)), catchUp = 1 + .35 * clamp((avg - own.length) / avg, 0, 1);   // kéo kẻ yếu lên
   let up = 0; for (const r of own) up += r.sz * CFG.terrUpkeep;
-  return Math.max(0, s * stab(n, own.length) * (1 + .15 * n.tech.eco) * (n.policy === 'mil' ? .85 : 1.2) * catchUp * (n.bonus || 1) * tradeMul(st, n) * evAll(st) * ((n.buff && n.buff.boost > st.t) ? 1.5 : 1) - up);
+  const om = ownedMap(st); let tot = 0; for (const k in om) tot += om[k].length;
+  const share = tot ? own.length / tot : 0, lead = share > CFG.leaderShare ? 1 - CFG.leaderTax * (share - CFG.leaderShare) / (1 - CFG.leaderShare) : 1;
+  return Math.max(0, s * lead * stab(n, own.length) * (1 + .15 * te(n, 'eco') + .08 * perk(n, 'eco')) * (n.policy === 'mil' ? .85 : 1.2) * catchUp * (n.bonus || 1) * tradeMul(st, n) * evAll(st) * ((n.buff && n.buff.boost > st.t) ? 1.5 : 1) - up);
 }
 const popOf = (st, id) => regionsOf(st, id).reduce((a, r) => a + r.pop, 0);
-const maxArmy = (st, id) => Math.floor(40 + 6 * Math.sqrt(popOf(st, id)) + 5 * cntRes(st, id, 'farm'));
-const recruitCost = (st, id) => Math.round(100 * (1 + .08 * regionsOf(st, id).length) * (1 - Math.min(.3, .03 * cntRes(st, id, 'ind'))));
+const maxArmy = (st, id) => { const n = st.nations[id]; return Math.floor(40 + 6 * Math.sqrt(popOf(st, id)) + 5 * cntRes(st, id, 'farm') + (n ? Math.floor(5 * te(n, 'log')) + 8 * perk(n, 'log') : 0)); };
+const recruitCost = (st, id) => { const n = st.nations[id]; return Math.round(100 * (1 + .08 * regionsOf(st, id).length) * (1 - Math.min(.3, .03 * cntRes(st, id, 'ind'))) * (n ? 1 - Math.min(.45, .04 * te(n, 'log')) : 1)); };
 const expandCost = (c, r) => Math.round(40 * (c < 4 ? .6 : 1 + .14 * c) * (r ? r.sz : 1));   // càng nhiều vùng + vùng càng bự càng đắt
-const fortCost = (st, rid) => Math.round(90 * ((st.fort[rid] || 0) + 1) * (1 + .03 * (regionsOf(st, st.owner[rid]).length)));
-const techCost = lv => Math.round(120 * Math.pow(lv + 1, 1.6));
+const fortCost = (st, rid) => { const n = st.nations[st.owner[rid]]; return Math.round(90 * ((st.fort[rid] || 0) + 1) * (1 + .03 * (regionsOf(st, st.owner[rid]).length)) * (n && perk(n, 'def') ? 1 - .1 * Math.min(1, perk(n, 'def')) : 1)); };
+const techCost = (lv, k) => Math.round(120 * Math.pow(lv + 1, 1.6) * ((TECHS[k] && TECHS[k].m) || 1) * (lv >= CFG.techMax ? CFG.overCost : 1));
+function powerSur(st, n) {   // GIÁ THEO SỨC MẠNH: nước càng to so với bình quân càng phải trả đắt
+  if (!st || !n) return 0; const c = regionsOf(st, n.id).length, r = c / Math.max(3, avgRegions(st));
+  return clamp(CFG.powerPrice * (r - 1), 0, CFG.powerPriceMax);
+}
+const itemCost = (n, k, st) => Math.round(ITEMS[k].cost * (1 + CFG.itemInflate * ((n.inv && n.inv[k]) || 0)) * (1 + powerSur(st, n)));
+const prospCost = (st, nid, a) => Math.round(100 * (1 + .6 * a) * (1 + .05 * regionsOf(st, nid).length));
+const mineCost = lv => Math.round(160 * Math.pow(lv + 1, 1.5));
+const sellValue = (st, r) => {
+  const n = st.nations[st.owner[r.id]], c = n ? regionsOf(st, n.id).length : 1, ec = expandCost(Math.max(0, c - 1), r), k = resOf(r);
+  let v = Math.min(CFG.sellRate * 1.6 * ec, CFG.sellRate * ec + r.inc * 6 + (k ? 18 : 0)) * (isOcc(st, r.id) ? .5 : 1);
+  return Math.max(5, Math.round(v + 40 * (st.fort[r.id] || 0)));
+};
 const opsMax = (st, id) => CFG.opsBase + Math.floor(regionsOf(st, id).length / 6);
 function underdog(st, id) { const c = regionsOf(st, id).length; return c < Math.max(3, avgRegions(st)) * .6; }
 const fatigueMul = (st, n) => { const f = n.fat; return f && st.t - f.at < CFG.fatigueWin ? 1 - Math.min(CFG.fatigueMax, f.c) * CFG.fatigue : 1; };
@@ -569,8 +651,10 @@ function defOf(st, r) {
   if (isOcc(st, r.id)) d *= CFG.occDef;
   if (en && underdog(st, en.id)) d *= 1 + CFG.underdog;
   const wk = st.weak && st.weak[r.id]; if (wk && wk.u > st.t) d *= 1 - wk.m;
+  if (en) { d *= 1 + .07 * te(en, 'def') + .06 * perk(en, 'def'); const lc = recentLoss(st, en.id); if (lc) d *= 1 + CFG.comeback * Math.min(CFG.comebackMax, lc); }
   return d * (1 + CFG.fortDef * (st.fort[r.id] || 0));
 }
+function recentLoss(st, nid) { let c = 0; const L = st.lost; if (!L) return 0; for (const k in L) { const o = L[k]; if (o && o.n === nid && st.t - o.t < CFG.retakeWin) c++; } return c; }
 function winProb(att, def) {      // att ∈ ×[.85,1.15], def ∈ ×[.95,1.25]
   let w = 0; const N = 20;
   for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) if (att * (.85 + .3 * (i + .5) / N) > def * (.95 + .3 * (j + .5) / N)) w++;
@@ -642,11 +726,11 @@ const Sim = (() => {
   // ---------- khởi tạo ----------
   function create(cfg, lay) {
     layout = lay; hostPid = cfg.pid;
-    S = { v: 1, name: cfg.name || '', maxH: cfg.maxH || 8, code: cfg.code || '', speed: cfg.speed, level: cfg.level, t: 0, ver: 0, seq: 0, nations: {}, owner: {}, occ: {}, fort: {}, weak: {}, lost: {}, players: {}, log: [], cap: CFG.maxNations, vic: null, wonAt: -1e9 };
+    S = { v: 1, map: cfg.map || 'world', found: {}, mine: {}, prosp: {}, name: cfg.name || '', maxH: cfg.maxH || 8, code: cfg.code || '', speed: cfg.speed, level: cfg.level, t: 0, ver: 0, seq: 0, nations: {}, owner: {}, occ: {}, fort: {}, weak: {}, lost: {}, players: {}, log: [], cap: CFG.maxNations, vic: null, wonAt: -1e9 };
     spawnAI(cfg.ai); start();
   }
   function restore(obj, lay, pid, flags) {
-    layout = lay; hostPid = pid; S = obj; S.ver = 0; S.vic = null; S.players = S.players || {}; S.occ = S.occ || {}; S.fort = S.fort || {}; S.log = S.log || []; S.weak = {}; S.lost = S.lost || {}; Object.values(S.nations).forEach(n => { n.inv = n.inv || {}; n.buff = n.buff || {}; });
+    layout = lay; hostPid = pid; S = obj; S.found = S.found || {}; S.mine = S.mine || {}; S.prosp = S.prosp || {}; Object.assign(FOUNDG, S.found); S.ver = 0; S.vic = null; S.players = S.players || {}; S.occ = S.occ || {}; S.fort = S.fort || {}; S.log = S.log || []; S.weak = {}; S.lost = S.lost || {}; Object.values(S.nations).forEach(n => { n.inv = n.inv || {}; n.buff = n.buff || {}; });
     Object.values(S.nations).forEach(n => { if (flags && flags[n.id] && !n.flag) n.flag = flags[n.id]; if (!n.ai) { n.online = false; n.offAt = S.t; } });
     (S.pend || []).forEach(o => { const n = S.nations[o.nid]; if (!n) return; if (o.kind === 'expand') n.money += o.cost || 0; else n.army += Math.floor((o.sent || 0) * .8); });
     S.pend = [];
@@ -677,13 +761,13 @@ const Sim = (() => {
   function snap(full) {
     const n = {}; for (const id in S.nations) n[id] = dynN(S.nations[id]);
     const m = { t: 'snap', T: S.t, n };
-    if (full) { m.ev = S.ev || null; m.o = S.owner; m.oc = S.occ; m.f = S.fort; m.w = S.weak || {}; m.l = S.lost || {}; m.vic = S.vic ? { ids: S.vic.ids, left: Math.max(0, Math.round(CFG.victoryHold - (S.t - S.vic.since))) } : null; }
+    if (full) { m.ev = S.ev || null; m.o = S.owner; m.oc = S.occ; m.f = S.fort; m.w = S.weak || {}; m.l = S.lost || {}; m.mi = S.mine || {}; m.vic = S.vic ? { ids: S.vic.ids, left: Math.max(0, Math.round(CFG.victoryHold - (S.t - S.vic.since))) } : null; }
     net.bcast(m);
   }
   function welcome(pid) {
     const nations = {}; for (const id in S.nations) nations[id] = pubN(S.nations[id]);
     return { t: 'welcome', you: { pid, nid: S.players[pid] || null }, layout, host: hostPid,
-      S: { name: S.name || '', maxH: S.maxH || 8, code: S.code, speed: S.speed, level: S.level, t: S.t, nations, owner: S.owner, occ: S.occ, fort: S.fort, weak: S.weak || {}, lost: S.lost || {}, log: S.log, cap: S.cap, ev: S.ev, sandbox: !!S.sandbox }, ops: [...ops.values()].map(o => o.rid) };
+      S: { map: S.map || 'world', found: S.found || {}, mine: S.mine || {}, prosp: S.prosp || {}, name: S.name || '', maxH: S.maxH || 8, code: S.code, speed: S.speed, level: S.level, t: S.t, nations, owner: S.owner, occ: S.occ, fort: S.fort, weak: S.weak || {}, lost: S.lost || {}, log: S.log, cap: S.cap, ev: S.ev, sandbox: !!S.sandbox }, ops: [...ops.values()].map(o => o.rid) };
   }
   function save() {
     try { localStorage.setItem('gs4_host', JSON.stringify({ at: Date.now(), S: withPend() }, (k, v) => k[0] === '_' ? undefined : v)); } catch (e) {}
@@ -878,13 +962,14 @@ const Sim = (() => {
     const fly = Math.round(clamp(d * 7, 1000, 2800) / Math.sqrt(S.speed));
     emit({ e: 'strike', k, nid: n.id, o: oid, rid, src: src.id, fly });
     setTimeout(() => landStrike(n.id, k, rid, oid), fly + 50);
-    if (k === 'nuke' || k === 'tsar') sysLog(`☢️ ${n.name} phóng ${it.n} vào ${nameOf(r)}!`);
+    if (it.big) sysLog(`☢️ ${n.name} phóng ${it.n} vào ${nameOf(r)}!`);
     return null;
   }
   function landStrike(nid, k, rid, oid) {
     const n = S.nations[nid], en = S.nations[oid], r = regOf[rid], it = ITEMS[k];
     if (!en || S.owner[rid] !== oid) return emit({ e: 'hit', k, rid, nid, oid, rids: [], miss: true });
     const nm = n ? n.name : '?'; en.inv = en.inv || {};
+    if (it.emp) en.inv.dome = 0;
     if ((en.inv.dome || 0) > 0 && Math.random() < (it.icp || 1)) {
       en.inv.dome--; emit({ e: 'hit', k, rid, nid, oid, rids: [], blocked: true });
       toastN(oid, `🛡️ Phòng không đã đánh chặn ${it.n} của ${nm}!`); if (n) toastN(nid, `${en.name} đã đánh chặn ${it.n} của bạn`); return snap(false);
@@ -896,6 +981,16 @@ const Sim = (() => {
     else if (k === 'bunker') { en.army *= .92; noFort(rid); weak(r, .25, 90); }
     else if (k === 'cruise') { en.army *= .82; if (S.fort[rid]) { S.fort[rid]--; if (!S.fort[rid]) delete S.fort[rid]; emit({ e: 'fort', rid, lv: S.fort[rid] || 0 }); } weak(r, .4, 100); }
     else if (k === 'sabotage') { en.army *= .95; dead.push(r); }
+    else if (k === 'drone') { en.army *= .95; weak(r, .2, 45); }
+    else if (k === 'napalm') { en.army *= .8; weak(r, .3, 90); ngh[rid].forEach(j => { if (S.owner[j] === oid) weak(regOf[j], .15, 60); }); }
+    else if (k === 'cluster') { en.army *= .85; noFort(rid); weak(r, .3, 80); [...ngh[rid]].filter(j => S.owner[j] === oid).slice(0, 3).forEach(j => weak(regOf[j], .3, 80)); }
+    else if (k === 'emp') { en.money *= .93; en.army *= .97; weak(r, .35, 80); }
+    else if (k === 'hyper') { en.army *= .75; if (S.fort[rid]) { S.fort[rid]--; if (!S.fort[rid]) delete S.fort[rid]; emit({ e: 'fort', rid, lv: S.fort[rid] || 0 }); } weak(r, .5, 100); }
+    else if (k === 'orbital') {
+      en.army *= .75; regionsOf(S, oid).filter(x => dist2(x.seed, r.seed) <= 80).sort((a, b) => dist2(a.seed, r.seed) - dist2(b.seed, r.seed)).slice(0, 3).forEach(x => dead.push(x));
+      if (!dead.includes(r)) dead.unshift(r); dead.splice(3);
+      for (const x of Object.values(S.nations)) if (x.ai && x !== n && x.rel) x.rel[nid] = (x.rel[nid] || 0) - 12;
+    }
     else if (k === 'nuke') { en.army *= .7; en.money *= .9; dead.push(r); ngh[rid].forEach(j => { if (S.owner[j] === oid) { weak(regOf[j], .5, 120); noFort(j); } }); for (const x of Object.values(S.nations)) if (x.ai && x !== n && x.rel) x.rel[nid] = (x.rel[nid] || 0) - 15; }
     else if (k === 'tsar') {
       en.army *= .45; en.money *= .65;
@@ -908,7 +1003,7 @@ const Sim = (() => {
     emit({ e: 'hit', k, rid, nid, oid, rids, blocked: false });
     if (S.nations[oid]) toastN(oid, `💥 ${nm} dùng ${it.n} tấn công ${nameOf(r)}!`);
     if (n) toastN(nid, `💥 ${it.n} đã trúng ${nameOf(r)}`);
-    if (k === 'nuke' || k === 'tsar') sysLog(`💥 ${it.n} của ${nm} đã nổ tại ${nameOf(r)}${rids.length > 1 ? ' — ' + rids.length + ' vùng bị xoá sổ' : ''}`);
+    if (it.big) sysLog(`💥 ${it.n} của ${nm} đã nổ tại ${nameOf(r)}${rids.length > 1 ? ' — ' + rids.length + ' vùng bị xoá sổ' : ''}`);
     pump(); snap(false);
   }
   // Dân vùng bị chiếm có thể nổi dậy, trả vùng về chủ cũ (trong thời hạn giải phóng)
@@ -976,20 +1071,45 @@ const Sim = (() => {
     let err = null; const tgt = S.nations[m.to];
     switch (m.c) {
       case 'recruit': { const c = recruitCost(S, nid); if (n.money < c) err = 'Không đủ tiền'; else if (n.army + 10 > maxArmy(S, nid)) err = 'Đã đạt trần quân số'; else { n.money -= c; n.army += 10; } break; }
-      case 'tech': { const k = m.k; if (!['mil', 'eco', 'adm'].includes(k) || n.tech[k] >= CFG.techMax) { err = 'Đã tối đa'; break; } const c = techCost(n.tech[k]); if (n.money < c) err = 'Không đủ tiền'; else { n.money -= c; n.tech[k]++; } break; }
+      case 'tech': { const k = m.k; if (!TK.includes(k) || tl(n, k) >= TMAX()) { err = 'Đã tối đa'; break; } const c = techCost(tl(n, k), k); if (n.money < c) err = 'Không đủ tiền'; else { n.money -= c; n.tech[k] = tl(n, k) + 1; toastN(nid, `🔬 ${TECHS[k].n} Lv${n.tech[k]}${n.tech[k] === 4 || n.tech[k] === 8 || n.tech[k] === 12 ? ' — đạt mốc đặc biệt!' : n.tech[k] > CFG.techMax ? ' (Đột phá)' : ''}`); } break; }
       case 'policy': n.policy = n.policy === 'mil' ? 'eco' : 'mil'; break;
       case 'fort': { const rid = m.rid; if (S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể xây ở đây'; break; } const lv = S.fort[rid] || 0; if (lv >= CFG.fortMax) { err = 'Pháo đài đã tối đa'; break; } const c = fortCost(S, rid); if (n.money < c) err = 'Không đủ tiền'; else { n.money -= c; S.fort[rid] = lv + 1; emit({ e: 'fort', rid, lv: lv + 1 }); toastN(nid, `🏰 Xây pháo đài cấp ${lv + 1} ở ${nameOf(regOf[rid])}`); } break; }
+      case 'sell': {
+        const rid = m.rid, r = regOf[rid];
+        if (!r || S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể bán vùng này'; break; }
+        if (n.capital === rid) { err = 'Không thể bán thủ đô'; break; }
+        if (n.sellAt && S.t - n.sellAt < CFG.sellCool) { err = `Chờ ${Math.ceil(CFG.sellCool - (S.t - n.sellAt))}s mới bán tiếp`; break; }
+        const v = sellValue(S, r); n.money += v; n.sellAt = S.t; n.sub = (n.sub || []).filter(x => x !== rid);
+        setOwner(S, rid, null); delete S.occ[rid]; delete S.fort[rid]; delete S.weak[rid]; if (S.lost) delete S.lost[rid];
+        emit({ e: 'own', rid, nid: null, why: 'sell' }); toastN(nid, `💸 Bán ${nameOf(r)} được ${v}💰`); break;
+      }
+      case 'prospect': {
+        const rid = m.rid, r = regOf[rid]; if (!r || S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể tìm mỏ ở đây'; break; }
+        if (resOf(r)) { err = 'Vùng này đã có tài nguyên'; break; }
+        const a = S.prosp[rid] || 0; if (a >= 3) { err = 'Vùng đã cạn — không còn gì để tìm'; break; }
+        const c = prospCost(S, nid, a); if (n.money < c) { err = `Không đủ tiền (${c})`; break; }
+        n.money -= c; S.prosp[rid] = a + 1; let k = null;
+        if (Math.random() < .3 + .1 * a) { const x = Math.random(); k = x < .2 ? 'oil' : x < .55 ? 'farm' : 'ind'; S.found[rid] = k; FOUNDG[rid] = k; }
+        emit({ e: 'prosp', rid, a: a + 1, k }); toastN(nid, k ? `⛏️ Tìm thấy ${RES[k].n} ở ${nameOf(r)}!` : `⛏️ ${nameOf(r)}: chưa thấy gì (lần ${a + 1}/3)`); break;
+      }
+      case 'mine': {
+        const rid = m.rid, r = regOf[rid]; if (!r || S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể khai thác ở đây'; break; }
+        if (!resOf(r)) { err = 'Vùng chưa có mỏ — hãy tìm mỏ trước'; break; }
+        const lv = S.mine[rid] || 0; if (lv >= 3) { err = 'Mỏ đã khai thác tối đa'; break; }
+        const c = mineCost(lv); if (n.money < c) { err = `Không đủ tiền (${c})`; break; }
+        n.money -= c; S.mine[rid] = lv + 1; emit({ e: 'mine', rid, lv: lv + 1 }); toastN(nid, `⛏️ Khai thác ${RES[resOf(r)].n} ở ${nameOf(r)} lên Lv${lv + 1}`); break;
+      }
       case 'expand': err = startOp(nid, m.rid, 'expand'); break;
       case 'attack': err = startOp(nid, m.rid, 'attack', m.f); break;
       case 'claim': err = claim(nid, m.rid, m.f); break;
       case 'retreat': err = retreat(nid, m.rid); break;
-      case 'buy': { const it = ITEMS[m.k]; if (!it) { err = 'Vật phẩm không tồn tại'; break; } if (it.req && n.tech.mil < it.req) { err = `Cần Quân sự Lv${it.req}`; break; } if ((n.inv[m.k] || 0) >= it.max) { err = 'Kho đã đầy'; break; } if (n.money < it.cost) { err = 'Không đủ tiền'; break; } n.money -= it.cost; n.inv[m.k] = (n.inv[m.k] || 0) + 1; toastN(nid, `🛒 Đã mua ${it.n}`); break; }
+      case 'buy': { const it = ITEMS[m.k]; if (!it) { err = 'Vật phẩm không tồn tại'; break; } if (it.req && n.tech.mil < it.req) { err = `Cần Quân sự Lv${it.req}`; break; } if ((n.inv[m.k] || 0) >= it.max) { err = 'Kho đã đầy'; break; } const pc = itemCost(n, m.k, S); if (n.money < pc) { err = 'Không đủ tiền'; break; } n.money -= pc; n.inv[m.k] = (n.inv[m.k] || 0) + 1; toastN(nid, `🛒 Đã mua ${it.n}`); break; }
       case 'use': err = useItem(n, m.k, m.rid); break;
       case 'sbx': {
         if (!S.sandbox) { err = 'Chỉ dùng trong chế độ Sandbox'; break; } const a = m.a;
         if (a === 'items') Object.keys(ITEMS).forEach(k => n.inv[k] = ITEMS[k].max);
         else if (a === 'army') n.army += 200;
-        else if (a === 'tech') n.tech = { mil: CFG.techMax, eco: CFG.techMax, adm: CFG.techMax };
+        else if (a === 'tech') { n.tech = {}; TK.forEach(k => n.tech[k] = TMAX()); }
         else if (a === 'speed') S.speed = [1, 2, 4].includes(+m.v) ? +m.v : 1;
         else if (a === 'event') worldEvent(m.v in EVENTS ? m.v : true);
         else if (a === 'rebel') secede(n, true);
@@ -1074,7 +1194,7 @@ const Sim = (() => {
     const rc = recruitCost(S, n.id); if (n.money > rc * 1.25 && n.army + 10 <= maxArmy(S, n.id)) { n.money -= rc; n.army += 10; }
     const fr = frontier(n.id, own), cap = opsMax(S, n.id);
     // nghiên cứu khi dư tiền
-    if (full) { const ks = own.length >= admLimit(n) - 1 ? ['adm', 'eco', 'mil'] : ['eco', 'mil', 'adm']; for (const k of ks) { const c = techCost(n.tech[k]); if (n.tech[k] < 5 && n.money > c * 1.8) { n.money -= c; n.tech[k]++; break; } } }
+    if (full) { const ks = own.length >= admLimit(n) - 1 ? ['adm', 'eco', 'mil', 'def', 'log'] : ['eco', 'mil', 'def', 'adm', 'log']; for (const k of ks) { const c = techCost(tl(n, k), k); if (tl(n, k) < 5 && n.money > c * 1.8) { n.money -= c; n.tech[k] = tl(n, k) + 1; break; } } }
     // mở rộng
     if (nOps(n.id) < cap && own.length < admLimit(n) + (full ? 3 : 0) && n.money >= expandCost(own.length, { sz: .5 })) {
       const c0 = [d3.mean(own, o => o.seed[0]), d3.mean(own, o => o.seed[1])];
@@ -1992,20 +2112,20 @@ function screenFlash(col, ms) { const f = $('nflash'); f.style.background = col;
 function shake() { const m = $('map'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake'); }
 function onOwn(m) {
   setOwner(V, m.rid, m.nid); const r = regOf[m.rid];
-  if (!m.nid) { delete V.occ[m.rid]; delete V.fort[m.rid]; if (V.weak) delete V.weak[m.rid]; if (r) { const t = { nuke: 'Xoá sổ', tsar: 'Huỷ diệt', sabotage: 'Phá hoại', revolt: 'Nổi loạn' }[m.why] || 'Nổi loạn'; FX.text(r.seed[0], r.seed[1], t, '#ffab91'); flashRegion(r, '#ff7043', .7, 700); } }
+  if (!m.nid) { delete V.occ[m.rid]; delete V.fort[m.rid]; if (V.weak) delete V.weak[m.rid]; if (r) { const t = { nuke: 'Xoá sổ', tsar: 'Huỷ diệt', orbital: 'Laser quỹ đạo', sell: 'Đã bán', sabotage: 'Phá hoại', revolt: 'Nổi loạn' }[m.why] || 'Nổi loạn'; FX.text(r.seed[0], r.seed[1], t, '#ffab91'); flashRegion(r, '#ff7043', .7, 700); } }
   else if (m.why === 'resist' && r) { const n = V.nations[m.nid]; delete V.occ[m.rid]; if (V.lost) delete V.lost[m.rid]; if (n) { FX.ring(r.seed[0], r.seed[1], n.color, 44, 1.2, 3); FX.confetti(r.seed[0], r.seed[1], [n.color, '#fff'], 36); plantFlag(r, n); } FX.text(r.seed[0], r.seed[1], 'Giải phóng!', '#fff', 2, 13); SND.play('win'); }
   refreshAll(true);
 }
 function onStrike(m) {
   const t = regOf[m.rid], s0 = regOf[m.src], it = ITEMS[m.k], n = V.nations[m.nid]; if (!t || !it) return;
-  const a = s0 ? s0.seed : t.seed, big = m.k === 'nuke' || m.k === 'tsar';
+  const a = s0 ? s0.seed : t.seed, big = !!it.big;
   SND.play(big ? 'nuke' : 'launch');
   FX.missile(a, t.seed, n ? n.color : '#f44', m.fly, big, null);
   FX.ring(t.seed[0], t.seed[1], '#ff1744', 30, m.fly / 1000, 2); FX.ring(t.seed[0], t.seed[1], '#ff1744', 18, m.fly / 1000, 2, .3);
   if (m.o === ME.nid) { toast(`Cảnh báo: ${n ? n.name : '?'} phóng ${it.n} vào ${nameOf(t)}!`); SND.play('alert'); }
 }
 function onHit(m) {
-  const t = regOf[m.rid], it = ITEMS[m.k]; if (!t) return; const [x, y] = t.seed, big = m.k === 'nuke' || m.k === 'tsar';
+  const t = regOf[m.rid], it = ITEMS[m.k]; if (!t) return; const [x, y] = t.seed, big = !!(it && it.big);
   if (m.miss) return;
   if (m.blocked) { FX.flash(x, y, '#80d8ff', 30, .5); FX.ring(x, y, '#80d8ff', 50, .9, 3); FX.text(x, y, 'Bị đánh chặn', '#80d8ff', 1.8, 12); SND.play('tick'); return; }
   const list = (m.rids && m.rids.length ? m.rids : [m.rid]).map(i => regOf[i]).filter(Boolean);
@@ -2059,6 +2179,8 @@ function onOpEnd(e) {
 let cur = null, selected = null, flagData = null, mode = 'edit', menuTab = 'nation', unread = 0, toastT = null;
 const chatLog = [];
 const cmd = (c, extra) => net.toHost(Object.assign({ t: 'cmd', c }, extra));
+const ARM = {};   // xác nhận 2 chạm (confirm() bị chặn trong WebView / khung nhúng nên nút không làm gì)
+function ask(key, msg) { const now = Date.now(); if (ARM[key] && now - ARM[key] < 4000) { delete ARM[key]; return true; } ARM[key] = now; toast(msg + ' — chạm lần nữa để xác nhận'); return false; }
 function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2800); }
 function setBanner(m) { const b = $('banner'); if (!m) b.classList.add('hidden'); else { b.textContent = m; b.classList.remove('hidden'); } }
 const nname = id => (V.nations[id] || { name: '?' }).name;
@@ -2144,13 +2266,18 @@ function refreshInfo() {
   const f = byId[r.iso], id = r.id, o = V.owner[id], n = me(), on = V.nations[o], k = n ? reachFor(V, n.id, r) : null, mineR = n && o === n.id;
   const war = !!(n && on && !mineR && atWar(n, on)), enemy = !!on && !mineR, bz = busy.has(id);
   $('iName').textContent = f.properties.NAME + (r.K > 1 ? ` · vùng ${r.i + 1}/${r.K}` : '');
-  const tags = []; if (on) { if (isOcc(V, id)) tags.push('⛑️ đang chiếm đóng'); if (V.fort[id]) tags.push(`🏰 cấp ${V.fort[id]}`); { const wk = V.weak && V.weak[id]; if (wk && wk.u > V.t) tags.push(`💥 suy yếu −${Math.round(wk.m * 100)}%`); const lo = V.lost && V.lost[id]; if (n && lo && lo.n === n.id && V.t - lo.t < CFG.retakeWin) tags.push('🏳️ đất cũ của bạn: đánh chiếm lại +30% lực'); } if (on.capital === id) tags.push('👑 thủ đô'); }
+  const tags = []; if (mineR && V.mine && V.mine[id]) tags.push('⛏️ khai thác Lv' + V.mine[id]); if (on) { if (isOcc(V, id)) tags.push('⛑️ đang chiếm đóng'); if (V.fort[id]) tags.push(`🏰 cấp ${V.fort[id]}`); { const wk = V.weak && V.weak[id]; if (wk && wk.u > V.t) tags.push(`💥 suy yếu −${Math.round(wk.m * 100)}%`); const lo = V.lost && V.lost[id]; if (n && lo && lo.n === n.id && V.t - lo.t < CFG.retakeWin) tags.push('🏳️ đất cũ của bạn: đánh chiếm lại +30% lực'); } if (on.capital === id) tags.push('👑 thủ đô'); }
   $('iMeta').textContent = (n && (o === n.id || (n.known && n.known[id])) ? (resOf(r) ? RES[resOf(r)].ic + ' ' + RES[resOf(r)].n + ' · ' : (o === n.id ? '' : '🔍 không có tài nguyên · ')) : '') + `👥 ${r.pop.toFixed(1)}M · ` + (mineR ? 'Lãnh thổ của bạn' : on ? `Thuộc ${on.name}${war ? ' ⚔️' : n && allied(n, on) ? ' 🤝' : ''} · 🛡️ ~${Math.round(defOf(V, r))}` : 'Đất trống')
     + (tags.length ? ' · ' + tags.join(' · ') : '') + (bz ? ' · đang có chiến dịch' : '');
   const cost = n ? Math.round(expandCost(regionsOf(V, n.id).length, r) * (k === 'sea' ? CFG.seaCost : 1)) : 0, cr = n ? recruitCost(V, n.id) : 0;
   $('bRecruit').style.display = n ? '' : 'none'; if (n) { $('bRecruit').textContent = `+10 quân (${cr}💰)`; $('bRecruit').disabled = n.money < cr || n.army + 10 > maxArmy(V, n.id); }
   const fl = V.fort[id] || 0; $('bFort').style.display = mineR ? '' : 'none';
   if (mineR) { $('bFort').textContent = fl >= CFG.fortMax ? '🏰 Tối đa' : `🏰 Pháo đài ${fl + 1} (${fortCost(V, id)}💰)`; $('bFort').disabled = fl >= CFG.fortMax || n.money < fortCost(V, id) || bz; }
+  { const rk = resOf(r), ml = (V.mine && V.mine[id]) || 0, pa = (V.prosp && V.prosp[id]) || 0; $('rowMine').style.display = mineR ? '' : 'none';
+    if (mineR) { if (!rk) { const pc = prospCost(V, n.id, pa); $('bMine').textContent = pa >= 3 ? '⛏️ Vùng đã cạn' : `⛏️ Tìm mỏ (${pc}💰) · lần ${pa + 1}/3`; $('bMine').dataset.m = 'prospect'; $('bMine').disabled = pa >= 3 || n.money < pc || bz; }
+      else { const mc = mineCost(ml); $('bMine').textContent = ml >= 3 ? `⛏️ Mỏ tối đa Lv3` : `⛏️ Khai thác ${RES[rk].n} Lv${ml}→${ml + 1} (${mc}💰)`; $('bMine').dataset.m = 'mine'; $('bMine').disabled = ml >= 3 || n.money < mc || bz; } } }
+  $('rowSell').style.display = mineR && id !== n.capital ? '' : 'none';
+  if (mineR && id !== n.capital) { const sv = sellValue(V, r); $('bSell').textContent = `💸 Bán vùng này (+${sv}💰)`; $('bSell').disabled = bz; }
   { const sb = n && n.sub || []; $('rowCap').style.display = mineR && id !== n.capital ? '' : 'none';
     if (mineR) { const sc = sb.includes(id); $('bSub').textContent = sc ? '🏛️ Đã là thủ đô phụ' : `🏛️ Thủ đô phụ (${500 + 350 * sb.length}💰)`; $('bSub').disabled = sc || sb.length >= 2 || bz || n.money < 500 + 350 * sb.length; $('bMove').textContent = '👑 Dời đô (600💰)'; $('bMove').disabled = bz || n.money < 600; } }
   $('rowSbx').style.display = V.sandbox && n ? '' : 'none';
@@ -2180,11 +2307,13 @@ function refreshInfo() {
 $('rowStrike').onclick = ev => { const b = ev.target.closest('button'); if (b && cur) cmd('use', { k: b.dataset.use, rid: cur.id }); };
 $('bRecruit').onclick = () => cmd('recruit'); $('bQuick').onclick = () => { cmd('recruit'); SND.play('tick'); };
 $('bFort').onclick = () => cur && cmd('fort', { rid: cur.id });
+$('bMine').onclick = () => cur && cmd($('bMine').dataset.m, { rid: cur.id });
+$('bSell').onclick = () => { if (!cur) return; const v = sellValue(V, cur); if (ask('sell' + cur.id, `Bán ${nameOf(cur)} lấy ${v}💰 (vùng thành đất trống)`)) { cmd('sell', { rid: cur.id }); SND.play('coin'); closeInfo(); } };
 $('bSub').onclick = () => cur && cmd('subcap', { rid: cur.id });
 $('bTake').onclick = () => cur && cmd('sbx', { a: 'take', rid: cur.id });
 $('bFree2').onclick = () => cur && cmd('sbx', { a: 'free', rid: cur.id });
 $('bSurvey').onclick = () => cur && cmd('survey', { rid: cur.id });
-$('bMove').onclick = () => cur && confirm('Dời thủ đô về đây? Tốn 600💰') && cmd('movecap', { rid: cur.id });
+$('bMove').onclick = () => cur && ask('move' + cur.id, 'Dời thủ đô về đây? Tốn 600💰') && cmd('movecap', { rid: cur.id });
 $('bExpand').onclick = () => cur && cmd('expand', { rid: cur.id });
 $('bAtk50').onclick = () => cur && cmd('attack', { rid: cur.id, f: .5 });
 $('bAtk100').onclick = () => cur && cmd('attack', { rid: cur.id, f: 1 });
@@ -2300,12 +2429,12 @@ function drawMenu() {
   }
   if (menuTab === 'shop') {
     const grp = { strike: 'Vũ khí tấn công', def: 'Phòng thủ', buff: 'Bổ trợ', pol: 'Chính trị' }, now = V.t;
-    let h = `<p class="muted">Tiền: <b>${fmt(n.money)}</b>. Vũ khí chỉ phóng được vào vùng của nước đang <b>giao chiến</b> trong tầm phóng. Phóng vũ khí sẽ mất bảo hộ.</p>`;
+    let h = `<p class="muted">Tiền: <b>${fmt(n.money)}</b>. Vũ khí chỉ phóng được vào vùng của nước đang <b>giao chiến</b> trong tầm phóng. Phóng vũ khí sẽ mất bảo hộ.${powerSur(V, n) > 0 ? `<br>📈 Nước bạn lớn hơn bình quân nên mọi món đắt thêm <b>+${Math.round(powerSur(V, n) * 100)}%</b>.` : ''} Vũ khí càng mạnh càng đắt; tích trữ nhiều cái cùng loại cũng đắt dần.</p>`;
     for (const g of ['strike', 'def', 'buff', 'pol']) {
       h += `<h3>${grp[g]}</h3>`;
-      for (const k2 of Object.keys(ITEMS)) {
+      for (const k2 of Object.keys(ITEMS).sort((a, b) => ITEMS[a].cost - ITEMS[b].cost)) {
         const it = ITEMS[k2]; if (it.g !== g) continue; const have = n.inv[k2] || 0, lock = it.req && n.tech.mil < it.req, bf = n.buff[k2] > now ? Math.round(n.buff[k2] - now) : 0;
-        const acts = [`<button data-act="buy" data-k="${k2}" ${lock || have >= it.max || n.money < it.cost ? 'disabled' : ''}>${it.cost}${I('payments')}</button>`];
+        const acts = [`<button data-act="buy" data-k="${k2}" ${lock || have >= it.max || n.money < itemCost(n, k2, V) ? 'disabled' : ''}>${itemCost(n, k2, V)}${I('payments')}</button>`];
         if (it.t === 'inst' || it.t === 'buff') acts.push(`<button data-act="use" data-k="${k2}" ${have < 1 ? 'disabled' : ''}>Dùng</button>`);
         if (it.t === 'strike') acts.push(`<button data-act="aim" data-k="${k2}" ${have < 1 || lock ? 'disabled' : ''}>${I('my_location')} Ngắm</button>`);
         h += `<div class="mrow item"><span>${I(it.ic, 'big')} ${it.n} <span class="tag">${have}/${it.max}</span>${bf ? `<span class="tag a">${bf}s</span>` : ''}${lock ? `<span class="tag w">Quân sự Lv${it.req}</span>` : ''}<small>${it.d}</small></span><span>${acts.join('')}</span></div>`;
@@ -2328,8 +2457,9 @@ function drawMenu() {
     }).join('') || '<p class="muted">Chưa có quốc gia nào khác.</p>';
     return;
   }
-  const own = regionsOf(V, n.id), rc = k => techCost(n.tech[k]);
-  const R = (k, l, d) => `<div class="mrow"><span>${l} Lv${n.tech[k]}<small>${d}</small></span><button data-act="tech" data-k="${k}" ${n.tech[k] >= CFG.techMax ? 'disabled' : ''}>${n.tech[k] >= CFG.techMax ? 'Tối đa' : rc(k) + '💰'}</button></div>`;
+  const own = regionsOf(V, n.id);
+  const R = k => { const T = TECHS[k], lv = tl(n, k), mx = lv >= TMAX(), over = lv >= CFG.techMax, c = techCost(lv, k), pips = Array.from({ length: TMAX() }, (_, i) => `<i class="${i < lv ? 'on' : ''}${i === 3 || i === 7 || i === 11 ? ' ms' : ''}${i >= CFG.techMax ? ' ov' : ''}"></i>`).join('');
+    return `<div class="tcard ${mx ? 'max' : ''} ${over ? 'ovr' : ''}"><div class="th"><b>${T.ic} ${T.n}</b><span class="tag">Lv${lv}/${TMAX()}</span></div><div class="pips">${pips}</div><small>${T.d}${perk(n, k) ? ' · <b>mốc ' + perk(n, k) + '/3 đã mở</b>' : ''}<br>${T.p}${over && !mx ? '<br><b>Đột phá:</b> mỗi cấp thêm hiệu quả 60%' : ''}</small><button data-act="tech" data-k="${k}" ${mx || n.money < c ? 'disabled' : ''}>${mx ? 'Tối đa' : (lv >= CFG.techMax ? 'Đột phá · ' : 'Nghiên cứu · ') + c + '💰'}</button></div>`; };
   const occN = own.filter(r => isOcc(V, r.id)).length, rc2 = k => own.filter(r => resOf(r) === k).length, tn = Object.keys(n.trade || {}).filter(k => V.nations[k]).length, ev = evNow(V);
   el.innerHTML = `<h2>${flagImg(n)}${esc(n.name)}</h2>${ev ? `<p class="muted">${ev.ic} Sự kiện: <b>${ev.n}</b> — ${ev.d} (còn ${Math.max(0, Math.round(V.ev.until - V.t))}s)</p>` : ''}
     <p class="muted">Lãnh thổ ${own.length}/${admLimit(n)} · ổn định ${Math.round(stab(n, own.length) * 100)}% · thu +${n.inc.toFixed(1)}/giây${occN ? ` · ${occN} vùng đang chiếm đóng (thu 40%, hao quân)` : ''}. Vượt trần thì thu nhập giảm và có thể nổi loạn.</p>
@@ -2339,8 +2469,8 @@ function drawMenu() {
     <h3>Kinh tế & tài nguyên</h3>
     <div class="mrow"><span>🛢️ Dầu ${rc2('oil')} · 🌾 Nông nghiệp ${rc2('farm')} · 🏭 Công nghiệp ${rc2('ind')}<small>Dầu +60% thu vùng · Nông nghiệp +25% & +5 trần quân · Công nghiệp +40% & −3% giá tuyển quân. Tài nguyên rất hiếm và ẩn: chiếm đất hoặc thăm dò (120💰) mới biết.</small></span></div>
     <div class="mrow"><span>📦 Đối tác thương mại ${tn}/5 · 🏛️ Thủ đô phụ ${(n.sub || []).length}/2<small>Ký thương mại ở tab Ngoại giao: +5%/đối tác, +8% cho mỗi loại tài nguyên bạn thiếu. Thủ đô phụ: phòng thủ ×1.3, thu +25%; lập ở bảng vùng.</small></span></div>
-    <h3>Nghiên cứu</h3>${R('mil', '⚔️ Quân sự', '+12% lực tấn công mỗi cấp')}${R('eco', '💰 Kinh tế', '+15% thu nhập mỗi cấp')}${R('adm', '🏛️ Hành chính', '+3 trần lãnh thổ mỗi cấp')}
-    <p class="muted" style="margin-top:12px">Mẹo: nước nhỏ hơn bình quân được cộng tới +35% thu nhập (hỗ trợ kẻ yếu). Pháo đài tăng +25% phòng thủ mỗi cấp. Thủ đô phòng thủ ×${CFG.capDef}.</p>`;
+    <h3>Nghiên cứu</h3><div class="tgrid">${TK.map(R).join('')}</div>
+    <p class="muted" style="margin-top:12px">Mẹo: nước nhỏ hơn bình quân được cộng tới +35% thu nhập (hỗ trợ kẻ yếu); nước nắm trên 30% thế giới bị thuế bá chủ. Vật phẩm càng tích trữ càng đắt. Vừa mất vùng thì được tăng phòng thủ tạm thời. Pháo đài tăng +25% phòng thủ mỗi cấp. Thủ đô phòng thủ ×${CFG.capDef}.</p>`;
 }
 $('mBody').onclick = ev => {
   const b = ev.target.closest('button'); if (!b || b.disabled) return; const a = b.dataset.act, i = b.dataset.i;
@@ -2351,7 +2481,7 @@ $('mBody').onclick = ev => {
   if (a === 'sbx') { cmd('sbx', { a: b.dataset.a, v: b.dataset.v }); return; }
   if (a === 'ship') return openShip(i); if (a === 'rename') return openRename(); if (a === 'trade') { cmd('trade', { to: i }); SND.play('coin'); return; }
   if (a === 'policy') cmd('policy'); else if (a === 'tech') cmd('tech', { k: b.dataset.k }); else if (a === 'gift') cmd('gift', { to: i });
-  else if (['war', 'peace', 'ally', 'break'].includes(a)) { if (a === 'war' && !confirm(`Tuyên chiến với ${nname(i)}?`)) return; cmd(a, { to: i }); }
+  else if (['war', 'peace', 'ally', 'break'].includes(a)) { if (a === 'war' && !ask('war' + i, `Tuyên chiến với ${nname(i)}?`)) return; cmd(a, { to: i }); }
 };
 // chat
 function pushChat(o) { chatLog.push(o); if (chatLog.length > 80) chatLog.shift(); if (!$('menu').classList.contains('hidden') && menuTab === 'chat') renderChat(); else if (!o.sys && o.mine !== true) { unread++; $('badge').classList.remove('hidden'); } }
@@ -2382,7 +2512,8 @@ const View = {
   }
 };
 function applyWelcome(m) {
-  if (!worldBuilt) { buildGeo(m.layout); buildMap(); }
+  if (!worldBuilt) { MAPSEL = m.S.map || 'world'; buildGeo(m.layout); buildMap(); }
+  Object.assign(FOUNDG, m.S.found || {});
   V = m.S; V.ver = 0; V.occ = V.occ || {}; V.fort = V.fort || {}; V.weak = V.weak || {}; V.lost = V.lost || {}; ME.pid = m.you.pid; ME.nid = m.you.nid;
   prevOwn = {}; busy.clear(); m.ops.forEach(rid => busy.add(rid)); [...anims.keys()].forEach(id => dropAnim(id)); FX.clear(); fxG.selectAll('*').remove(); sweepG.selectAll('*').remove(); arrowG.selectAll('*').remove();
   chatLog.length = 0; (V.log || []).forEach(s => chatLog.push({ sys: true, m: s })); renderChat();
@@ -2394,7 +2525,7 @@ function applySnap(m) {
   if ('ev' in m) V.ev = m.ev;
   if (m.o) {   // chỉ dựng lại cờ/nhãn khi chủ đất hoặc pháo đài thật sự đổi (trước đây dựng lại mỗi 6s → giật)
     const sg = JSON.stringify(m.o) + JSON.stringify(m.f || {}), ch = sg !== V._sg; V._sg = sg;
-    V.owner = m.o; V.occ = m.oc || {}; V.fort = m.f || {}; V.weak = m.w || {}; V.lost = m.l || {}; V.ver++; paint(false); if (ch) { drawFlags(); drawNationLabels(); }
+    V.owner = m.o; V.occ = m.oc || {}; V.fort = m.f || {}; V.weak = m.w || {}; V.lost = m.l || {}; if (m.mi) V.mine = m.mi; V.ver++; paint(false); if (ch) { drawFlags(); drawNationLabels(); }
   }
   if (m.o) V.vic = m.vic;
   updateNationArmy(); updateHud(); updateLb(); if (cur) refreshInfo(); drawMenu();
@@ -2407,6 +2538,8 @@ function onEv(m) {
     case 'chat': pushChat({ from: m.from, m: m.m, mine: m.nid && m.nid === ME.nid }); break;
     case 'you': ME.nid = m.nid; closeFound(); updateHud(); SND.play('win'); break;
     case 'nat': V.nations[m.n.id] = m.n; setOwner(V, m.rid, m.n.id); refreshAll(true); { const r = regOf[m.rid]; FX.ring(r.seed[0], r.seed[1], m.n.color, 40, 1.2, 3); FX.confetti(r.seed[0], r.seed[1], [m.n.color, '#fff', '#ffd54f'], 40); plantFlag(r, m.n); } break;
+    case 'prosp': V.prosp = V.prosp || {}; V.prosp[m.rid] = m.a; if (m.k) { FOUNDG[m.rid] = m.k; const r = regOf[m.rid]; FX.ring(r.seed[0], r.seed[1], '#ffd54f', 40, 1, 3); FX.text(r.seed[0], r.seed[1], 'Mỏ ' + RES[m.k].n, '#ffd54f', 2, 13); SND.play('coin'); } if (cur) refreshInfo(); break;
+    case 'mine': V.mine = V.mine || {}; V.mine[m.rid] = m.lv; { const r = regOf[m.rid]; FX.ring(r.seed[0], r.seed[1], '#ffb300', 30, .8, 2.5); SND.play('tick'); } if (cur) refreshInfo(); break;
     case 'own': onOwn(m); break;
     case 'strike': onStrike(m); break;
     case 'hit': onHit(m); break;
@@ -2430,7 +2563,7 @@ function showVictory(m) {
   const ids = ['hud', 'info', 'menu', 'sheet', 'lb', 'rooms', 'toast', 'banner', 'dlg', 'vic', 'lobby', 'ops', 'aim', 'hint', 'loading', 'zoombar'];
   let busyC = false;
   function conv(root) {
-    if (!root) return; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), list = [];
+    if (!root || !ICON_OK) return; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), list = [];
     for (let n = w.nextNode(); n; n = w.nextNode()) { const p = n.parentNode; if (p && /^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|SELECT)$/.test(p.nodeName)) continue; if (p && p.classList && p.classList.contains('mi')) continue; EMO_RE.lastIndex = 0; if (EMO_RE.test(n.nodeValue)) list.push(n); }
     list.forEach(n => { const sp = document.createElement('span'); sp.innerHTML = esc(n.nodeValue).replace(EMO_RE, (m0, g) => I(EMO[g])); n.replaceWith(...sp.childNodes); });
   }
@@ -2499,10 +2632,10 @@ async function startLocal(asHost, saved) {
   const name = ($('rName').value.trim() || (saved && saved.name) || '').slice(0, 30), pub = $('rPub').checked && FB.ok();
   loading('Đang tạo thế giới…'); await sleep(40);
   try {
-    const layout = ensureWorld(); let code = '';
+    MAPSEL = saved ? (saved.map || 'world') : ($('oMap').value || 'world'); const layout = ensureWorld(); let code = '';
     if (asHost) { Object.assign(NETCFG, cfg0); try { localStorage.setItem('gs_netcfg', JSON.stringify(NETCFG)); } catch (e) {} loading('Đang mở phòng…'); code = await hostRoom(saved && saved.code); }
     net.isHost = true; net.mode = asHost ? 'host' : 'solo'; net.code = code;
-    const cfg = { ai: +$('oAI').value, speed: +$('oSpd').value, level: +$('oLvl').value, code, pid: net.pid, name: name || (asHost ? 'Phòng ' + code : ''), maxH: +$('oMax').value };
+    const cfg = { map: MAPSEL, ai: +$('oAI').value, speed: +$('oSpd').value, level: +$('oLvl').value, code, pid: net.pid, name: name || (asHost ? 'Phòng ' + code : ''), maxH: +$('oMax').value };
     if (saved) { saved.code = code; if (name) saved.name = name; saved.name = saved.name || (asHost ? 'Phòng ' + code : ''); Sim.restore(saved, layout, net.pid); } else { Sim.create(cfg, layout); if (sbxNext) Sim.S.sandbox = true; }
     View.onMsg(JSON.parse(JSON.stringify(Sim.welcome(net.pid))));
     if (asHost) {
@@ -2521,7 +2654,7 @@ async function reviveRoom(code, snap) {
   loading('Phòng đang trống — đang hồi sinh từ bản lưu…');
   let obj = JSON.parse(snap); if (obj && obj.S) obj = obj.S;
   if (!obj || !obj.nations) throw { type: 'peer-unavailable' };
-  const layout = ensureWorld();
+  MAPSEL = obj.map || 'world'; const layout = ensureWorld();
   let peer;
   try { peer = await openPeer(PEER_PREFIX + code); }
   catch (e) { if (e && e.type === 'unavailable-id') { await sleep(1200); return joinRoom(code); } throw e; }
