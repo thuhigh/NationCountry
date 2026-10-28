@@ -332,7 +332,7 @@ input:focus{border-color:var(--pr)}
     <div class="row"><button id="lbGo" class="filled" type="button">Bắt đầu</button></div>
     <div id="lbSaves"></div>
     <p id="lbMsg" class="err"></p>
-    <details id="fbBox"><summary>⚙ Firebase (danh sách phòng + lưu ván online)</summary>
+    <details id="fbBox" style="display:none"><summary>⚙ Firebase (danh sách phòng + lưu ván online)</summary>
       <label>URL Realtime Database</label><input id="fbUrl" type="text" placeholder="https://ten-du-an-default-rtdb.firebaseio.com" autocomplete="off">
       <div class="row"><button id="fbSave" class="tonal" type="button">Lưu &amp; kiểm tra</button><button id="fbShare" class="tonal" type="button">Chép link chia sẻ</button></div><p id="fbStat" class="muted"></p>
     </details>
@@ -1410,7 +1410,13 @@ const PEER_PREFIX = 'gsmp4-';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const genCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < 5; i++) s += A[Math.floor(Math.random() * A.length)]; return s; };
 function peerOpts() {
-  const o = { debug: 0 }, q = new URLSearchParams(location.search);
+  // TURN/STUN: nếu không có TURN thì mạng 4G/CGNAT/WiFi công ty không thể nối trực tiếp (WebRTC) → không vào được phòng bằng mã
+  const o = { debug: 0, config: { iceTransportPolicy: 'all', iceCandidatePoolSize: 4, iceServers: [
+    { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:global.stun.twilio.com:3478'] },
+    { urls: 'turn:eu-0.turn.peerjs.com:3478', username: 'peerjs', credential: 'peerjsp' },
+    { urls: 'turn:us-0.turn.peerjs.com:3478', username: 'peerjs', credential: 'peerjsp' },
+    { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }
+  ] } }, q = new URLSearchParams(location.search);
   if (NETCFG.host) { o.host = NETCFG.host; o.port = +NETCFG.port || (NETCFG.secure ? 443 : 9000); o.path = NETCFG.path || '/'; o.secure = !!NETCFG.secure; }
   else if (q.get('peerhost')) { o.host = q.get('peerhost'); o.port = +q.get('peerport') || 9000; o.path = q.get('peerpath') || '/'; o.secure = q.get('peersecure') === '1'; }
   return o;
@@ -1526,7 +1532,7 @@ function joinRoom(code) {
       try { peer = await openPeer(undefined); } catch (e) { return failed(e); }
       net.peer = peer;
       const conn = peer.connect(PEER_PREFIX + code, { reliable: true });
-      let opened = false, to = setTimeout(() => { if (!opened) { try { conn.close(); } catch (e) {} failed({ type: 'peer-unavailable' }); } }, 10000);
+      let opened = false, to = setTimeout(() => { if (!opened) { try { conn.close(); } catch (e) {} failed({ type: 'peer-unavailable' }); } }, 25000);
       peer.on('error', e => { if (e.type === 'peer-unavailable') { clearTimeout(to); failed(e); } });
       conn.on('open', () => { opened = true; clearTimeout(to); net.hostConn = conn; conn.send(JSON.stringify({ t: 'hello', pid: net.pid, v: 1 })); });
       conn.on('data', raw => {
@@ -2577,7 +2583,7 @@ let layoutCache = null, lbMode = 'solo', peerOk = false, roomsTimer = null;
 function ensureWorld() { if (!worldBuilt) { layoutCache = buildGeo(null); buildMap(); buildRes(); } return layoutCache; }
 const lbMsg = m => { $('lbMsg').textContent = m || ''; };
 function loading(t) { $('loading').textContent = t; $('loading').classList.remove('hidden'); }
-const errText = e => ({ 'peer-unavailable': 'Không tìm thấy phòng — chủ đã thoát và chưa có bản lưu (cần Firebase có gs_state)', nopeer: 'Không tải được thư viện mạng (PeerJS) — kiểm tra Internet', timeout: 'Hết thời gian chờ máy chủ ghép nối — kiểm tra IP/port rồi thử lại', network: 'Lỗi mạng khi ghép nối (IP/port đúng chưa?)', 'server-error': 'Máy chủ ghép nối không phản hồi', 'unavailable-id': 'Không tạo được mã phòng — thử lại', socket: 'Không kết nối được máy chủ ghép nối (IP/port/TLS?)' }[e && e.type] || ('Lỗi: ' + ((e && (e.type || e.message)) || 'không rõ')));
+const errText = e => ({ 'peer-unavailable': 'Không vào được phòng — chủ phòng có thể đã thoát, hoặc mạng của bạn chặn kết nối trực tiếp. Bấm “Vào” lại, hoặc đổi sang WiFi/4G khác rồi thử lại', nopeer: 'Không tải được thư viện mạng (PeerJS) — kiểm tra Internet', timeout: 'Hết thời gian chờ máy chủ ghép nối — kiểm tra IP/port rồi thử lại', network: 'Lỗi mạng khi ghép nối (IP/port đúng chưa?)', 'server-error': 'Máy chủ ghép nối không phản hồi', 'unavailable-id': 'Không tạo được mã phòng — thử lại', socket: 'Không kết nối được máy chủ ghép nối (IP/port/TLS?)' }[e && e.type] || ('Lỗi: ' + ((e && (e.type || e.message)) || 'không rõ')));
 
 function setLbMode(m) {
   lbMode = m; [...$('lbMode').children].forEach(b => b.classList.toggle('on', b.dataset.m === m));
@@ -2600,7 +2606,7 @@ function fillNetCfg() { $('rHost').value = NETCFG.host || ''; $('rPort').value =
 // ---- danh sách phòng (Firebase) ----
 async function refreshRooms() {
   const el = $('rooms'); if (lbMode !== 'join') return;
-  if (!FB.ok()) { el.innerHTML = '<p class="muted">Chưa cấu hình Firebase — mở “⚙ Firebase” bên dưới để dán URL, hoặc nhập mã phòng.</p>'; return; }
+  if (!FB.ok()) { el.innerHTML = '<p class="muted">Chưa tải được danh sách phòng — hãy nhập mã phòng.</p>'; return; }
   try {
     const L = await FB.list(); el.innerHTML = '';
     if (!L.length) { el.innerHTML = '<p class="muted">Chưa có phòng nào đang mở. Hãy tạo phòng đầu tiên!</p>'; return; }
@@ -2675,6 +2681,7 @@ async function startJoin(code, srv) {
     $('loading').classList.add('hidden'); lbMsg(errText(e));
   }
 }
+if (/[?&]dev\b/.test(location.search)) $('fbBox').style.display = '';   // cấu hình Firebase đã có sẵn trong code; chỉ hiện khi thêm ?dev vào link
 $('lbMode').onclick = ev => { const b = ev.target.closest('button'); if (b) setLbMode(b.dataset.m); };
 $('lbGo').onclick = () => {
   lbMsg('');
