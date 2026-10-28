@@ -321,6 +321,7 @@ input:focus{border-color:var(--pr)}
         <div><label>Số AI</label><select id="oAI"><option>0</option><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select></div>
         <div><label>Tốc độ</label><select id="oSpd"><option value="1" selected>1×</option><option value="2">2×</option><option value="3">3×</option></select></div>
         <div><label>Bản đồ</label><select id="oMap"><option value="world" selected>Thế giới</option><option value="eurasia">Âu – Á</option><option value="europe">Châu Âu</option><option value="asia">Châu Á</option><option value="africa">Châu Phi</option><option value="namerica">Bắc Mỹ</option><option value="samerica">Nam Mỹ</option><option value="oceania">Châu Đại Dương</option></select></div>
+        <div><label>Chất lượng bản đồ</label><select id="oGeo"><option value="110" selected>Đang tải bản đồ chi tiết…</option></select></div>
         <div><label>Độ khó AI</label><select id="oLvl"><option value="1">Dễ</option><option value="2" selected>Thường</option><option value="3">Khó</option></select></div>
       </div>
       <div id="lbMax" class="hidden"><label>Số người chơi tối đa</label><select id="oMax"><option>2</option><option>3</option><option>4</option><option selected>6</option><option>8</option></select></div>
@@ -466,13 +467,14 @@ const inCell = (r, p) => !r.cell || d3.polygonContains(r.cell, p);
 const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
 
 // Chia mỗi nước thành K vùng (Voronoi). layoutIn (từ chủ phòng) bảo đảm mọi máy có cùng vùng.
-let MAPSEL = 'world';
+let MAPSEL = 'world', GEOQ = '110';   // GEOQ: '50' = Natural Earth 50m (chi tiết, tải từ CDN) · '110' = bản nhúng sẵn (dự phòng)
 const MAPS = { world: { n: 'Thế giới' }, europe: { n: 'Châu Âu', c: ['Europe'] }, asia: { n: 'Châu Á', c: ['Asia'] }, africa: { n: 'Châu Phi', c: ['Africa'] }, namerica: { n: 'Bắc Mỹ', c: ['North America'] }, samerica: { n: 'Nam Mỹ', c: ['South America'] }, oceania: { n: 'Châu Đại Dương', c: ['Oceania'] }, eurasia: { n: 'Âu – Á', c: ['Europe', 'Asia'] } };
 function buildGeo(layoutIn) {
   const mp = MAPS[MAPSEL] || MAPS.world;
-  features = window.GEO.features.filter(f => mp.c ? mp.c.includes(f.properties.CONTINENT) : true);
+  const SRC = GEOQ === '50' && window.GEO50 ? window.GEO50 : window.GEO;
+  features = SRC.features.filter(f => mp.c ? mp.c.includes(f.properties.CONTINENT) : true);
   proj = d3.geoNaturalEarth1().fitSize([VW, VH], { type: 'FeatureCollection', features });
-  path = d3.geoPath(proj);
+  path = d3.geoPath(proj).digits(1);
   byId = {}; d0 = {};
   features.forEach(f => { byId[idOf(f)] = f; d0[idOf(f)] = path(f); });
   const bAll = path.bounds({ type: 'FeatureCollection', features });
@@ -727,7 +729,7 @@ const Sim = (() => {
   // ---------- khởi tạo ----------
   function create(cfg, lay) {
     layout = lay; hostPid = cfg.pid;
-    S = { v: 1, map: cfg.map || 'world', found: {}, mine: {}, prosp: {}, name: cfg.name || '', maxH: cfg.maxH || 8, code: cfg.code || '', speed: cfg.speed, level: cfg.level, t: 0, ver: 0, seq: 0, nations: {}, owner: {}, occ: {}, fort: {}, weak: {}, lost: {}, players: {}, log: [], cap: CFG.maxNations, vic: null, wonAt: -1e9 };
+    S = { v: SCHEMA, geo: cfg.geo || '110', map: cfg.map || 'world', found: {}, mine: {}, prosp: {}, name: cfg.name || '', maxH: cfg.maxH || 8, code: cfg.code || '', speed: cfg.speed, level: cfg.level, t: 0, ver: 0, seq: 0, nations: {}, owner: {}, occ: {}, fort: {}, weak: {}, lost: {}, players: {}, log: [], cap: CFG.maxNations, vic: null, wonAt: -1e9 };
     spawnAI(cfg.ai); start();
   }
   function restore(obj, lay, pid, flags) {
@@ -749,7 +751,7 @@ const Sim = (() => {
       free.splice(free.indexOf(best), 1); caps.push(best.seed);
       const idx = Object.values(S.nations).filter(n => n.ai).length, id = 'ai' + (++S.seq), h = (idx * 67 + 25) % 360, c = `hsl(${h},60%,48%)`;
       S.nations[id] = { id, name: AI_NAMES[idx % AI_NAMES.length], leader: 'AI', ai: true, color: c, flag: mkFlag([c, '#fff', `hsl(${(h + 150) % 360},55%,42%)`]),
-        money: 150, army: 15, capital: best.id, tech: { mil: 0, eco: 0, adm: 0 }, war: {}, ally: {}, truce: {}, policy: 'eco', shield: 0, born: 0, inv: {}, buff: {},
+        money: 150, army: 15, capital: best.id, tech: { mil: 0, eco: 0, adm: 0, def: 0, log: 0 }, war: {}, ally: {}, truce: {}, policy: 'eco', shield: 0, born: 0, inv: {}, buff: {},
         rel: {}, aggr: rnd(.3, 1), bonus: [0, .85, 1, 1.2][S.level], nextAi: rnd(5, 20) };
       setOwner(S, best.id, id);
     }
@@ -768,10 +770,10 @@ const Sim = (() => {
   function welcome(pid) {
     const nations = {}; for (const id in S.nations) nations[id] = pubN(S.nations[id]);
     return { t: 'welcome', you: { pid, nid: S.players[pid] || null }, layout, host: hostPid,
-      S: { map: S.map || 'world', found: S.found || {}, mine: S.mine || {}, prosp: S.prosp || {}, name: S.name || '', maxH: S.maxH || 8, code: S.code, speed: S.speed, level: S.level, t: S.t, nations, owner: S.owner, occ: S.occ, fort: S.fort, weak: S.weak || {}, lost: S.lost || {}, log: S.log, cap: S.cap, ev: S.ev, sandbox: !!S.sandbox }, ops: [...ops.values()].map(o => o.rid) };
+      S: { geo: S.geo || '110', map: S.map || 'world', found: S.found || {}, mine: S.mine || {}, prosp: S.prosp || {}, name: S.name || '', maxH: S.maxH || 8, code: S.code, speed: S.speed, level: S.level, t: S.t, nations, owner: S.owner, occ: S.occ, fort: S.fort, weak: S.weak || {}, lost: S.lost || {}, log: S.log, cap: S.cap, ev: S.ev, sandbox: !!S.sandbox }, ops: [...ops.values()].map(o => o.rid) };
   }
   function save() {
-    try { localStorage.setItem('gs4_host', JSON.stringify({ at: Date.now(), S: withPend() }, (k, v) => k[0] === '_' ? undefined : v)); } catch (e) {}
+    try { localStorage.setItem('gs5_host', JSON.stringify({ at: Date.now(), S: withPend() }, (k, v) => k[0] === '_' ? undefined : v)); } catch (e) {}
   }
 
   // ---------- người chơi vào/ra ----------
@@ -794,7 +796,7 @@ const Sim = (() => {
     for (const n of Object.values(S.nations)) if (dist2(regOf[n.capital].seed, r.seed) < CFG.minCapDist) return toastP(pid, 'Quá gần thủ đô của nước khác — chọn nơi xa hơn');
     const id = 'p' + (++S.seq);
     const n = S.nations[id] = { id, name, leader, color: m.color, flag: m.flag, pid, ai: false, money: Math.round(CFG.startMoney * lateK()), army: Math.round(CFG.startArmy * lateK()), capital: r.id,
-      tech: { mil: 0, eco: 0, adm: 0 }, war: {}, ally: {}, truce: {}, policy: 'eco', shield: S.t + CFG.shield, born: S.t, online: true, inv: {}, buff: {}, rel: {} };
+      tech: { mil: 0, eco: 0, adm: 0, def: 0, log: 0 }, war: {}, ally: {}, truce: {}, policy: 'eco', shield: S.t + CFG.shield, born: S.t, online: true, inv: {}, buff: {}, rel: {} };
     setOwner(S, r.id, id); S.players[pid] = id;
     emit({ e: 'nat', n: pubN(n), rid: r.id });
     net.sendPid(pid, { t: 'ev', e: 'you', nid: id });
@@ -1252,7 +1254,7 @@ const Sim = (() => {
     const idx = ++S.seq, id = 'ai' + idx, h = (idx * 47 + 90) % 360, col = `hsl(${h},62%,46%)`, a = Math.max(8, Math.floor(n.army * .12));
     n.army = Math.max(0, n.army - a);
     const nn = S.nations[id] = { id, name: 'Cộng hoà ' + nameOf(r), leader: 'Phiến quân', ai: true, color: col, flag: mkFlag([col, '#fff', `hsl(${(h + 150) % 360},55%,42%)`]),
-      money: 120, army: a + 6, capital: r.id, tech: { mil: 0, eco: 0, adm: 0 }, war: {}, ally: {}, truce: {}, policy: 'eco', shield: 0, born: S.t, inv: {}, buff: {}, rel: {}, aggr: rnd(.3, 1), bonus: 1, nextAi: rnd(5, 20) };
+      money: 120, army: a + 6, capital: r.id, tech: { mil: 0, eco: 0, adm: 0, def: 0, log: 0 }, war: {}, ally: {}, truce: {}, policy: 'eco', shield: 0, born: S.t, inv: {}, buff: {}, rel: {}, aggr: rnd(.3, 1), bonus: 1, nextAi: rnd(5, 20) };
     nn.war[n.id] = true; n.war[id] = true;
     grp.forEach(g => { setOwner(S, g.id, id); delete S.occ[g.id]; delete S.fort[g.id]; });
     emit({ e: 'nat', n: pubN(nn), rid: r.id });
@@ -1362,44 +1364,44 @@ const FB = (() => {
   }
   async function init(pid) {
     legacy = owner = await hashOf(pid); if (fuser) owner = fuser.uid; if (!ok()) return false;
-    try { const ts = await call('PUT', 'gs_clock/' + owner, { '.sv': 'timestamp' }); if (typeof ts === 'number') skew = ts - Date.now(); return true; }   // lệch đồng hồ so với server
+    try { const ts = await call('PUT', 'v2/clock/' + owner, { '.sv': 'timestamp' }); if (typeof ts === 'number') skew = ts - Date.now(); return true; }   // lệch đồng hồ so với server
     catch (e) { return false; }
   }
   const now = () => Date.now() + skew;
   async function list() {
-    const all = (await call('GET', 'gs_rooms')) || {}, t = now(), out = [];
+    const all = (await call('GET', 'v2/rooms')) || {}, t = now(), out = [];
     for (const code in all) {
       const r = all[code]; if (!r || typeof r !== 'object' || !r.name) continue;
       const age = t - (r.ts || 0);
-      if (age > 3 * 864e5) { call('DELETE', 'gs_rooms/' + code).catch(() => {}); call('DELETE', 'gs_state/' + code).catch(() => {}); continue; }
+      if (age > 3 * 864e5) { call('DELETE', 'v2/rooms/' + code).catch(() => {}); call('DELETE', 'v2/state/' + code).catch(() => {}); continue; }
       out.push(Object.assign({ code }, r, (r.idle || age > 50000) ? { sleep: true, players: 0 } : {}));
     }
     return out.sort((a, b) => (a.sleep ? 1 : 0) - (b.sleep ? 1 : 0) || (b.players || 0) - (a.players || 0) || (b.ts || 0) - (a.ts || 0));
   }
   const TS = { '.sv': 'timestamp' };
-  const publish = (code, info) => call('PUT', 'gs_rooms/' + code, Object.assign({}, info, { ts: TS }));
-  const remove = code => call('DELETE', 'gs_rooms/' + code);
-  const getState = async code => { const o = await call('GET', 'gs_state/' + code); return o && typeof o.data === 'string' ? o.data : null; };
-  const roomInfo = code => call('GET', 'gs_rooms/' + code);
-  // ---- lưu ván: gs_saves/<owner>/<code> (chuỗi JSON vì khoá Firebase không được chứa . # $ / [ ]) ----
-  const saveGame = (code, name, json) => call('PUT', `gs_saves/${owner}/${code}`, { name, at: TS, data: json });
-  async function saves() { const all = (await call('GET', 'gs_saves/' + owner)) || {}; return Object.keys(all).map(code => ({ code, name: all[code].name, at: all[code].at, data: all[code].data })).sort((a, b) => b.at - a.at); }
-  const delSave = code => call('DELETE', `gs_saves/${owner}/${code}`);
+  const publish = (code, info) => call('PUT', 'v2/rooms/' + code, Object.assign({}, info, { ts: TS }));
+  const remove = code => call('DELETE', 'v2/rooms/' + code);
+  const getState = async code => { const o = await call('GET', 'v2/state/' + code); return o && typeof o.data === 'string' ? o.data : null; };
+  const roomInfo = code => call('GET', 'v2/rooms/' + code);
+  // ---- lưu ván: v2/users/<owner>/<code> (chuỗi JSON vì khoá Firebase không được chứa . # $ / [ ]) ----
+  const saveGame = (code, name, json) => !fuser ? Promise.resolve() : call('PUT', `v2/users/${owner}/${code}`, { name, at: TS, data: json });
+  async function saves() { if (!fuser) return []; const all = (await call('GET', 'v2/users/' + owner)) || {}; return Object.keys(all).map(code => ({ code, name: all[code].name, at: all[code].at, data: all[code].data })).sort((a, b) => b.at - a.at); }
+  const delSave = code => !fuser ? Promise.resolve() : call('DELETE', `v2/users/${owner}/${code}`);
   // ---- chủ phòng: nhịp tim 15s (cập nhật số người) + lưu ván mỗi 30s ----
   function startBeacon(code, info, stats, exportJson) {
     stopBeacon(); if (!ok()) return; beatCode = code; beats = 0; beatPub = !!info.pub;
     const go = async () => {
       try {
-        if (info.pub) { const s = stats(); await call('PATCH', 'gs_rooms/' + code, { players: s.players, nations: s.nations, ts: TS, idle: false }); }
+        if (info.pub) { const s = stats(); await call('PATCH', 'v2/rooms/' + code, { players: s.players, nations: s.nations, ts: TS, idle: false }); }
         const b = beats++;
-        if (b % 2 === 0) { const js = exportJson(); await call('PUT', 'gs_state/' + code, { at: TS, name: info.name || '', data: js }); if (b % 8 === 0) await saveGame(code, info.name, js); }
+        if (b % 2 === 0) { const js = exportJson(); await call('PUT', 'v2/state/' + code, { at: TS, name: info.name || '', data: js }); if (b % 8 === 0) await saveGame(code, info.name, js); }
       } catch (e) { console.warn('beacon', e.message); }
     };
     (info.pub ? publish(code, Object.assign({ players: 1, nations: 1 }, info.rec)) : Promise.resolve()).catch(e => console.warn('publish', e.message)).then(go);
     beat = setInterval(go, 15000);
   }
   function stopBeacon() { clearInterval(beat); beat = null; }
-  addEventListener('pagehide', () => { if (beat && beatCode && ok() && beatPub) try { fetch(`${url}/gs_rooms/${beatCode}.json`, { method: 'PATCH', body: JSON.stringify({ idle: true }), keepalive: true }); } catch (e) {} });
+  addEventListener('pagehide', () => { if (beat && beatCode && ok() && beatPub) try { fetch(`${url}/v2/rooms/${beatCode}.json`, { method: 'PATCH', body: JSON.stringify({ idle: true }), keepalive: true }); } catch (e) {} });
   const shareLink = () => location.origin + location.pathname + '#fb=' + encodeURIComponent(url);
   return { shareLink, init, ok, list, publish, remove, getState, roomInfo, saveGame, saves, delSave, startBeacon, stopBeacon, get url() { return url; },
     setUser(u) { fuser = u || null; owner = fuser ? fuser.uid : legacy; }, get user() { return fuser; },
@@ -1447,7 +1449,8 @@ const AUTH = (() => {
   }
   return { init, toggle };
 })();
-const PEER_PREFIX = 'gsmp4-';
+const PEER_PREFIX = 'gsmp6-';   // đổi tiền tố: phòng/bản cũ không còn đụng hàng với bản mới
+const SCHEMA = 3;               // phiên bản cấu trúc dữ liệu ván; bản lưu cũ hơn bị bỏ qua
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const genCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < 5; i++) s += A[Math.floor(Math.random() * A.length)]; return s; };
 function peerOpts() {
@@ -1579,6 +1582,7 @@ function joinRoom(code) {
       conn.on('data', raw => {
         let m; try { m = JSON.parse(raw); } catch (e) { return; }
         if (m.t === 'mig') { net.mig = m.s; return; }
+        if (m.t === 'welcome' && m.S && m.S.geo === '50' && !window.GEO50) { net.leaving = true; failed({ type: 'geo' }); return; }
         if (m.t === 'welcome') { net.retry = 0; net.layout = m.layout; setBanner(null); if (first) { first = false; resolve(m); } }
         if (m.t === 'bye') { net.byeAt = Date.now(); setBanner('Chủ phòng đã thoát — chuẩn bị chuyển quyền…'); return; }
         View.onMsg(m);
@@ -1598,7 +1602,7 @@ async function takeOver(code) {
   let snap = net.mig; if (!snap && FB.ok()) { try { snap = await FB.getState(code); } catch (e) {} }
   if (!snap) return false;
   let obj; try { obj = JSON.parse(snap); } catch (e) { return false; } if (obj && obj.S) obj = obj.S;
-  if (!obj || !obj.nations) return false;
+  if (!obj || !obj.nations || (obj.v || 1) < SCHEMA) return false;
   net.taking = true;
   try {
     let peer = null;
@@ -2559,7 +2563,7 @@ const View = {
   }
 };
 function applyWelcome(m) {
-  if (!worldBuilt) { MAPSEL = m.S.map || 'world'; buildGeo(m.layout); buildMap(); }
+  if (!worldBuilt) { MAPSEL = m.S.map || 'world'; GEOQ = m.S.geo || '110'; buildGeo(m.layout); buildMap(); }
   Object.assign(FOUNDG, m.S.found || {});
   V = m.S; V.ver = 0; V.occ = V.occ || {}; V.fort = V.fort || {}; V.weak = V.weak || {}; V.lost = V.lost || {}; ME.pid = m.you.pid; ME.nid = m.you.nid;
   prevOwn = {}; busy.clear(); m.ops.forEach(rid => busy.add(rid)); [...anims.keys()].forEach(id => dropAnim(id)); FX.clear(); fxG.selectAll('*').remove(); sweepG.selectAll('*').remove(); arrowG.selectAll('*').remove();
@@ -2624,7 +2628,7 @@ let layoutCache = null, lbMode = 'solo', peerOk = false, roomsTimer = null;
 function ensureWorld() { if (!worldBuilt) { layoutCache = buildGeo(null); buildMap(); buildRes(); } return layoutCache; }
 const lbMsg = m => { $('lbMsg').textContent = m || ''; };
 function loading(t) { $('loading').textContent = t; $('loading').classList.remove('hidden'); }
-const errText = e => ({ 'peer-unavailable': 'Không vào được phòng — chủ phòng có thể đã thoát, hoặc mạng của bạn chặn kết nối trực tiếp. Bấm “Vào” lại, hoặc đổi sang WiFi/4G khác rồi thử lại', nopeer: 'Không tải được thư viện mạng (PeerJS) — kiểm tra Internet', timeout: 'Hết thời gian chờ máy chủ ghép nối — kiểm tra IP/port rồi thử lại', network: 'Lỗi mạng khi ghép nối (IP/port đúng chưa?)', 'server-error': 'Máy chủ ghép nối không phản hồi', 'unavailable-id': 'Không tạo được mã phòng — thử lại', socket: 'Không kết nối được máy chủ ghép nối (IP/port/TLS?)' }[e && e.type] || ('Lỗi: ' + ((e && (e.type || e.message)) || 'không rõ')));
+const errText = e => ({ 'peer-unavailable': 'Không vào được phòng — chủ phòng có thể đã thoát, hoặc mạng của bạn chặn kết nối trực tiếp. Bấm “Vào” lại, hoặc đổi sang WiFi/4G khác rồi thử lại', geo: 'Phòng dùng bản đồ chi tiết cao nhưng máy bạn chưa tải được — kiểm tra Internet rồi tải lại trang', nopeer: 'Không tải được thư viện mạng (PeerJS) — kiểm tra Internet', timeout: 'Hết thời gian chờ máy chủ ghép nối — kiểm tra IP/port rồi thử lại', network: 'Lỗi mạng khi ghép nối (IP/port đúng chưa?)', 'server-error': 'Máy chủ ghép nối không phản hồi', 'unavailable-id': 'Không tạo được mã phòng — thử lại', socket: 'Không kết nối được máy chủ ghép nối (IP/port/TLS?)' }[e && e.type] || ('Lỗi: ' + ((e && (e.type || e.message)) || 'không rõ')));
 
 function setLbMode(m) {
   lbMode = m; [...$('lbMode').children].forEach(b => b.classList.toggle('on', b.dataset.m === m));
@@ -2662,12 +2666,12 @@ async function refreshRooms() {
 // ---- ván đã lưu (máy này + Firebase) ----
 async function refreshSaves() {
   const box = $('lbSaves'); box.innerHTML = ''; const items = [];
-  try { const l = JSON.parse(localStorage.getItem('gs4_host') || 'null'); if (l && l.S && Date.now() - l.at < 7 * 864e5 && Object.keys(l.S.nations || {}).length) items.push({ S: l.S, at: l.at, src: 'máy này' }); } catch (e) {}
-  if (FB.ok()) try { (await FB.saves()).forEach(c => { try { const o = JSON.parse(c.data); if (!items.some(i => i.S.code === o.S.code && i.at >= o.at)) items.push({ S: o.S, at: o.at, src: 'Firebase' }); } catch (e) {} }); } catch (e) {}
+  try { const l = JSON.parse(localStorage.getItem('gs5_host') || 'null'); if (l && l.S && (l.S.v || 1) >= SCHEMA && Date.now() - l.at < 7 * 864e5 && Object.keys(l.S.nations || {}).length) items.push({ S: l.S, at: l.at, src: 'máy này' }); } catch (e) {}
+  if (FB.ok()) try { (await FB.saves()).forEach(c => { try { const o = JSON.parse(c.data); if ((o.S.v || 1) < SCHEMA) return; if (!items.some(i => i.S.code === o.S.code && i.at >= o.at)) items.push({ S: o.S, at: o.at, src: 'Firebase' }); } catch (e) {} }); } catch (e) {}
   items.sort((a, b) => b.at - a.at).slice(0, 4).forEach(it => {
     const humans = Object.values(it.S.nations).filter(n => !n.ai).length, b = document.createElement('button'); b.type = 'button'; b.className = 'room';
     const d = document.createElement('div'), t = document.createElement('b'), s = document.createElement('small'), g = document.createElement('span');
-    t.textContent = '▶ Tiếp tục: ' + String(it.S.name || it.S.code || 'Ván solo').slice(0, 30); s.textContent = `${humans} người chơi · ${it.src} · ${new Date(it.at).toLocaleString('vi-VN')}`; g.className = 'go'; g.textContent = 'Chơi';
+    t.textContent = '▶ Tiếp tục: ' + String(it.S.name || it.S.code || 'Ván solo').slice(0, 30); s.textContent = `${humans} người chơi · ${it.S.geo === '50' ? 'bản đồ chi tiết' : 'bản đồ chuẩn'} · ${it.src} · ${new Date(it.at).toLocaleString('vi-VN')}`; g.className = 'go'; g.textContent = 'Chơi';
     d.append(t, s); b.append(d, g);
     b.onclick = () => { $('oSpd').value = String(it.S.speed || 1); $('oLvl').value = String(it.S.level || 2); startLocal(peerOk && !!it.S.code, it.S); }; box.appendChild(b);
   });
@@ -2679,10 +2683,10 @@ async function startLocal(asHost, saved) {
   const name = ($('rName').value.trim() || (saved && saved.name) || '').slice(0, 30), pub = $('rPub').checked && FB.ok();
   loading('Đang tạo thế giới…'); await sleep(40);
   try {
-    MAPSEL = saved ? (saved.map || 'world') : ($('oMap').value || 'world'); const layout = ensureWorld(); let code = '';
+    MAPSEL = saved ? (saved.map || 'world') : ($('oMap').value || 'world'); GEOQ = saved ? (saved.geo || '110') : (($('oGeo').value === '50' && window.GEO50) ? '50' : '110'); if (GEOQ === '50' && !window.GEO50) { $('loading').classList.add('hidden'); return lbMsg(errText({ type: 'geo' })); } const layout = ensureWorld(); let code = '';
     if (asHost) { Object.assign(NETCFG, cfg0); try { localStorage.setItem('gs_netcfg', JSON.stringify(NETCFG)); } catch (e) {} loading('Đang mở phòng…'); code = await hostRoom(saved && saved.code); }
     net.isHost = true; net.mode = asHost ? 'host' : 'solo'; net.code = code;
-    const cfg = { map: MAPSEL, ai: +$('oAI').value, speed: +$('oSpd').value, level: +$('oLvl').value, code, pid: net.pid, name: name || (asHost ? 'Phòng ' + code : ''), maxH: +$('oMax').value };
+    const cfg = { geo: GEOQ, map: MAPSEL, ai: +$('oAI').value, speed: +$('oSpd').value, level: +$('oLvl').value, code, pid: net.pid, name: name || (asHost ? 'Phòng ' + code : ''), maxH: +$('oMax').value };
     if (saved) { saved.code = code; if (name) saved.name = name; saved.name = saved.name || (asHost ? 'Phòng ' + code : ''); Sim.restore(saved, layout, net.pid); } else { Sim.create(cfg, layout); if (sbxNext) Sim.S.sandbox = true; }
     View.onMsg(JSON.parse(JSON.stringify(Sim.welcome(net.pid))));
     if (asHost) {
@@ -2700,8 +2704,8 @@ function beginBeacon(code, pub) {
 async function reviveRoom(code, snap) {
   loading('Phòng đang trống — đang hồi sinh từ bản lưu…');
   let obj = JSON.parse(snap); if (obj && obj.S) obj = obj.S;
-  if (!obj || !obj.nations) throw { type: 'peer-unavailable' };
-  MAPSEL = obj.map || 'world'; const layout = ensureWorld();
+  if (!obj || !obj.nations || (obj.v || 1) < SCHEMA) throw { type: 'peer-unavailable' };
+  MAPSEL = obj.map || 'world'; GEOQ = obj.geo || '110'; if (GEOQ === '50' && !window.GEO50) throw { type: 'geo' }; const layout = ensureWorld();
   let peer;
   try { peer = await openPeer(PEER_PREFIX + code); }
   catch (e) { if (e && e.type === 'unavailable-id') { await sleep(1200); return joinRoom(code); } throw e; }
@@ -2735,7 +2739,7 @@ $('code').addEventListener('input', e => { e.target.value = e.target.value.toUpp
 $('rRefresh').onclick = refreshRooms;
 $('fbSave').onclick = async () => {
   FB.setUrl($('fbUrl').value); $('fbStat').textContent = 'Đang kiểm tra…';
-  const ok = await FB.init(net.pid); $('fbStat').textContent = !FB.url ? 'Đã xoá URL.' : ok ? '✓ Kết nối Firebase thành công' : '✗ Không kết nối được — kiểm tra URL và Rules (read/write cho gs_rooms, gs_state, gs_saves, gs_clock)';
+  const ok = await FB.init(net.pid); $('fbStat').textContent = !FB.url ? 'Đã xoá URL.' : ok ? '✓ Kết nối Firebase thành công' : '✗ Không kết nối được — kiểm tra URL và Rules (read/write cho v2/rooms, v2/state, v2/users, v2/clock)';
   refreshRooms(); refreshSaves();
 };
 
@@ -2746,6 +2750,28 @@ function dockSync() { const d = $('dock'); if (!d) return; const open = !$('menu
   d.innerHTML = [['nation', 'flag', 'Quốc gia'], ['dip', 'handshake', 'Ngoại giao'], ['shop', 'storefront', 'Cửa hàng'], ['rank', 'leaderboard', 'Xếp hạng'], ['chat', 'chat', 'Chat'], ['sbx', 'science', 'Sandbox']].map(([t, ic, l]) => `<button type="button" data-t="${t}" class="${t === 'sbx' ? 'hidden' : ''}">${I(ic)}<small>${l}</small></button>`).join('');
   document.body.appendChild(d); const bg = $('badge'); if (bg) d.querySelector('[data-t=chat]').appendChild(bg);
   d.onclick = ev => { const b = ev.target.closest('button'); if (!b) return; const t = b.dataset.t; if (!$('menu').classList.contains('hidden') && menuTab === t) closeMenu(); else { openMenu(); setTab(t); } };
+})();
+(async function loadGeo50() {   // bản đồ chi tiết: Natural Earth 50m (cố định phiên bản để mọi máy giống hệt nhau)
+  const sel = $('oGeo'), U = ['https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@v5.1.2/geojson/ne_50m_admin_0_countries.geojson', 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_admin_0_countries.geojson'];
+  const rd = x => Math.round(x * 100) / 100, rg = ring => { const o = []; for (const c of ring) { const q = [rd(c[0]), rd(c[1])], l = o[o.length - 1]; if (!l || l[0] !== q[0] || l[1] !== q[1]) o.push(q); } return o; };
+  for (const u of U) {
+    try {
+      const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 25000), r = await fetch(u, { signal: ac.signal }); clearTimeout(tm); if (!r.ok) continue;
+      const g = await r.json(), seen = new Set(), out = [];
+      for (const f of g.features || []) {
+        const P = f.properties || {}, id = P.ADM0_A3; if (!id || id === '-99' || seen.has(id) || !f.geometry) continue;
+        const polys = (f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates).map(pl => pl.map(rg).filter(r => r.length >= 4)).filter(pl => pl.length && pl[0].length >= 4);
+        if (!polys.length) continue;
+        const nf = { type: 'Feature', properties: { NAME: P.NAME, ADM0_A3: id, CONTINENT: P.CONTINENT, TYPE: P.TYPE, POP_EST: P.POP_EST }, geometry: { type: 'MultiPolygon', coordinates: polys } };
+        if (d3.geoArea(nf) < 5e-5 && P.CONTINENT !== 'Antarctica') continue;   // bỏ đảo/quốc gia quá nhỏ
+        seen.add(id); out.push(nf);
+      }
+      if (out.length < 120) continue;
+      window.GEO50 = { type: 'FeatureCollection', features: out };
+      sel.innerHTML = '<option value="50" selected>Chi tiết cao (50m)</option><option value="110">Chuẩn (nhẹ hơn)</option>'; return;
+    } catch (e) { console.warn('geo50', e); }
+  }
+  sel.innerHTML = '<option value="110" selected>Chuẩn (không tải được bản chi tiết)</option>';
 })();
 (async function boot() {
   net.pid = ME.pid = await getPid();
