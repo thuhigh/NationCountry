@@ -1382,6 +1382,7 @@ const FB = (() => {
   const publish = (code, info) => call('PUT', 'v2/rooms/' + code, Object.assign({}, info, { ts: TS }));
   const remove = code => call('DELETE', 'v2/rooms/' + code);
   const getState = async code => { const o = await call('GET', 'v2/state/' + code); return o && typeof o.data === 'string' ? o.data : null; };
+  const delState = code => call('DELETE', 'v2/state/' + code);
   const roomInfo = code => call('GET', 'v2/rooms/' + code);
   // ---- lưu ván: v2/users/<owner>/<code> (chuỗi JSON vì khoá Firebase không được chứa . # $ / [ ]) ----
   const saveGame = (code, name, json) => !fuser ? Promise.resolve() : call('PUT', `v2/users/${owner}/${code}`, { name, at: TS, data: json });
@@ -1403,7 +1404,7 @@ const FB = (() => {
   function stopBeacon() { clearInterval(beat); beat = null; }
   addEventListener('pagehide', () => { if (beat && beatCode && ok() && beatPub) try { fetch(`${url}/v2/rooms/${beatCode}.json`, { method: 'PATCH', body: JSON.stringify({ idle: true }), keepalive: true }); } catch (e) {} });
   const shareLink = () => location.origin + location.pathname + '#fb=' + encodeURIComponent(url);
-  return { shareLink, init, ok, list, publish, remove, getState, roomInfo, saveGame, saves, delSave, startBeacon, stopBeacon, get url() { return url; },
+  return { shareLink, init, ok, list, publish, remove, delState, getState, roomInfo, saveGame, saves, delSave, startBeacon, stopBeacon, get url() { return url; },
     setUser(u) { fuser = u || null; owner = fuser ? fuser.uid : legacy; }, get user() { return fuser; },
     setUrl(u) { url = (u || '').trim().replace(/\/+$/, ''); try { localStorage.setItem('gs_fb', url); } catch (e) {} } };
 })();
@@ -1581,6 +1582,7 @@ function joinRoom(code) {
       conn.on('open', () => { opened = true; clearTimeout(to); net.hostConn = conn; conn.send(JSON.stringify({ t: 'hello', pid: net.pid, v: 1 })); });
       conn.on('data', raw => {
         let m; try { m = JSON.parse(raw); } catch (e) { return; }
+        if (m.t === 'closed') { net.leaving = true; setBanner('Chủ phòng đã xoá phòng — đang về sảnh…'); setTimeout(() => { location.href = location.pathname; }, 2500); return; }
         if (m.t === 'mig') { net.mig = m.s; return; }
         if (m.t === 'welcome' && m.S && m.S.geo === '50' && !window.GEO50) { net.leaving = true; failed({ type: 'geo' }); return; }
         if (m.t === 'welcome') { net.retry = 0; net.layout = m.layout; setBanner(null); if (first) { first = false; resolve(m); } }
@@ -2517,14 +2519,34 @@ function drawMenu() {
     <div class="mrow"><span>Chính sách: ${n.policy === 'mil' ? 'Quân sự' : 'Tăng trưởng'}<small>${n.policy === 'mil' ? 'lực +20%, lương quân −40%, thu nhập ×0.85' : 'thu nhập ×1.2'}</small></span><button data-act="policy">Đổi</button></div>
     <div class="mrow"><span>Đồ hoạ: ${PERF.mode === 'auto' ? 'Tự động' : PERF.mode === 'low' ? 'Thấp (mượt)' : 'Cao'}${PERF.low ? ' · đang giảm hiệu ứng' : ''}<small>Đổi sẽ tải lại trang (ván solo được lưu)</small></span><button data-act="quality">Đổi</button></div>
     <div class="mrow"><span>✏️ Đổi tên / lãnh đạo / cờ<small>300💰 · chờ 120s giữa các lần</small></span><button data-act="rename">Sửa</button></div>
+    <h3>Phòng chơi</h3>
+    <div class="mrow"><span>🚪 Thoát khỏi bản đồ<small>${net.mode === 'host' ? 'Bạn là chủ phòng: ván được lưu, người khác sẽ nhận quyền chủ phòng' : net.mode === 'solo' ? 'Về sảnh (ván được lưu, vào “Tiếp tục” để chơi lại)' : 'Về sảnh, bạn có thể vào lại bằng mã phòng'}</small></span><button data-act="leave">Thoát</button></div>
+    ${net.mode === 'host' ? `<div class="mrow"><span>🗑️ Xoá phòng / server ${esc(net.code || '')}<small>Đóng phòng, đuổi mọi người, xoá khỏi danh sách và xoá bản lưu. Không hoàn tác được.</small></span><button data-act="delroom">Xoá</button></div>` : ''}
     <h3>Kinh tế & tài nguyên</h3>
     <div class="mrow"><span>🛢️ Dầu ${rc2('oil')} · 🌾 Nông nghiệp ${rc2('farm')} · 🏭 Công nghiệp ${rc2('ind')}<small>Dầu +60% thu vùng · Nông nghiệp +25% & +5 trần quân · Công nghiệp +40% & −3% giá tuyển quân. Tài nguyên rất hiếm và ẩn: chiếm đất hoặc thăm dò (120💰) mới biết.</small></span></div>
     <div class="mrow"><span>📦 Đối tác thương mại ${tn}/5 · 🏛️ Thủ đô phụ ${(n.sub || []).length}/2<small>Ký thương mại ở tab Ngoại giao: +5%/đối tác, +8% cho mỗi loại tài nguyên bạn thiếu. Thủ đô phụ: phòng thủ ×1.3, thu +25%; lập ở bảng vùng.</small></span></div>
     <h3>Nghiên cứu</h3><div class="tgrid">${TK.map(R).join('')}</div>
     <p class="muted" style="margin-top:12px">Mẹo: nước nhỏ hơn bình quân được cộng tới +35% thu nhập (hỗ trợ kẻ yếu); nước nắm trên 30% thế giới bị thuế bá chủ. Vật phẩm càng tích trữ càng đắt. Vừa mất vùng thì được tăng phòng thủ tạm thời. Pháo đài tăng +25% phòng thủ mỗi cấp. Thủ đô phòng thủ ×${CFG.capDef}.</p>`;
 }
+function doLeave() {   // thoát về sảnh; chủ phòng thì lưu ván (người khác tự nhận quyền chủ phòng)
+  net.leaving = true; try { if (net.isHost) Sim.save(); } catch (e) {}
+  try { if (!net.isHost && net.hostConn) net.hostConn.close(); } catch (e) {}
+  loading('Đang thoát…'); setTimeout(() => { location.href = location.pathname; }, 250);
+}
+async function doDelRoom() {   // chủ phòng: đóng phòng, đuổi mọi người, xoá khỏi danh sách + xoá bản lưu
+  const code = net.code; loading('Đang xoá phòng…'); net.leaving = true;
+  try { FB.stopBeacon(); } catch (e) {}
+  const msg = JSON.stringify({ t: 'closed' }); for (const pid in net.conns) try { net.conns[pid].send(msg); } catch (e) {}
+  try { Sim.stop(); } catch (e) {}
+  try { await Promise.allSettled([FB.remove(code), FB.delState(code), FB.delSave(code)]); } catch (e) {}
+  try { const l = JSON.parse(localStorage.getItem('gs5_host') || 'null'); if (l && l.S && l.S.code === code) localStorage.removeItem('gs5_host'); } catch (e) {}
+  net.isHost = false; try { net.peer && net.peer.destroy(); } catch (e) {}
+  setTimeout(() => { location.href = location.pathname; }, 400);
+}
 $('mBody').onclick = ev => {
   const b = ev.target.closest('button'); if (!b || b.disabled) return; const a = b.dataset.act, i = b.dataset.i;
+  if (a === 'leave') { if (ask('leave', 'Thoát khỏi bản đồ?')) doLeave(); return; }
+  if (a === 'delroom') { if (ask('delroom', `XOÁ phòng ${net.code}? Mọi người bị đuổi, không hoàn tác`)) doDelRoom(); return; }
   if (a === 'quality') { const nx = { auto: 'low', low: 'high', high: 'auto' }[PERF.mode]; try { localStorage.setItem('gs_q', nx); if (net.isHost) Sim.save(); } catch (e) {} location.reload(); return; }
   if (a === 'buy') { cmd('buy', { k: b.dataset.k }); SND.play('coin'); return; }
   if (a === 'use') { cmd('use', { k: b.dataset.k }); return; }
@@ -2673,6 +2695,12 @@ async function refreshSaves() {
     const d = document.createElement('div'), t = document.createElement('b'), s = document.createElement('small'), g = document.createElement('span');
     t.textContent = '▶ Tiếp tục: ' + String(it.S.name || it.S.code || 'Ván solo').slice(0, 30); s.textContent = `${humans} người chơi · ${it.S.geo === '50' ? 'bản đồ chi tiết' : 'bản đồ chuẩn'} · ${it.src} · ${new Date(it.at).toLocaleString('vi-VN')}`; g.className = 'go'; g.textContent = 'Chơi';
     d.append(t, s); b.append(d, g);
+    const x = document.createElement('span'); x.className = 'go'; x.textContent = '🗑'; x.title = 'Xoá ván này'; x.style.marginLeft = '6px';
+    x.onclick = async ev => { ev.stopPropagation(); if (!ask('ds' + (it.S.code || 'solo'), 'Xoá ván đã lưu này?')) return;
+      try { const l = JSON.parse(localStorage.getItem('gs5_host') || 'null'); if (l && l.S && (l.S.code || '') === (it.S.code || '')) localStorage.removeItem('gs5_host'); } catch (e) {}
+      if (it.S.code) { try { await Promise.allSettled([FB.delSave(it.S.code), FB.remove(it.S.code), FB.delState(it.S.code)]); } catch (e) {} }
+      refreshSaves(); refreshRooms(); };
+    b.append(x);
     b.onclick = () => { $('oSpd').value = String(it.S.speed || 1); $('oLvl').value = String(it.S.level || 2); startLocal(peerOk && !!it.S.code, it.S); }; box.appendChild(b);
   });
 }
