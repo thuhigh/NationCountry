@@ -302,6 +302,7 @@ input:focus{border-color:var(--pr)}
   <div class="card">
     <h1>🌍 NationCountry</h1>
     <p class="muted">Lập quốc gia, mở rộng, ngoại giao và chinh phục thế giới — chơi cùng bạn bè hoặc với AI.</p>
+    <div id="authBox" style="display:flex;align-items:center;gap:10px;margin:10px 0"><img id="aAv" hidden width="32" height="32" alt="" referrerpolicy="no-referrer" style="border-radius:50%"><span id="aName" class="muted" style="flex:1;font-size:13px"></span><button id="bLogin" class="tonal" type="button" style="white-space:nowrap">Đăng nhập Google</button></div>
     <div class="seg" id="lbMode">
       <button data-m="solo" class="on">Solo + AI</button><button data-m="sandbox">Sandbox</button><button data-m="host">Tạo phòng</button><button data-m="join">Phòng online</button>
     </div>
@@ -1342,7 +1343,7 @@ try { Object.assign(NETCFG, JSON.parse(localStorage.getItem('gs_netcfg') || '{}'
 const peerLabel = c => c && c.host ? `${c.host}:${c.port || (c.secure ? 443 : 9000)}` : '0.peerjs.com:443';
 
 const FB = (() => {
-  let url = '', skew = 0, owner = '', beat = null, beatCode = null, beats = 0, beatPub = false;
+  let url = '', skew = 0, owner = '', fuser = null, legacy = '', beat = null, beatCode = null, beats = 0, beatPub = false;
   try { url = localStorage.getItem('gs_fb') || ''; } catch (e) {}
   // link chia sẻ dạng  https://trang-cua-ban/#fb=<url>  : phần # không gửi lên server/GitHub; lưu vào máy rồi xoá khỏi thanh địa chỉ
   try { const m = /[#&]fb=([^&]+)/.exec(location.hash); if (m) { url = decodeURIComponent(m[1]); localStorage.setItem('gs_fb', url); history.replaceState(null, '', location.pathname + location.search); } } catch (e) {}
@@ -1350,7 +1351,8 @@ const FB = (() => {
   url = url.trim().replace(/\/+$/, '');
   const ok = () => /^https?:\/\/[^\s]+$/.test(url);
   const call = async (method, p, body, opt) => {
-    const r = await fetch(`${url}/${p}.json`, Object.assign({ method, body: body === undefined ? undefined : JSON.stringify(body) }, opt || {}));
+    let tq = ''; if (fuser) { try { tq = '?auth=' + encodeURIComponent(await fuser.getIdToken()); } catch (e) {} }   // đã đăng nhập Google → gửi token cho Rules
+    const r = await fetch(`${url}/${p}.json${tq}`, Object.assign({ method, body: body === undefined ? undefined : JSON.stringify(body) }, opt || {}));
     if (!r.ok) throw new Error('Firebase ' + r.status + (r.status === 401 || r.status === 403 ? ' (kiểm tra Rules)' : ''));
     return r.json();
   };
@@ -1359,7 +1361,7 @@ const FB = (() => {
     catch (e) { let h = 5381; for (const c of 'gs|' + s) h = ((h << 5) + h + c.charCodeAt(0)) >>> 0; return 'h' + h.toString(16); }
   }
   async function init(pid) {
-    owner = await hashOf(pid); if (!ok()) return false;
+    legacy = owner = await hashOf(pid); if (fuser) owner = fuser.uid; if (!ok()) return false;
     try { const ts = await call('PUT', 'gs_clock/' + owner, { '.sv': 'timestamp' }); if (typeof ts === 'number') skew = ts - Date.now(); return true; }   // lệch đồng hồ so với server
     catch (e) { return false; }
   }
@@ -1400,12 +1402,51 @@ const FB = (() => {
   addEventListener('pagehide', () => { if (beat && beatCode && ok() && beatPub) try { fetch(`${url}/gs_rooms/${beatCode}.json`, { method: 'PATCH', body: JSON.stringify({ idle: true }), keepalive: true }); } catch (e) {} });
   const shareLink = () => location.origin + location.pathname + '#fb=' + encodeURIComponent(url);
   return { shareLink, init, ok, list, publish, remove, getState, roomInfo, saveGame, saves, delSave, startBeacon, stopBeacon, get url() { return url; },
+    setUser(u) { fuser = u || null; owner = fuser ? fuser.uid : legacy; }, get user() { return fuser; },
     setUrl(u) { url = (u || '').trim().replace(/\/+$/, ''); try { localStorage.setItem('gs_fb', url); } catch (e) {} } };
 })();
 // =====================================================================================
 //  P3 — MẠNG: chủ phòng có thẩm quyền (host-authoritative) qua PeerJS/WebRTC, không cần server riêng.
 //  Giao thức: mọi gói là chuỗi JSON.  client→host: {t:'hello'|'cmd'...}   host→client: welcome | snap | ev | bye
 // =====================================================================================
+// =====================================================================================
+//  ĐĂNG NHẬP GOOGLE (Firebase Authentication) — mỗi người có kho lưu ván riêng, dùng được trên mọi thiết bị
+//  Cần điền apiKey (Firebase Console → Project settings → Web API key) và thêm domain GitHub Pages vào Authentication → Settings → Authorized domains
+// =====================================================================================
+const FB_AUTH = { apiKey: 'AIzaSyAQfe93xKrU0OxpMnwbKq-6UCeFPU9i2dw', authDomain: 'nationcountry.firebaseapp.com', projectId: 'nationcountry', appId: '1:628918148919:web:9ef03d354a5620db7944b2', messagingSenderId: '628918148919' };
+const AUTH = (() => {
+  let auth = null, loading = null;
+  const ld = u => new Promise((res, rej) => { const e = document.createElement('script'); e.src = u; e.onload = res; e.onerror = () => rej(new Error('Không tải được ' + u)); document.head.appendChild(e); });
+  const load = () => loading || (loading = (async () => {
+    if (!FB_AUTH.apiKey) throw new Error('Chưa cấu hình Web API key (FB_AUTH.apiKey) trong code');
+    const B = 'https://www.gstatic.com/firebasejs/10.12.2/';
+    await ld(B + 'firebase-app-compat.js'); await ld(B + 'firebase-auth-compat.js');
+    if (!firebase.apps.length) firebase.initializeApp(FB_AUTH);
+    auth = firebase.auth(); return auth;
+  })());
+  const render = u => {
+    const b = $('bLogin'), n = $('aName'), a = $('aAv'); if (!b) return;
+    if (u) { n.textContent = u.displayName || u.email || 'Đã đăng nhập'; if (u.photoURL) { a.src = u.photoURL; a.hidden = false; } b.textContent = 'Đăng xuất'; }
+    else { n.textContent = 'Đăng nhập để lưu ván riêng, chơi tiếp ở mọi thiết bị'; a.hidden = true; b.textContent = 'Đăng nhập Google'; }
+  };
+  async function init() {
+    render(null); if (!FB_AUTH.apiKey) return;
+    try {
+      const au = await load(); au.getRedirectResult().catch(e => lbMsg('Đăng nhập thất bại: ' + (e.code || e.message)));
+      au.onAuthStateChanged(u => { FB.setUser(u); render(u); if (u && FB.ok()) FB.init(net.pid).then(() => refreshSaves()); else refreshSaves(); });
+    } catch (e) { console.warn('auth', e); }
+  }
+  async function toggle() {
+    try {
+      const au = await load();
+      if (au.currentUser) { await au.signOut(); return; }
+      const pv = new firebase.auth.GoogleAuthProvider(); pv.setCustomParameters({ prompt: 'select_account' });
+      try { await au.signInWithPopup(pv); }
+      catch (e) { if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment' || e.code === 'auth/cancelled-popup-request') await au.signInWithRedirect(pv); else throw e; }
+    } catch (e) { lbMsg(e.code === 'auth/unauthorized-domain' ? 'Domain này chưa được cho phép — thêm vào Firebase → Authentication → Settings → Authorized domains' : 'Đăng nhập thất bại: ' + (e.code || e.message)); }
+  }
+  return { init, toggle };
+})();
 const PEER_PREFIX = 'gsmp4-';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const genCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < 5; i++) s += A[Math.floor(Math.random() * A.length)]; return s; };
@@ -2682,6 +2723,7 @@ async function startJoin(code, srv) {
   }
 }
 if (/[?&]dev\b/.test(location.search)) $('fbBox').style.display = '';   // cấu hình Firebase đã có sẵn trong code; chỉ hiện khi thêm ?dev vào link
+$('bLogin').onclick = () => AUTH.toggle();
 $('lbMode').onclick = ev => { const b = ev.target.closest('button'); if (b) setLbMode(b.dataset.m); };
 $('lbGo').onclick = () => {
   lbMsg('');
@@ -2709,7 +2751,7 @@ function dockSync() { const d = $('dock'); if (!d) return; const open = !$('menu
   net.pid = ME.pid = await getPid();
   peerOk = await window.__peerReady;
   if (!peerOk) { [...$('lbMode').children].forEach(b => { if (b.dataset.m !== 'solo') b.disabled = true; }); lbMsg('Không tải được thư viện mạng — chỉ chơi solo được.'); }
-  fillNetCfg(); $('fbUrl').value = FB.url; await FB.init(net.pid); refreshSaves();
+  fillNetCfg(); $('fbUrl').value = FB.url; await FB.init(net.pid); refreshSaves(); AUTH.init();
   const q = new URLSearchParams(location.search).get('room');
   if (q && peerOk) { setLbMode('join'); $('code').value = q.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); }
   else setLbMode(peerOk && FB.ok() ? 'join' : 'solo');
