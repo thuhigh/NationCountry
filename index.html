@@ -225,6 +225,8 @@ button{touch-action:manipulation;font-family:var(--ui)}
 #hudN #hName{font-family:var(--head);font-weight:800;font-stretch:112%;letter-spacing:0;font-size:16px}
 #hudN .sp{background:var(--sec);color:var(--osec);border-radius:10px;font-weight:700}
 .hbtn button{border-radius:50%;min-width:36px;height:36px;background:var(--sec);color:var(--osec)}
+.hbtn{align-items:center;flex:none}
+#bRoom{border-radius:18px;height:36px;padding:0 12px;font-size:12px;font-weight:700;white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis}
 #zoombar button{border-radius:16px;background:var(--sec);color:var(--osec);transition:border-radius .25s var(--spring),transform .2s var(--spring)}
 #zoombar button:active{border-radius:50%}
 .filled{min-height:48px;border-radius:999px;background:var(--pr);color:var(--on-pr);box-shadow:var(--e1);transition:border-radius .28s var(--spring),transform .2s var(--spring),box-shadow .2s}
@@ -904,7 +906,7 @@ const Sim = (() => {
     for (const o2 of ops.values()) if (o2.rid === rid && o2.nid === nid) return 'Bạn đang chiếm vùng này rồi';   // nhiều nước được chiếm CÙNG LÚC một vùng
     if (nOps(nid) >= opsMax(S, nid)) return `Chỉ chỉ huy được ${opsMax(S, nid)} chiến dịch cùng lúc`;
     const k = reachFor(S, nid, r); if (!k) return 'Không thể tiến tới vùng đó (không giáp ranh / quá xa)';
-    const sea = k === 'sea', o = S.owner[rid], src = null;
+    const sea = k === 'sea', o = S.owner[rid]; let src = null;
     { const q = (n.sq || []).filter(x => S.owner[x] === nid && regOf[x]); let bd = 1e9; for (const x of q) { const d = dist2(regOf[x].seed, r.seed); if (d < bd) { bd = d; src = regOf[x]; } } if (src) n.sq = q.filter(x => x !== src.id); else src = nearestOwn(S, nid, r); }   // mỗi lệnh = 1 tiểu đội riêng, lấy đội rảnh gần đích nhất; hết đội rảnh thì tách thêm từ căn cứ
     const op = { id: ++opSeq, nid, rid, kind, src: src.id, sea, o: o || null, sent: 0, cost: 0, def: 0 };
     if (kind === 'expand') {
@@ -1779,7 +1781,8 @@ let zoomT = d3.zoomIdentity;
 const cid = r => 'c' + r.id.replace(/\W/g, '_');
 const darker = c => d3.color(c).darker(.9).formatHex();
 const me = () => V && V.nations[ME.nid];
-const colorOf = r => { const n = V && V.nations[V.owner[r.id]]; return n ? n.color : LAND; };
+const _soft = {}, soft = c => _soft[c] || (_soft[c] = (() => { const h = d3.hsl(c); if (isNaN(h.s)) return c; h.s = Math.min(h.s, .6); h.l = Math.max(.42, Math.min(.64, h.l)); return h.formatHex(); })());   // dịu màu: bỏ xanh/đỏ chói
+const colorOf = r => { const n = V && V.nations[V.owner[r.id]]; return n ? soft(n.color) : LAND; };
 
 function buildMap() {
   const dark = matchMedia('(prefers-color-scheme: dark)').matches; LAND = dark ? '#3b3b44' : '#d9d3c7';
