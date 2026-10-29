@@ -352,6 +352,8 @@ input:focus,select:focus{border-color:var(--pr);box-shadow:0 0 0 1px var(--pr)}
 <section id="info" class="sheetbox hidden">
   <h2 id="iName">—</h2><p id="iMeta" class="muted"></p><p id="iOdds" class="odds"></p>
   <div class="row"><button id="bRecruit" class="tonal" type="button"></button><button id="bFort" class="tonal" type="button"></button></div>
+  <div class="row" id="rowBld"><button id="bPort" class="tonal" type="button"></button><button id="bSam" class="tonal" type="button"></button></div>
+  <div class="row" id="rowCity"><button id="bCity" class="tonal" type="button"></button></div>
   <div class="row" id="rowMine" style="display:none"><button id="bMine" class="tonal" type="button"></button></div>
   <div class="row" id="rowSell" style="display:none"><button id="bSell" class="tonal" type="button"></button></div>
   <div class="row" id="rowCap" style="display:none"><button id="bSub" class="tonal" type="button"></button><button id="bMove" class="tonal" type="button"></button></div>
@@ -494,6 +496,9 @@ const CFG = {
   itemInflate: .15,                 // CÂN BẰNG: giá vật phẩm +15% cho mỗi cái đang tồn kho (chống tích trữ bom)
   comeback: .12, comebackMax: 3,    // CÂN BẰNG: nước vừa mất vùng được +12% phòng thủ mỗi vùng mất gần đây (tối đa +36%)
   retreatBack: .7, queueMax: 6, opsBase: 3,
+  portMax: 4, portRange: 70, portInc: 6, portFly: .7, portSea: .75,   // CẢNG: tối đa 4, +70 tầm hải quân, +6 thu nhập, tàu nhanh -30%, mở rộng biển -25% tiền
+  samMax: 3, samChance: .22, samCap: .8,
+  cityMax: 3, cityInc: 9, cityArmy: 8, portDef: .75,   // THÀNH PHỐ (kiểu OpenFront): +9 thu nhập, +8 quân tối đa mỗi cấp · CẢNG phòng thủ: địch đổ bộ vào vùng có cảng yếu đi 25%   // PHÒNG KHÔNG KHU VỰC: mỗi cấp +22% chặn đòn đánh vào vùng và vùng kề (tối đa 80%)
   rebelChance: .01,   // 1/100 mỗi lần kiểm tra (25s) của mỗi nước ≥6 vùng: phiến quân ly khai lập quốc gia mới
   retakeWin: 300, retakeDur: .6, retakeAtk: 1.3, resistEvery: 20   // GIẢI PHÓNG: chiếm lại vùng vừa mất (300s) nhanh ×0.6 và +30% lực; dân vùng bị chiếm có thể nổi dậy
 };
@@ -647,10 +652,10 @@ function buildGeo(layoutIn) {
 }
 const isLand = (x, y) => { const ix = Math.floor(x / 2), iy = Math.floor(y / 2); if (ix < 0 || iy < 0 || ix >= VW / 2 || iy >= VH / 2) return false; return landData[(iy * (VW / 2) + ix) * 4 + 3] > 100; };
 const navCache = new Map();
-function navalOK(a, b) {          // đường từ vùng a sang vùng b có đoạn biển và không chủ yếu là đất liền?
-  const key = a.id + '>' + b.id; if (navCache.has(key)) return navCache.get(key);
+function navalOK(a, b, rg) {          // đường từ vùng a sang vùng b có đoạn biển và không chủ yếu là đất liền?
+  const key = a.id + '>' + b.id + (rg ? '+' : ''); if (navCache.has(key)) return navCache.get(key);
   const d = dist2(a.seed, b.seed); let ok = false;
-  if (d <= CFG.navalRange) {
+  if (d <= CFG.navalRange + (rg || 0)) {
     const n = Math.max(6, Math.ceil(d / 5)); let water = 0, run = 0, best = 0;
     for (let i = 1; i < n; i++) {
       const t = i / n, w = !isLand(a.seed[0] + (b.seed[0] - a.seed[0]) * t, a.seed[1] + (b.seed[1] - a.seed[1]) * t);
@@ -716,17 +721,25 @@ function incomeOf(st, id) {
   const n = st.nations[id], own = regionsOf(st, id); if (!n || !own.length) return 0;
   let s = 0; for (const r of own) { const k = resOf(r); let m = isOcc(st, r.id) ? CFG.occIncome : 1; if (k) m *= 1 + RES[k].inc * evMul(st, k) * (1 + .6 * ((st.mine && st.mine[r.id]) || 0)); if (n.sub && n.sub.includes(r.id)) m *= 1.25; let f = 1; const shr = st.share && st.share[r.id]; if (shr) for (const q in shr) f -= shr[q]; s += r.inc * m * Math.max(.2, f); }
   if (st.share) for (const rid in st.share) { const f = st.share[rid][id]; if (!f || !st.owner[rid]) continue; const q = regOf[rid]; if (q) s += q.inc * f * .85; }   // thu phần của vùng mình chiếm chung
-  const avg = Math.max(3, avgRegions(st)), catchUp = 1 + .35 * clamp((avg - own.length) / avg, 0, 1);   // kéo kẻ yếu lên
+  s += portCnt(st, id) * CFG.portInc + cityLv(st, id) * CFG.cityInc; const avg = Math.max(3, avgRegions(st)), catchUp = 1 + .35 * clamp((avg - own.length) / avg, 0, 1);   // kéo kẻ yếu lên
   let up = 0; for (const r of own) up += r.sz * CFG.terrUpkeep;
   const om = ownedMap(st); let tot = 0; for (const k in om) tot += om[k].length;
   const share = tot ? own.length / tot : 0, lead = share > CFG.leaderShare ? 1 - CFG.leaderTax * (share - CFG.leaderShare) / (1 - CFG.leaderShare) : 1;
   return Math.max(0, s * lead * stab(n, own.length) * (1 + .15 * te(n, 'eco') + .08 * perk(n, 'eco')) * (n.policy === 'mil' ? .85 : 1.2) * catchUp * (n.bonus || 1) * tradeMul(st, n) * evAll(st) * ((n.buff && n.buff.boost > st.t) ? 1.5 : 1) - up);
 }
 const popOf = (st, id) => regionsOf(st, id).reduce((a, r) => a + r.pop, 0);
-const maxArmy = (st, id) => { const n = st.nations[id]; return Math.floor(40 + 6 * Math.sqrt(popOf(st, id)) + 5 * cntRes(st, id, 'farm') + (n ? Math.floor(5 * te(n, 'log')) + 8 * perk(n, 'log') : 0)); };
+const maxArmy = (st, id) => { const n = st.nations[id]; return Math.floor(cityLv(st, id) * CFG.cityArmy + 40 + 6 * Math.sqrt(popOf(st, id)) + 5 * cntRes(st, id, 'farm') + (n ? Math.floor(5 * te(n, 'log')) + 8 * perk(n, 'log') : 0)); };
 const recruitCost = (st, id) => { const n = st.nations[id]; return Math.round(100 * (1 + .08 * regionsOf(st, id).length) * (1 - Math.min(.3, .03 * cntRes(st, id, 'ind'))) * (n ? 1 - Math.min(.45, .04 * te(n, 'log')) : 1)); };
 const expandCost = (c, r) => Math.round(40 * (c < 4 ? .6 : 1 + .14 * c) * (r ? r.sz : 1));   // càng nhiều vùng + vùng càng bự càng đắt
 const fortCost = (st, rid) => { const n = st.nations[st.owner[rid]]; return Math.round(90 * ((st.fort[rid] || 0) + 1) * (1 + .03 * (regionsOf(st, st.owner[rid]).length)) * (n && perk(n, 'def') ? 1 - .1 * Math.min(1, perk(n, 'def')) : 1)); };
+const BLD = (st, rid) => (st.bld && st.bld[rid]) || null;
+const portCnt = (st, id) => regionsOf(st, id).filter(r => BLD(st, r.id) && BLD(st, r.id).p).length;
+const portCost = (st, id) => Math.round(320 * (1 + .6 * portCnt(st, id)));
+const samCost = (st, rid) => Math.round(200 * (((BLD(st, rid) || {}).a || 0) + 1) * (1 + .02 * regionsOf(st, st.owner[rid]).length));
+const isCoast = r => { for (let k = 0; k < 8; k++) { const a = k * .785; for (const d of [5, 9]) if (!isLand(r.seed[0] + Math.cos(a) * d, r.seed[1] + Math.sin(a) * d)) return true; } return false; };
+function samCover(st, rid, oid) { let c = (BLD(st, rid) || {}).a || 0; for (const j of ngh[rid]) if (st.owner[j] === oid) c += ((BLD(st, j) || {}).a || 0) * .6; return c; }
+const cityLv = (st, id) => regionsOf(st, id).reduce((a, r) => a + ((BLD(st, r.id) || {}).c || 0), 0);
+const cityCost = (st, rid) => Math.round(260 * (((BLD(st, rid) || {}).c || 0) + 1) * (1 + .03 * regionsOf(st, st.owner[rid]).length));
 const techCost = (lv, k) => Math.round(120 * Math.pow(lv + 1, 1.6) * ((TECHS[k] && TECHS[k].m) || 1) * (lv >= CFG.techMax ? CFG.overCost : 1));
 function powerSur(st, n) {   // GIÁ THEO SỨC MẠNH: nước càng to so với bình quân càng phải trả đắt
   if (!st || !n) return 0; const c = regionsOf(st, n.id).length, r = c / Math.max(3, avgRegions(st));
@@ -771,7 +784,7 @@ function reachFor(st, id, r) {
   for (const o of own) {
     const d = dist2(o.seed, r.seed);
     if ((islandT || allIsl) && d <= CFG.islandRange) return 'sea';
-    if (d <= CFG.navalRange && navalOK(o, r)) return 'sea';
+    { const pr = st.bld && st.bld[o.id] && st.bld[o.id].p ? CFG.portRange : 0; if (d <= CFG.navalRange + pr && navalOK(o, r, pr)) return 'sea'; }
   }
   return null;
 }
@@ -824,11 +837,11 @@ const Sim = (() => {
   // ---------- khởi tạo ----------
   function create(cfg, lay) {
     layout = lay; hostPid = cfg.pid;
-    S = { v: SCHEMA, share: {}, geo: cfg.geo || '110', map: cfg.map || 'world', found: {}, mine: {}, prosp: {}, name: cfg.name || '', maxH: cfg.maxH || 8, code: cfg.code || '', speed: cfg.speed, level: cfg.level, t: 0, ver: 0, seq: 0, nations: {}, owner: {}, occ: {}, fort: {}, weak: {}, lost: {}, players: {}, log: [], cap: CFG.maxNations, vic: null, wonAt: -1e9 };
+    S = { v: SCHEMA, share: {}, geo: cfg.geo || '110', map: cfg.map || 'world', found: {}, mine: {}, prosp: {}, name: cfg.name || '', maxH: cfg.maxH || 8, code: cfg.code || '', speed: cfg.speed, level: cfg.level, t: 0, ver: 0, seq: 0, nations: {}, owner: {}, occ: {}, fort: {}, bld: {}, weak: {}, lost: {}, players: {}, log: [], cap: CFG.maxNations, vic: null, wonAt: -1e9 };
     spawnAI(cfg.ai); start();
   }
   function restore(obj, lay, pid, flags) {
-    layout = lay; hostPid = pid; S = obj; S.found = S.found || {}; S.mine = S.mine || {}; S.prosp = S.prosp || {}; Object.assign(FOUNDG, S.found); S.ver = 0; S.vic = null; S.players = S.players || {}; S.occ = S.occ || {}; S.fort = S.fort || {}; S.log = S.log || []; S.weak = {}; S.lost = S.lost || {}; Object.values(S.nations).forEach(n => { n.inv = n.inv || {}; n.buff = n.buff || {}; });
+    layout = lay; hostPid = pid; S = obj; S.found = S.found || {}; S.mine = S.mine || {}; S.prosp = S.prosp || {}; Object.assign(FOUNDG, S.found); S.ver = 0; S.vic = null; S.players = S.players || {}; S.occ = S.occ || {}; S.fort = S.fort || {}; S.bld = S.bld || {}; S.log = S.log || []; S.weak = {}; S.lost = S.lost || {}; Object.values(S.nations).forEach(n => { n.inv = n.inv || {}; n.buff = n.buff || {}; });
     Object.values(S.nations).forEach(n => { if (flags && flags[n.id] && !n.flag) n.flag = flags[n.id]; if (!n.ai) { n.online = false; n.offAt = S.t; } });
     (S.pend || []).forEach(o => { const n = S.nations[o.nid]; if (!n) return; if (o.kind === 'expand') { n.money += o.cost || 0; n.army += o.sent || 0; } else n.army += Math.floor((o.sent || 0) * .8); });
     S.pend = [];
@@ -859,13 +872,13 @@ const Sim = (() => {
   function snap(full) {
     const n = {}; for (const id in S.nations) n[id] = dynN(S.nations[id]);
     const m = { t: 'snap', T: S.t, n };
-    if (full) { m.ev = S.ev || null; m.o = S.owner; m.oc = S.occ; m.f = S.fort; m.w = S.weak || {}; m.l = S.lost || {}; m.mi = S.mine || {}; m.sh = S.share || {}; m.vic = S.vic ? { ids: S.vic.ids, left: Math.max(0, Math.round(CFG.victoryHold - (S.t - S.vic.since))) } : null; }
+    if (full) { m.ev = S.ev || null; m.o = S.owner; m.oc = S.occ; m.f = S.fort; m.b = S.bld || {}; m.w = S.weak || {}; m.l = S.lost || {}; m.mi = S.mine || {}; m.sh = S.share || {}; m.vic = S.vic ? { ids: S.vic.ids, left: Math.max(0, Math.round(CFG.victoryHold - (S.t - S.vic.since))) } : null; }
     net.bcast(m);
   }
   function welcome(pid) {
     const nations = {}; for (const id in S.nations) nations[id] = pubN(S.nations[id]);
     return { t: 'welcome', you: { pid, nid: S.players[pid] || null }, layout, host: hostPid,
-      S: { share: S.share || {}, geo: S.geo || '110', map: S.map || 'world', found: S.found || {}, mine: S.mine || {}, prosp: S.prosp || {}, name: S.name || '', maxH: S.maxH || 8, code: S.code, speed: S.speed, level: S.level, t: S.t, nations, owner: S.owner, occ: S.occ, fort: S.fort, weak: S.weak || {}, lost: S.lost || {}, log: S.log, cap: S.cap, ev: S.ev, sandbox: !!S.sandbox }, ops: [...ops.values()].map(o => o.rid) };
+      S: { share: S.share || {}, geo: S.geo || '110', map: S.map || 'world', found: S.found || {}, mine: S.mine || {}, prosp: S.prosp || {}, name: S.name || '', maxH: S.maxH || 8, code: S.code, speed: S.speed, level: S.level, t: S.t, nations, owner: S.owner, occ: S.occ, fort: S.fort, bld: S.bld || {}, weak: S.weak || {}, lost: S.lost || {}, log: S.log, cap: S.cap, ev: S.ev, sandbox: !!S.sandbox }, ops: [...ops.values()].map(o => o.rid) };
   }
   function save() {
     try { localStorage.setItem('gs5_host', JSON.stringify({ at: Date.now(), S: withPend() }, (k, v) => k[0] === '_' ? undefined : v)); } catch (e) {}
@@ -911,7 +924,7 @@ const Sim = (() => {
     const op = { id: ++opSeq, nid, rid, kind, src: src.id, sea, o: o || null, sent: 0, cost: 0, def: 0 };
     if (kind === 'expand') {
       if (o) return 'Vùng đã có chủ';
-      op.cost = Math.round(expandCost(regionsOf(S, nid).length, r) * (sea ? CFG.seaCost : 1)); if (n.money < op.cost) return 'Không đủ tiền';
+      op.cost = Math.round(expandCost(regionsOf(S, nid).length, r) * (sea ? CFG.seaCost * (portCnt(S, nid) ? CFG.portSea : 1) : 1)); if (n.money < op.cost) return 'Không đủ tiền';
       if (n.army < 3) return 'Cần ít nhất 3 quân để cử đi mở rộng';
       const req = Math.round(6 + r.defR * .6); op.sent = Math.min(req, Math.floor(n.army)); op.req = req;
       n.money -= op.cost; n.army -= op.sent; op.win = true; op.ratio = 3; op.dur = r.dur * (sea ? 1.4 : 1) / S.speed * ((n.buff && n.buff.haste > S.t) ? .6 : 1) * clamp(req / op.sent, 1, 3);
@@ -919,12 +932,12 @@ const Sim = (() => {
       const en = S.nations[o]; if (!en || o === nid) return 'Không thể tấn công vùng này';
       if (!atWar(n, en)) return 'Chưa có chiến tranh với nước đó';
       frac = clamp(+frac || .5, .1, 1); op.sent = Math.floor(n.army * frac); if (op.sent < 1) return 'Không còn quân';
-      const lo = S.lost && S.lost[rid], lib = !!(lo && lo.n === nid && S.t - lo.t < CFG.retakeWin), att = op.sent * (sea ? CFG.seaPower : 1) * attMul(n) * fatigueMul(S, n) * (lib ? CFG.retakeAtk : 1) * rnd(.85, 1.15), def = defOf(S, r) * rnd(.95, 1.25);
+      const lo = S.lost && S.lost[rid], lib = !!(lo && lo.n === nid && S.t - lo.t < CFG.retakeWin), att = op.sent * (sea ? CFG.seaPower * (BLD(S, rid) && BLD(S, rid).p ? CFG.portDef : 1) : 1) * attMul(n) * fatigueMul(S, n) * (lib ? CFG.retakeAtk : 1) * rnd(.85, 1.15), def = defOf(S, r) * rnd(.95, 1.25);
       op.win = att > def; op.ratio = att / def; op.def = def; n.army -= op.sent; n.shield = 0;
       op.dur = Math.min(45000, (9000 + 1100 * Math.sqrt(r.defR)) * clamp(1.5 - op.ratio * .25, .7, 1.25)) / S.speed;
       if (lib) { op.rt = 1; op.dur = op.dur * CFG.retakeDur; } op.dur *= (n.buff && n.buff.haste > S.t) ? .6 : 1;
     }
-    op.fly = Math.round(clamp(dist2(src.seed, r.seed) * 26, 2500, 9000) * (sea ? 1.3 : 1) / Math.sqrt(S.speed));
+    op.fly = Math.round(clamp(dist2(src.seed, r.seed) * 26, 2500, 9000) * (sea ? 1.3 * (BLD(S, src.id) && BLD(S, src.id).p ? CFG.portFly : 1) : 1) / Math.sqrt(S.speed));
     ops.set(op.id, op); if (!busyMap.has(rid)) busyMap.set(rid, op.id);
     op.timer = setTimeout(() => endOp(op.id), op.fly + op.dur + 150);
     if (Math.random() < CFG.luck) {   // 1/40: đột kích thần tốc
@@ -987,7 +1000,8 @@ const Sim = (() => {
     const lo0 = (S.lost = S.lost || {})[r.id], lib = !!(lo0 && lo0.n === n.id && S.t - lo0.t < CFG.retakeWin);
     S.lost[r.id] = { n: en.id, t: S.t };
     setOwner(S, r.id, n.id); if (lib) { delete S.occ[r.id]; delete S.lost[r.id]; n.army += 4; } else S.occ[r.id] = S.t + CFG.occ;
-    if (S.fort[r.id]) { S.fort[r.id]--; if (!S.fort[r.id]) delete S.fort[r.id]; }
+    if (S.bld) delete S.bld[r.id];   // chiếm được thì cảng/phòng không bị phá
+    if (S.fort[r.id]) { S.fort[r.id]--; if (!S.fort[r.id]) delete S.fort[r.id]; if (S.bld) delete S.bld[r.id]; }
     Object.assign(res, { to: n.id, lib: lib, occ: S.occ[r.id], fort: S.fort[r.id] || 0, cap: wasCap, from: en.id });
     emit(res);
     toastN(n.id, lib ? `🏳️ Giải phóng ${nameOf(r)} khỏi ${en.name}!` : `🏴 Chiếm ${nameOf(r)} từ ${en.name}!`); toastN(en.id, `🔥 Mất ${nameOf(r)} vào tay ${n.name}`);
@@ -1063,7 +1077,7 @@ const Sim = (() => {
   // ---------- CỬA HÀNG & VŨ KHÍ ----------
   function devastate(en, r, by, why) {
     const wasCap = en.capital === r.id;
-    setOwner(S, r.id, null); delete S.occ[r.id]; delete S.fort[r.id]; delete S.weak[r.id];
+    setOwner(S, r.id, null); delete S.occ[r.id]; delete S.fort[r.id]; if (S.bld) delete S.bld[r.id]; delete S.weak[r.id];
     emit({ e: 'own', rid: r.id, nid: null, why });
     if (wasCap) { en.army *= CFG.capFallArmy; en.money *= CFG.capFallMoney; }
     if (!regionsOf(S, en.id).length) eliminate(en, by);
@@ -1106,6 +1120,7 @@ const Sim = (() => {
     const n = S.nations[nid], en = S.nations[oid], r = regOf[rid], it = ITEMS[k];
     if (!en || S.owner[rid] !== oid) return emit({ e: 'hit', k, rid, nid, oid, rids: [], miss: true });
     const nm = n ? n.name : '?'; en.inv = en.inv || {};
+    if (!it.emp) { const cv = samCover(S, rid, oid); if (cv > 0 && Math.random() < Math.min(CFG.samCap, cv * CFG.samChance) * (it.icp || 1)) { emit({ e: 'hit', k, rid, nid, oid, rids: [], blocked: true }); toastN(oid, `📡 Phòng không khu vực bắn hạ ${it.n} của ${nm}!`); if (n) toastN(nid, `${en.name} bắn hạ ${it.n} của bạn (phòng không khu vực)`); return snap(false); } }
     if (it.emp) en.inv.dome = 0;
     if ((en.inv.dome || 0) > 0 && Math.random() < (it.icp || 1)) {
       en.inv.dome--; emit({ e: 'hit', k, rid, nid, oid, rids: [], blocked: true });
@@ -1116,19 +1131,19 @@ const Sim = (() => {
     const dead = [];
     if (k === 'rocket') { en.army *= .88; weak(r, .3, 60); }
     else if (k === 'bunker') { en.army *= .92; noFort(rid); weak(r, .25, 90); }
-    else if (k === 'cruise') { en.army *= .82; if (S.fort[rid]) { S.fort[rid]--; if (!S.fort[rid]) delete S.fort[rid]; emit({ e: 'fort', rid, lv: S.fort[rid] || 0 }); } weak(r, .4, 100); }
+    else if (k === 'cruise') { en.army *= .82; if (S.fort[rid]) { S.fort[rid]--; if (!S.fort[rid]) delete S.fort[rid]; if (S.bld) delete S.bld[rid]; emit({ e: 'fort', rid, lv: S.fort[rid] || 0 }); } weak(r, .4, 100); }
     else if (k === 'sabotage') { en.army *= .95; dead.push(r); }
     else if (k === 'mini') { en.army *= .97; weak(r, .1, 40); }
     else if (k === 'barrage') { en.army *= .97; weak(r, .1, 40); }
     else if (k === 'mlrs') { en.army *= .9; weak(r, .3, 60); const j = [...ngh[rid]].find(j => S.owner[j] === oid); if (j !== undefined) weak(regOf[j], .3, 60); }
-    else if (k === 'thermo') { en.army *= .75; if (S.fort[rid]) { S.fort[rid]--; if (!S.fort[rid]) delete S.fort[rid]; emit({ e: 'fort', rid, lv: S.fort[rid] || 0 }); } weak(r, .4, 90); }
+    else if (k === 'thermo') { en.army *= .75; if (S.fort[rid]) { S.fort[rid]--; if (!S.fort[rid]) delete S.fort[rid]; if (S.bld) delete S.bld[rid]; emit({ e: 'fort', rid, lv: S.fort[rid] || 0 }); } weak(r, .4, 90); }
     else if (k === 'stealth') { en.army *= .82; noFort(rid); weak(r, .45, 80); }
     else if (k === 'plasma') { en.army *= .7; noFort(rid); weak(r, .6, 120); [...ngh[rid]].filter(j => S.owner[j] === oid).slice(0, 2).forEach(j => weak(regOf[j], .6, 120)); }
     else if (k === 'drone') { en.army *= .95; weak(r, .2, 45); }
     else if (k === 'napalm') { en.army *= .8; weak(r, .3, 90); ngh[rid].forEach(j => { if (S.owner[j] === oid) weak(regOf[j], .15, 60); }); }
     else if (k === 'cluster') { en.army *= .85; noFort(rid); weak(r, .3, 80); [...ngh[rid]].filter(j => S.owner[j] === oid).slice(0, 3).forEach(j => weak(regOf[j], .3, 80)); }
     else if (k === 'emp') { en.money *= .93; en.army *= .97; weak(r, .35, 80); }
-    else if (k === 'hyper') { en.army *= .75; if (S.fort[rid]) { S.fort[rid]--; if (!S.fort[rid]) delete S.fort[rid]; emit({ e: 'fort', rid, lv: S.fort[rid] || 0 }); } weak(r, .5, 100); }
+    else if (k === 'hyper') { en.army *= .75; if (S.fort[rid]) { S.fort[rid]--; if (!S.fort[rid]) delete S.fort[rid]; if (S.bld) delete S.bld[rid]; emit({ e: 'fort', rid, lv: S.fort[rid] || 0 }); } weak(r, .5, 100); }
     else if (k === 'orbital') {
       en.army *= .75; regionsOf(S, oid).filter(x => dist2(x.seed, r.seed) <= 80).sort((a, b) => dist2(a.seed, r.seed) - dist2(b.seed, r.seed)).slice(0, 3).forEach(x => dead.push(x));
       if (!dead.includes(r)) dead.unshift(r); dead.splice(3);
@@ -1216,6 +1231,9 @@ const Sim = (() => {
       case 'recruit': { const c = recruitCost(S, nid); if (n.money < c) err = 'Không đủ tiền'; else if (n.army + 10 > maxArmy(S, nid)) err = 'Đã đạt trần quân số'; else { n.money -= c; n.army += 10; } break; }
       case 'tech': { const k = m.k; if (!TK.includes(k) || tl(n, k) >= TMAX()) { err = 'Đã tối đa'; break; } const c = techCost(tl(n, k), k); if (n.money < c) err = 'Không đủ tiền'; else { n.money -= c; n.tech[k] = tl(n, k) + 1; toastN(nid, `🔬 ${TECHS[k].n} Lv${n.tech[k]}${n.tech[k] === 4 || n.tech[k] === 8 || n.tech[k] === 12 ? ' — đạt mốc đặc biệt!' : n.tech[k] > CFG.techMax ? ' (Đột phá)' : ''}`); } break; }
       case 'policy': n.policy = n.policy === 'mil' ? 'eco' : 'mil'; break;
+      case 'port': { const rid = m.rid, b = S.bld[rid] || {}; if (S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể xây ở đây'; break; } if (b.p) { err = 'Đã có cảng'; break; } if (!isCoast(regOf[rid])) { err = 'Cảng chỉ xây ở vùng ven biển'; break; } if (portCnt(S, nid) >= CFG.portMax) { err = 'Tối đa ' + CFG.portMax + ' cảng'; break; } const c = portCost(S, nid); if (n.money < c) { err = 'Không đủ tiền'; break; } n.money -= c; b.p = 1; S.bld[rid] = b; emit({ e: 'bld', rid, b: Object.assign({}, b) }); toastN(nid, `⚓ Xây cảng ở ${nameOf(regOf[rid])}: tàu nhanh hơn, tầm biển xa hơn, +thu nhập`); break; }
+      case 'city': { const rid = m.rid, b = S.bld[rid] || {}; if (S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể xây ở đây'; break; } if ((b.c || 0) >= CFG.cityMax) { err = 'Thành phố đã tối đa'; break; } const c = cityCost(S, rid); if (n.money < c) { err = 'Không đủ tiền'; break; } n.money -= c; b.c = (b.c || 0) + 1; S.bld[rid] = b; emit({ e: 'bld', rid, b: Object.assign({}, b) }); toastN(nid, `🏙️ Thành phố cấp ${b.c} ở ${nameOf(regOf[rid])}: +thu nhập, +quân tối đa`); break; }
+      case 'sam': { const rid = m.rid, b = S.bld[rid] || {}; if (S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể xây ở đây'; break; } if ((b.a || 0) >= CFG.samMax) { err = 'Phòng không đã tối đa'; break; } const c = samCost(S, rid); if (n.money < c) { err = 'Không đủ tiền'; break; } n.money -= c; b.a = (b.a || 0) + 1; S.bld[rid] = b; emit({ e: 'bld', rid, b: Object.assign({}, b) }); toastN(nid, `📡 Căn cứ phòng không cấp ${b.a} ở ${nameOf(regOf[rid])}`); break; }
       case 'fort': { const rid = m.rid; if (S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể xây ở đây'; break; } const lv = S.fort[rid] || 0; if (lv >= CFG.fortMax) { err = 'Pháo đài đã tối đa'; break; } const c = fortCost(S, rid); if (n.money < c) err = 'Không đủ tiền'; else { n.money -= c; S.fort[rid] = lv + 1; emit({ e: 'fort', rid, lv: lv + 1 }); toastN(nid, `🏰 Xây pháo đài cấp ${lv + 1} ở ${nameOf(regOf[rid])}`); } break; }
       case 'sell': {
         const rid = m.rid, r = regOf[rid];
@@ -1223,7 +1241,7 @@ const Sim = (() => {
         if (n.capital === rid) { err = 'Không thể bán thủ đô'; break; }
         if (n.sellAt && S.t - n.sellAt < CFG.sellCool) { err = `Chờ ${Math.ceil(CFG.sellCool - (S.t - n.sellAt))}s mới bán tiếp`; break; }
         const v = sellValue(S, r); n.money += v; n.sellAt = S.t; n.sub = (n.sub || []).filter(x => x !== rid);
-        setOwner(S, rid, null); delete S.occ[rid]; delete S.fort[rid]; delete S.weak[rid]; if (S.lost) delete S.lost[rid];
+        setOwner(S, rid, null); delete S.occ[rid]; delete S.fort[rid]; if (S.bld) delete S.bld[rid]; delete S.weak[rid]; if (S.lost) delete S.lost[rid];
         emit({ e: 'own', rid, nid: null, why: 'sell' }); toastN(nid, `💸 Bán ${nameOf(r)} được ${v}💰`); break;
       }
       case 'prospect': {
@@ -1259,7 +1277,7 @@ const Sim = (() => {
         else if (a === 'take' || a === 'free') {
           const rid = m.rid, r = regOf[rid]; if (!r || r.anta || busyMap.has(rid)) { err = 'Vùng không hợp lệ'; break; }
           if (Object.values(S.nations).some(x => x.capital === rid && x.id !== nid) || (a === 'free' && n.capital === rid)) { err = 'Không đổi chủ thủ đô'; break; }
-          setOwner(S, rid, a === 'take' ? nid : null); delete S.occ[rid]; delete S.fort[rid]; emit({ e: 'own', rid, nid: a === 'take' ? nid : null, why: a === 'take' ? 'sandbox' : 'revolt' });
+          setOwner(S, rid, a === 'take' ? nid : null); delete S.occ[rid]; delete S.fort[rid]; if (S.bld) delete S.bld[rid]; emit({ e: 'own', rid, nid: a === 'take' ? nid : null, why: a === 'take' ? 'sandbox' : 'revolt' });
         }
         break;
       }
@@ -1370,6 +1388,8 @@ const Sim = (() => {
     // dùng vũ khí / phòng không
     if (n.inv) {
       if (!n.inv.dome && n.money > 700 && Math.random() < .03) { n.money -= ITEMS.dome.cost; n.inv.dome = 1; }
+      else if (n.money > 900 && Math.random() < .03) { const c0 = regOf[n.capital]; if (c0 && S.owner[c0.id] === n.id) { const b = S.bld[c0.id] || {}, sc = samCost(S, c0.id); if ((b.a || 0) < CFG.samMax && n.money > sc * 2) { n.money -= sc; b.a = (b.a || 0) + 1; S.bld[c0.id] = b; emit({ e: 'bld', rid: c0.id, b: Object.assign({}, b) }); } } }
+      if (n.money > 1200 && Math.random() < .02) { const r0 = pick(regionsOf(S, n.id)), b = S.bld[r0.id] || {}, cc = cityCost(S, r0.id); if ((b.c || 0) < CFG.cityMax && n.money > cc * 2) { n.money -= cc; b.c = (b.c || 0) + 1; S.bld[r0.id] = b; emit({ e: 'bld', rid: r0.id, b: Object.assign({}, b) }); } }
       if (foes.length && S.level >= 2 && Math.random() < .05) {
         const foe = pick(foes), cs = regionsOf(S, foe.id);
         if (cs.length) {
@@ -1396,7 +1416,7 @@ const Sim = (() => {
     const nn = S.nations[id] = { id, name: 'Cộng hoà ' + nameOf(r), leader: 'Phiến quân', ai: true, color: col, flag: mkFlag([col, '#fff', `hsl(${(h + 150) % 360},55%,42%)`]),
       money: 120, army: a + 6, capital: r.id, tech: { mil: 0, eco: 0, adm: 0, def: 0, log: 0 }, war: {}, ally: {}, truce: {}, policy: 'eco', shield: 0, born: S.t, inv: {}, buff: {}, rel: {}, aggr: rnd(.3, 1), bonus: 1, nextAi: rnd(5, 20) };
     nn.war[n.id] = true; n.war[id] = true;
-    grp.forEach(g => { setOwner(S, g.id, id); delete S.occ[g.id]; delete S.fort[g.id]; });
+    grp.forEach(g => { setOwner(S, g.id, id); delete S.occ[g.id]; delete S.fort[g.id]; if (S.bld) delete S.bld[g.id]; });
     emit({ e: 'nat', n: pubN(nn), rid: r.id });
     grp.slice(1).forEach(g => emit({ e: 'own', rid: g.id, nid: id, why: 'secede' }));
     sysLog(`🚩 Nổi loạn! ${nn.name} ly khai khỏi ${n.name} (${grp.length} vùng)`); toastN(n.id, `🚩 ${nn.name} tuyên bố độc lập ở ${nameOf(r)}!`);
@@ -1405,7 +1425,7 @@ const Sim = (() => {
     if (calmed(n)) return;
     const own = regionsOf(S, n.id), ex = own.length - admLimit(n); if (ex <= 0 || Math.random() > Math.min(.8, .25 * ex)) return;
     const c = own.filter(r => r.id !== n.capital && !(n.sub || []).includes(r.id) && !busyMap.has(r.id)); if (!c.length) return;
-    const r = pick(c); setOwner(S, r.id, null); delete S.occ[r.id]; delete S.fort[r.id];
+    const r = pick(c); setOwner(S, r.id, null); delete S.occ[r.id]; delete S.fort[r.id]; if (S.bld) delete S.bld[r.id];
     emit({ e: 'own', rid: r.id, nid: null, why: 'revolt' }); toastN(n.id, `🔥 Nổi loạn ở ${nameOf(r)}: bộ máy không kham nổi, mất vùng!`);
   }
   function shipStep() {
@@ -1857,12 +1877,17 @@ function drawCaps() {   // thủ đô: chấm tròn trắng viền màu nước;
     (n.sub || []).forEach(q => { const sc = regOf[q]; if (sc && V.owner[q] === id) capG.append('circle').attr('cx', sc.seed[0]).attr('cy', sc.seed[1]).attr('r', 3.2 / u).attr('fill', '#fff').attr('fill-opacity', .6).attr('stroke', n.color).attr('stroke-width', 1.8 / u); });
   }
 }
-function drawFlags() { drawFlags0(); drawCaps(); }
+function drawFlags() { drawFlags0(); drawCaps(); drawBld(); }
 function drawFlags0() {
   if (!V) return; const k = zoomT.k;
   const items = Object.values(V.nations).filter(n => { const c = regOf[n.capital]; return c && V.owner[c.id] === n.id; });
   flagsG.selectAll('image').data(items, d => d.id).join('image').attr('href', n => n.flag).attr('width', 16 / k).attr('height', 10.7 / k)
     .attr('transform', n => { const c = regOf[n.capital].seed; return `translate(${c[0] - 8 / k},${c[1] - 14 / k})`; });
+}
+function drawBld() {
+  if (!V || !flagsG) return; const k = zoomT.k, bl = [];
+  for (const rid in (V.bld || {})) { const b = V.bld[rid], r = regOf[rid]; if (r && V.owner[rid] && b && (b.p || b.a || b.c)) bl.push({ id: rid, r, t: (b.c ? '🏙️' + (b.c > 1 ? b.c : '') : '') + (b.p ? '⚓' : '') + (b.a ? '📡' + (b.a > 1 ? b.a : '') : '') }); }
+  flagsG.selectAll('text.bld').data(bl, d => d.id).join('text').attr('class', 'bld').attr('text-anchor', 'middle').style('pointer-events', 'none').style('font-size', (11 / k) + 'px').attr('transform', d => `translate(${d.r.seed[0]},${d.r.seed[1] + 11 / k})`).text(d => d.t);
 }
 const arCache = {};
 const regArea = r => { if (arCache[r.iso] === undefined) arCache[r.iso] = path.area(byId[r.iso]) || 1; return arCache[r.iso] / r.K; };
@@ -1875,6 +1900,7 @@ function bigCluster(own) {          // cụm vùng liền kề lớn nhất củ
   }
   return best;
 }
+function ownAtPt(x, y) { let b = null, bd = 1e9; for (const r of regions) { const d = (r.seed[0] - x) ** 2 + (r.seed[1] - y) ** 2; if (d < bd) { bd = d; b = r; } } return b ? V.owner[b.id] : null; }
 function drawNationLabels() {
   if (!V) return;
   const k = zoomT.k, mr = $('map').getBoundingClientRect(), pxu = Math.max(.05, Math.min(mr.width / VW, mr.height / VH) * k);   // px màn hình / 1 đơn vị bản đồ
@@ -1895,6 +1921,11 @@ function drawNationLabels() {
   items.sort((a, b) => (b.me - a.me) || (b.ar - a.ar));
   const placed = [], show = [];
   items.forEach(it => {
+    if (!it.me) for (let t = 0; t < 4; t++) {   // tên nước không được đè lên đất nước khác: thu nhỏ dần, không vừa thì ẩn
+      const hw = it.len * .6 * it.fs / 2; let bad = false; for (const dx of [-1, -.5, .5, 1]) { const o = ownAtPt(it.p[0] + dx * hw, it.p[1]); if (o && o !== it.n.id) { bad = true; break; } }
+      if (!bad) break; it.fs *= .78; it.sa = it.fs * .5 * pxu >= 10; if (it.fs * pxu < 7) { it.hide = true; break; }
+    }
+    if (it.hide) return;
     const w = it.len * .6 * it.fs, h = it.fs * (it.sa ? 2.1 : 1.1), cy = it.p[1] + (it.sa ? it.fs * .45 : 0), bx = [it.p[0] - w / 2, cy - h / 2, it.p[0] + w / 2, cy + h / 2];
     if (!it.me && placed.some(b => bx[0] < b[2] && bx[2] > b[0] && bx[1] < b[3] && bx[3] > b[1])) return;
     placed.push(bx); show.push(it);
@@ -2129,7 +2160,7 @@ const CAP = (() => {
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
     let m = null; try { m = mapScale(); } catch (e) {}
     if (m) {
-      for (const sw of [...sweeps]) { try { sw.draw(now, dt, m); } catch (e) { console.error(e); sweeps.delete(sw); } }
+      const seenR = new Set(); for (const sw of [...sweeps]) { sw.sec = seenR.has(sw.rid); seenR.add(sw.rid); try { sw.draw(now, dt, m); } catch (e) { console.error(e); sweeps.delete(sw); } }
       for (const a of [...arrows]) { try { drawArrow(a, now, m); } catch (e) { console.error(e); arrows.delete(a); } }
     }
     if (sweeps.size || arrows.size) requestAnimationFrame(frame);
@@ -2250,9 +2281,9 @@ const CAP = (() => {
         const base = win ? x * WMAX : (x < .62 ? peak * x / .62 : peak * (1 - (x - .62) / .38));
         const p = Math.max(0, Math.min(win ? WMAX : 1, base + .07 * closeness * Math.sin(x * 18.85) * Math.sin(Math.PI * x)));
         const th = p * (F.maxD + 2.5), u = dpr / m.f;                       // u = 1px màn hình tính theo đơn vị bản đồ
-        const path2 = contour(th);
+        const path2 = (PERF.low && sweeps.size > 3 && (sw._n = (sw._n || 0) + 1) % 2 && sw._p) ? sw._p : (sw._p = contour(th));
         if (path2) {
-          ctx.save(); ctx.setTransform(m.f, 0, 0, m.f, m.tx, m.ty); ctx.clip(kP); if (cP) ctx.clip(cP); ctx.globalAlpha = fa;
+          ctx.save(); ctx.setTransform(m.f, 0, 0, m.f, m.tx, m.ty); ctx.clip(kP); if (cP) ctx.clip(cP); ctx.globalAlpha = fa; ctx.globalCompositeOperation = sw.sec ? 'destination-over' : 'source-over';   // nhiều nước cùng chiếm 1 vùng: bên sau chỉ tô phần chưa bị bên trước chiếm, không đè lên
           ctx.fillStyle = color; ctx.fill(path2, 'evenodd');
           ctx.clip(path2, 'evenodd'); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
           ctx.strokeStyle = 'rgba(255,255,255,.38)'; ctx.lineWidth = 9 * u; ctx.stroke(path2);      // vệt sáng mềm phía trong mặt trận
@@ -2318,7 +2349,7 @@ function screenFlash(col, ms) { const f = $('nflash'); f.style.background = col;
 function shake() { const m = $('map'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake'); }
 function onOwn(m) {
   setOwner(V, m.rid, m.nid); const r = regOf[m.rid];
-  if (!m.nid) { delete V.occ[m.rid]; delete V.fort[m.rid]; if (V.weak) delete V.weak[m.rid]; if (r) { const t = { nuke: 'Xoá sổ', tsar: 'Huỷ diệt', orbital: 'Laser quỹ đạo', sell: 'Đã bán', sabotage: 'Phá hoại', revolt: 'Nổi loạn' }[m.why] || 'Nổi loạn'; FX.text(r.seed[0], r.seed[1], t, '#ffab91'); flashRegion(r, '#ff7043', .7, 700); } }
+  if (!m.nid) { delete V.occ[m.rid]; delete V.fort[m.rid]; if (V.bld) delete V.bld[m.rid]; if (V.weak) delete V.weak[m.rid]; if (r) { const t = { nuke: 'Xoá sổ', tsar: 'Huỷ diệt', orbital: 'Laser quỹ đạo', sell: 'Đã bán', sabotage: 'Phá hoại', revolt: 'Nổi loạn' }[m.why] || 'Nổi loạn'; FX.text(r.seed[0], r.seed[1], t, '#ffab91'); flashRegion(r, '#ff7043', .7, 700); } }
   else if (m.why === 'resist' && r) { const n = V.nations[m.nid]; delete V.occ[m.rid]; if (V.lost) delete V.lost[m.rid]; if (n) { FX.ring(r.seed[0], r.seed[1], n.color, 44, 1.2, 3); FX.confetti(r.seed[0], r.seed[1], [n.color, '#fff'], 36); plantFlag(r, n); } FX.text(r.seed[0], r.seed[1], 'Giải phóng!', '#fff', 2, 13); SND.play('win'); }
   refreshAll(true);
 }
@@ -2347,7 +2378,7 @@ function hitFx() {
 // ----- sự kiện chiến dịch từ chủ phòng -----
 const anims = new Map();
 const pxUnit = () => { const mr = $('map').getBoundingClientRect(); return Math.max(.05, Math.min(mr.width / VW, mr.height / VH) * zoomT.k); };
-function layoutAtkLabels() { const u = pxUnit(); fxG.selectAll('text.atl').style('font-size', (12 / u) + 'px').style('stroke-width', (3 / u) + 'px'); }
+function layoutAtkLabels() { const u = pxUnit(); fxG.selectAll('text.atl').style('font-size', (12 / u) + 'px').style('stroke-width', (3 / u) + 'px').each(function () { if (this.dataset.y) this.setAttribute('y', +this.dataset.y + (+this.dataset.k || 0) * 14 / u); }); }
 function onOp(e) {
   const r = regOf[e.rid], n = V.nations[e.nid]; if (!r || !n) return;
   busy.add(e.rid); busyN[e.rid] = (busyN[e.rid] || 0) + 1; if (e.nid === ME.nid) myOps.add(e.rid); paths.classed('hot', rr => busy.has(rr.id));
@@ -2355,7 +2386,7 @@ function onOp(e) {
   const E = entryOf(r, new Set(own.map(o => o.id)), from), mine = e.nid === ME.nid, victim = !!e.o && e.o === ME.nid;
   const chip = (mine || victim) ? mkChip((e.kind === 'expand' ? '🌱 ' : e.rt ? '🔁 ' : victim ? '🛡️ ' : '⚔️ ') + nameOf(r), victim ? 'def' : '', n.color, mine ? () => cmd('retreat', { rid: e.rid }) : null) : null;
   const a = { chip, arrow: drawArrow(from, E.e, n.color, e.sea, e.fly), sweep: null, tl: null };
-  if (e.kind === 'attack') { a.tl = fxG.append('text').attr('class', 'atl').attr('x', r.seed[0]).attr('y', r.seed[1]).attr('fill', darker(n.color)).html(MIS('swords') + fmt(e.sent)); layoutAtkLabels(); }
+  if (e.kind === 'attack') { a.tl = fxG.append('text').attr('class', 'atl').attr('x', r.seed[0]).attr('y', r.seed[1]).attr('data-y', r.seed[1]).attr('data-k', busyN[e.rid] - 1).attr('fill', darker(n.color)).html(MIS('swords') + fmt(e.sent)); layoutAtkLabels(); }
   anims.set(e.id, a);
   if (chip) chip.set(0);
   if (victim) { toast(`⚠️ ${n.name} tấn công ${nameOf(r)}!`); SND.play('alert'); } else if (mine) { SND.play('go'); if (e.rt) toast('🏳️ Giải phóng: lực +' + Math.round((CFG.retakeAtk - 1) * 100) + '%, chiến dịch nhanh hơn'); }
@@ -2374,6 +2405,7 @@ function onOpEnd(e) {
   if (e.to) setOwner(V, e.rid, e.to);
   if (e.occ) V.occ[e.rid] = e.occ;
   V.lost = V.lost || {}; if (e.to && e.from) { if (e.lib) { delete V.occ[e.rid]; delete V.lost[e.rid]; } else V.lost[e.rid] = { n: e.from, t: V.t }; }
+  if (e.to && V.bld) delete V.bld[e.rid];
   if (e.fort !== undefined) { if (e.fort) V.fort[e.rid] = e.fort; else delete V.fort[e.rid]; }
   dropAnim(e.id, e.win && !e.void ? 380 : 0);
   paint(true); drawFlags(); drawNationLabels(); updateHud(); updateLb(); if (cur) refreshInfo();
@@ -2475,10 +2507,14 @@ function refreshInfo() {
   const tags = []; if (V.share && V.share[id]) { const shr = V.share[id], rest = Math.max(0, 1 - Object.values(shr).reduce((a, b) => a + b, 0)); tags.push('🤝 Chia phần: ' + (on ? String(on.name).replace(/[<>&]/g, '') + ' ' + Math.round(rest * 100) + '%' : '') + Object.keys(shr).map(k => ' · ' + (V.nations[k] ? String(V.nations[k].name).replace(/[<>&]/g, '') : '?') + ' ' + Math.round(shr[k] * 100) + '%').join('')); } if (mineR && V.mine && V.mine[id]) tags.push('⛏️ khai thác Lv' + V.mine[id]); if (on) { if (isOcc(V, id)) tags.push('⛑️ đang chiếm đóng'); if (V.fort[id]) tags.push(`🏰 cấp ${V.fort[id]}`); { const wk = V.weak && V.weak[id]; if (wk && wk.u > V.t) tags.push(`💥 suy yếu −${Math.round(wk.m * 100)}%`); const lo = V.lost && V.lost[id]; if (n && lo && lo.n === n.id && V.t - lo.t < CFG.retakeWin) tags.push('🏳️ đất cũ của bạn: đánh chiếm lại +30% lực'); } if (on.capital === id) tags.push('👑 thủ đô'); }
   $('iMeta').textContent = (n && (o === n.id || (n.known && n.known[id])) ? (resOf(r) ? RES[resOf(r)].ic + ' ' + RES[resOf(r)].n + ' · ' : (o === n.id ? '' : '🔍 không có tài nguyên · ')) : '') + `👥 ${r.pop.toFixed(1)}M · ` + (mineR ? 'Lãnh thổ của bạn' : on ? `Thuộc ${on.name}${war ? ' ⚔️' : n && allied(n, on) ? ' 🤝' : ''} · 🛡️ ~${Math.round(defOf(V, r))}` : 'Đất trống')
     + (tags.length ? ' · ' + tags.join(' · ') : '') + (bz ? ' · đang có chiến dịch' : '');
-  const cost = n ? Math.round(expandCost(regionsOf(V, n.id).length, r) * (k === 'sea' ? CFG.seaCost : 1)) : 0, cr = n ? recruitCost(V, n.id) : 0;
+  const cost = n ? Math.round(expandCost(regionsOf(V, n.id).length, r) * (k === 'sea' ? CFG.seaCost * (portCnt(V, n.id) ? CFG.portSea : 1) : 1)) : 0, cr = n ? recruitCost(V, n.id) : 0;
   $('bRecruit').style.display = n ? '' : 'none'; if (n) { $('bRecruit').textContent = `+10 quân (${cr}💰)`; $('bRecruit').disabled = n.money < cr || n.army + 10 > maxArmy(V, n.id); }
   const fl = V.fort[id] || 0; $('bFort').style.display = mineR ? '' : 'none';
   if (mineR) { $('bFort').textContent = fl >= CFG.fortMax ? '🏰 Tối đa' : `🏰 Pháo đài ${fl + 1} (${fortCost(V, id)}💰)`; $('bFort').disabled = fl >= CFG.fortMax || n.money < fortCost(V, id) || bz; }
+  { const b = BLD(V, id) || {}, sl = b.a || 0; $('bPort').style.display = mineR && (b.p || isCoast(r)) ? '' : 'none'; $('bSam').style.display = mineR ? '' : 'none';
+    if (mineR) { const pc = portCost(V, n.id); $('bPort').textContent = b.p ? '⚓ Đã có cảng' : `⚓ Xây cảng (${pc}💰)`; $('bPort').disabled = !!b.p || n.money < pc || bz || portCnt(V, n.id) >= CFG.portMax;
+      $('bSam').textContent = sl >= CFG.samMax ? '📡 Phòng không tối đa' : `📡 Phòng không ${sl + 1} (${samCost(V, id)}💰)`; $('bSam').disabled = sl >= CFG.samMax || n.money < samCost(V, id) || bz; } }
+  { const b = BLD(V, id) || {}, cl = b.c || 0; $('bCity').style.display = mineR ? '' : 'none'; if (mineR) { const cc = cityCost(V, id); $('bCity').textContent = cl >= CFG.cityMax ? '🏙️ Thành phố tối đa' : `🏙️ Thành phố ${cl + 1} (${cc}💰)`; $('bCity').disabled = cl >= CFG.cityMax || n.money < cc || bz; } }
   { const rk = resOf(r), ml = (V.mine && V.mine[id]) || 0, pa = (V.prosp && V.prosp[id]) || 0; $('rowMine').style.display = mineR ? '' : 'none';
     if (mineR) { if (!rk) { const pc = prospCost(V, n.id, pa); $('bMine').textContent = pa >= 3 ? '⛏️ Vùng đã cạn' : `⛏️ Tìm mỏ (${pc}💰) · lần ${pa + 1}/3`; $('bMine').dataset.m = 'prospect'; $('bMine').disabled = pa >= 3 || n.money < pc || bz; }
       else { const mc = mineCost(ml); $('bMine').textContent = ml >= 3 ? `⛏️ Mỏ tối đa Lv3` : `⛏️ Khai thác ${RES[rk].n} Lv${ml}→${ml + 1} (${mc}💰)`; $('bMine').dataset.m = 'mine'; $('bMine').disabled = ml >= 3 || n.money < mc || bz; } } }
@@ -2513,6 +2549,9 @@ function refreshInfo() {
 $('rowStrike').onclick = ev => { const b = ev.target.closest('button'); if (b && cur) cmd('use', { k: b.dataset.use, rid: cur.id }); };
 $('bRecruit').onclick = () => cmd('recruit'); $('bQuick').onclick = () => { cmd('recruit'); SND.play('tick'); };
 $('bFort').onclick = () => cur && cmd('fort', { rid: cur.id });
+$('bPort').onclick = () => cur && cmd('port', { rid: cur.id });
+$('bSam').onclick = () => cur && cmd('sam', { rid: cur.id });
+$('bCity').onclick = () => cur && cmd('city', { rid: cur.id });
 $('bMine').onclick = () => cur && cmd($('bMine').dataset.m, { rid: cur.id });
 $('bSell').onclick = () => { if (!cur) return; const v = sellValue(V, cur); if (ask('sell' + cur.id, `Bán ${nameOf(cur)} lấy ${v}💰 (vùng thành đất trống)`)) { cmd('sell', { rid: cur.id }); SND.play('coin'); closeInfo(); } };
 $('bSub').onclick = () => cur && cmd('subcap', { rid: cur.id });
@@ -2774,7 +2813,7 @@ const View = {
 function applyWelcome(m) {
   if (!worldBuilt) { MAPSEL = m.S.map || 'world'; GEOQ = m.S.geo || '110'; buildGeo(m.layout); buildMap(); }
   Object.assign(FOUNDG, m.S.found || {});
-  V = m.S; V.ver = 0; V.occ = V.occ || {}; V.fort = V.fort || {}; V.weak = V.weak || {}; V.lost = V.lost || {}; ME.pid = m.you.pid; ME.nid = m.you.nid;
+  V = m.S; V.ver = 0; V.occ = V.occ || {}; V.fort = V.fort || {}; V.bld = V.bld || {}; V.weak = V.weak || {}; V.lost = V.lost || {}; ME.pid = m.you.pid; ME.nid = m.you.nid;
   prevOwn = {}; busy.clear(); myOps.clear(); for (const k in busyN) delete busyN[k]; m.ops.forEach(rid => { busy.add(rid); busyN[rid] = 1; }); [...anims.keys()].forEach(id => dropAnim(id)); FX.clear(); fxG.selectAll('*').remove(); sweepG.selectAll('*').remove(); arrowG.selectAll('*').remove();
   chatLog.length = 0; (V.log || []).forEach(s => chatLog.push({ sys: true, m: s })); renderChat();
   $('lobby').classList.add('hidden'); $('loading').classList.add('hidden'); setBanner(null);
@@ -2785,7 +2824,7 @@ function applySnap(m) {
   if ('ev' in m) V.ev = m.ev;
   if (m.o) {   // chỉ dựng lại cờ/nhãn khi chủ đất hoặc pháo đài thật sự đổi (trước đây dựng lại mỗi 6s → giật)
     const sg = JSON.stringify(m.o) + JSON.stringify(m.f || {}), ch = sg !== V._sg; V._sg = sg;
-    V.owner = m.o; V.occ = m.oc || {}; V.fort = m.f || {}; V.weak = m.w || {}; V.lost = m.l || {}; if (m.mi) V.mine = m.mi; if (m.sh) V.share = m.sh; V.ver++; paint(false); if (ch) { drawFlags(); drawNationLabels(); }
+    V.owner = m.o; V.occ = m.oc || {}; V.fort = m.f || {}; V.bld = m.b || {}; V.weak = m.w || {}; V.lost = m.l || {}; if (m.mi) V.mine = m.mi; if (m.sh) V.share = m.sh; V.ver++; paint(false); if (ch) { drawFlags(); drawNationLabels(); }
   }
   if (m.o) V.vic = m.vic;
   updateNationArmy(); updateHud(); updateLb(); if (cur) refreshInfo(); drawMenu();
@@ -2805,6 +2844,7 @@ function onEv(m) {
     case 'own': onOwn(m); break;
     case 'strike': onStrike(m); break;
     case 'hit': onHit(m); break;
+    case 'bld': V.bld = V.bld || {}; if (m.b && (m.b.p || m.b.a || m.b.c)) V.bld[m.rid] = m.b; else delete V.bld[m.rid]; if (cur) refreshInfo(); drawFlags(); { const r = regOf[m.rid]; if (r) { FX.ring(r.seed[0], r.seed[1], m.b && m.b.p ? '#4fc3f7' : '#81c784', 26, .9, 2.5); SND.play('tick'); } } break;
     case 'fort': V.fort[m.rid] = m.lv; if (cur) refreshInfo(); { const r = regOf[m.rid]; FX.ring(r.seed[0], r.seed[1], '#bdbdbd', 24, .8, 2.5); SND.play('tick'); } break;
     case 'op': onOp(m); break;
     case 'opEnd': onOpEnd(m); break;
