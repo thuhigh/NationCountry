@@ -295,6 +295,89 @@ input:focus,select:focus{border-color:var(--pr);box-shadow:0 0 0 1px var(--pr)}
 @media(max-width:400px){#dock button{min-width:46px;padding:7px 5px 5px}#dock button.on{min-width:54px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
+<style id="m3x">
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.bgrid button{min-height:44px;border-radius:16px;font-size:12.5px;line-height:1.2;padding:8px 10px}
+.hcard{background:color-mix(in srgb,var(--pr) 7%,var(--sf));border-radius:24px;padding:14px 16px;margin:0 0 12px}
+.hcard .hh{display:flex;align-items:center;gap:10px;margin-bottom:4px;font-size:15px}.hcard .hh span{font-size:22px}
+.hcard p{margin:6px 0 0;color:var(--mu);font-size:13.5px;line-height:1.5}.hcard p b{color:var(--tx)}
+.hbar{height:8px;border-radius:99px;background:color-mix(in srgb,var(--pr) 18%,transparent);overflow:hidden;margin:8px 0 10px}
+.hbar i{display:block;height:100%;background:var(--pr);border-radius:99px;transition:width .4s}
+.hq1{padding:5px 0;font-size:13.5px}.hq1.ok{color:var(--ok)}
+#helpTour{width:100%;min-height:48px;border-radius:99px;margin:4px 0 16px}
+#tour{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 88px);z-index:70;display:flex;justify-content:center;padding:0 12px;pointer-events:none}
+.tcardx{pointer-events:auto;width:min(420px,100%);background:var(--sf);color:var(--tx);border-radius:28px;padding:20px;box-shadow:0 8px 30px #0006;animation:tin .25s ease-out}
+@keyframes tin{from{transform:translateY(16px);opacity:0}}
+.tcardx .tico{font-size:32px}.tcardx h2{margin:6px 0 4px;font:600 18px var(--ui)}.tcardx p{margin:0 0 12px;color:var(--mu);font-size:14px;line-height:1.5}
+.tdots{display:flex;gap:6px;margin-bottom:12px}.tdots i{width:8px;height:8px;border-radius:99px;background:color-mix(in srgb,var(--pr) 25%,transparent);transition:width .2s}.tdots i.on{width:22px;background:var(--pr)}
+.tbtn{display:flex;justify-content:flex-end;gap:8px}.tbtn button{min-height:44px;border-radius:99px;padding:0 20px}
+.tbtn .text{background:none;border:0;color:var(--pr);font-weight:600}
+.tabs{overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tabs button{white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.tcardx{animation:none}}
+</style>
+<style id="m3y">
+#menu{padding:14px 14px 12px}
+.mhero{display:flex;align-items:center;gap:12px;padding:12px 14px;margin:2px 0 6px;border-radius:24px;background:linear-gradient(135deg,var(--pc),color-mix(in srgb,var(--pc) 55%,var(--sf)));color:var(--opc)}
+.mhero .hf{width:44px;height:30px;border-radius:8px;overflow:hidden;flex:none;display:grid;place-items:center}.mhero .hf img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.mhero .ht{display:flex;flex-direction:column;min-width:0;flex:1}.mhero .ht b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mhero .ht small{opacity:.75;font-size:12px}
+.mhero .hs{display:flex;flex-direction:column;gap:2px;font-size:12.5px;font-weight:600;text-align:right}.mhero .hs .mi{font-size:16px;margin-right:4px;opacity:.85}
+#menu .tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;background:none;border-radius:0;box-shadow:none;padding:2px 0 8px;margin:4px 0 4px;border-bottom:1px solid color-mix(in srgb,var(--mu) 18%,transparent)}
+#menu .tabs::-webkit-scrollbar{display:none}
+#menu .tabs button{flex:1 0 66px;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;color:var(--mu);padding:2px 0;border-radius:16px;font-weight:600}
+#menu .tabs button small{font-size:11px}
+#menu .tabs .ti{display:grid;place-items:center;width:58px;height:32px;border-radius:99px;transition:background .25s}
+#menu .tabs .ti .mi{font-size:22px}
+#menu .tabs button.on{background:none;color:var(--tx)}
+#menu .tabs button.on .ti{background:var(--pc);color:var(--opc)}
+#menu .tabs button:active .ti{transform:scale(.94)}
+#mBody{padding-top:4px}
+#mBody h3{font:700 11.5px var(--ui);letter-spacing:.09em;text-transform:uppercase;color:var(--pr);margin:18px 6px 8px}
+#menu .mrow,#menu .tcard,#menu .srow{border-radius:20px}
+#menu .mrow button,#info button.filled,#info button.tonal{border-radius:99px;min-height:40px}
+.hcard .hh .mi{font-size:24px;color:var(--pr)}
+.tcardx .tico{width:56px;height:56px;border-radius:20px;background:var(--pc);color:var(--opc);display:grid;place-items:center}.tcardx .tico .mi{font-size:30px}
+#lobby{background:linear-gradient(160deg,color-mix(in srgb,var(--pc) 45%,var(--bg)),var(--bg) 60%)}
+#lobby .card{border-radius:32px}
+.modes{display:flex;gap:6px;margin:6px 0}
+.modes button{flex:1;min-height:38px;border-radius:99px;border:1px solid color-mix(in srgb,var(--mu) 35%,transparent);background:none;color:var(--tx);font-size:12.5px;font-weight:600}
+.modes button.on{background:var(--pc);color:var(--opc);border-color:transparent}
+</style>
+<style id="pro">
+#tip{position:fixed;left:0;top:0;z-index:9;pointer-events:none;background:color-mix(in srgb,var(--inv) 94%,transparent);color:var(--oinv);padding:7px 11px;border-radius:12px;font-size:12.5px;line-height:1.45;box-shadow:var(--e3);display:none;white-space:nowrap}
+#tip b{font-size:13.5px}#tip .g{color:#81c784}#tip .m{color:#ffb74d}#tip .b{color:#ff8a80}
+#conqChip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 92px);z-index:5;display:flex;align-items:center;gap:10px;padding:5px 5px 5px 14px;border-radius:99px;background:var(--pc);color:var(--opc);font-size:12.5px;font-weight:700;box-shadow:var(--e3);white-space:nowrap}
+#conqChip button{border:0;border-radius:99px;min-width:34px;height:34px;background:var(--bad);color:#fff;font-weight:800}
+#keys{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:#0008}
+#keys .kc{background:var(--sf);color:var(--tx);border-radius:28px;padding:18px 20px;width:min(520px,94vw);max-height:86vh;overflow:auto;box-shadow:var(--e3)}
+#keys h2{margin:0 0 8px}
+.kr{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid color-mix(in srgb,var(--olv) 55%,transparent);font-size:13.5px}
+.kr span{margin-left:auto;text-align:right;color:var(--mu)}
+kbd{font:700 12px var(--ui);min-width:26px;text-align:center;padding:3px 7px;border-radius:7px;background:var(--sec);color:var(--osec);box-shadow:0 2px 0 color-mix(in srgb,var(--ol) 60%,transparent)}
+#rowConq button{font-size:12.5px;line-height:1.2;padding:8px 10px}
+@media(min-width:900px){#info{left:auto;right:64px;width:390px;margin:0}}
+@media(pointer:coarse){#tip{display:none!important}}
+@media(hover:none),(pointer:coarse){#bKeys{display:none!important}}
+.srow .bs{display:flex;gap:6px;flex:none}
+.srow .bs button{padding:9px 13px}
+#fab{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);display:flex;flex-direction:column-reverse;gap:10px;z-index:5}
+#fab button{width:54px;height:54px;border:0;border-radius:18px;background:var(--pc);color:var(--opc);font-size:22px;box-shadow:var(--e3);display:grid;place-items:center;transition:transform .2s var(--spring)}
+#fab button.on{background:var(--pr);color:var(--on-pr)}#fab button:active{transform:scale(.92)}
+#fab button.hidden{display:none}
+body:has(#info:not(.hidden)) #fab,body:has(#menu:not(.hidden)) #fab{display:none}
+@media(max-width:700px){
+  #info,#menu{left:6px;right:6px;max-height:66vh;padding:4px 14px 16px}
+  #info .tonal,#info .filled,#menu .tonal{min-height:54px;font-size:15px}
+  .bgrid{gap:10px}.bgrid button{min-height:54px;font-size:13.5px}
+  #info .row{gap:10px;margin-top:12px}#info .odds{font-size:15px}
+  #info h2{font-size:24px}#iMeta{font-size:14px;line-height:1.5}
+  #rowMode button{min-height:44px}
+  #dock{gap:2px;padding:6px}#dock button{min-height:58px;min-width:0;flex:1}#dock button.on{min-width:0}
+  #menu .mrow button,.srow button:not(.sw){min-height:46px}
+  #zoombar button{width:46px;height:46px}
+  #hud{padding:6px 10px}
+  body:has(#info:not(.hidden)) #zoombar{display:none}
+}
+</style>
 </head>
 <body>
 <div id="map"></div>
@@ -305,6 +388,7 @@ input:focus,select:focus{border-color:var(--pr);box-shadow:0 0 0 1px var(--pr)}
   <button id="zin" aria-label="Phóng to">+</button>
   <button id="zout" aria-label="Thu nhỏ">−</button>
   <button id="bSnd" aria-label="Âm thanh">🔊</button>
+  <button id="bCap" aria-label="Về thủ đô" title="Về thủ đô (H)">🏛️</button><button id="bStop" aria-label="Dừng chiếm" title="Dừng mọi chiến dịch chiếm (X)">⏹</button><button id="bKeys" aria-label="Phím tắt" title="Phím tắt (?)">⌨️</button>
 </div>
 
 <section id="sheet" class="sheetbox hidden" aria-live="polite">
@@ -347,20 +431,26 @@ input:focus,select:focus{border-color:var(--pr);box-shadow:0 0 0 1px var(--pr)}
   <div class="hbtn"><button id="bRoom" title="Mã phòng — chạm để chép link mời"></button><button id="bFree" class="hidden" title="Chiếm tự do: chạm hoặc vuốt qua nhiều vùng để chiếm / xếp hàng chiếm">🗺️</button><button id="bShop" class="hidden" title="Cửa hàng">🛒</button><button id="bQuick" class="hidden" title="Tuyển quân">🪖+</button><button id="bMenu" title="Menu">☰<i id="badge" class="hidden"></i></button></div>
 </div>
 <div id="ops"></div>
+<div id="fab"></div>
+<div id="conqChip" class="hidden"><span id="conqT"></span><button id="conqX" type="button" title="Dừng (X)">⏹</button></div>
+<div id="tip"></div>
+<div id="keys" class="hidden"></div>
 <div id="lb" class="hidden"></div>
 
 <section id="info" class="sheetbox hidden">
+  <div class="grab"></div>
   <h2 id="iName">—</h2><p id="iMeta" class="muted"></p><p id="iOdds" class="odds"></p>
   <div class="row"><button id="bRecruit" class="tonal" type="button"></button><button id="bFort" class="tonal" type="button"></button></div>
-  <div class="row" id="rowBld"><button id="bPort" class="tonal" type="button"></button><button id="bSam" class="tonal" type="button"></button></div>
-  <div class="row" id="rowCity"><button id="bCity" class="tonal" type="button"></button></div>
+  <div class="bgrid" id="rowBld"><button id="bPort" class="tonal" type="button"></button><button id="bSam" class="tonal" type="button"></button><button id="bCity" class="tonal" type="button"></button><button id="bRadar" class="tonal" type="button"></button></div>
   <div class="row" id="rowMine" style="display:none"><button id="bMine" class="tonal" type="button"></button></div>
   <div class="row" id="rowSell" style="display:none"><button id="bSell" class="tonal" type="button"></button></div>
   <div class="row" id="rowCap" style="display:none"><button id="bSub" class="tonal" type="button"></button><button id="bMove" class="tonal" type="button"></button></div>
   <div class="row" id="rowSbx" style="display:none"><button id="bTake" class="tonal" type="button">🧪 Chiếm ngay</button><button id="bFree2" class="tonal" type="button">🧪 Xoá chủ</button></div>
   <div class="row" id="rowSurvey" style="display:none"><button id="bSurvey" class="tonal" type="button"></button></div>
   <div class="row"><button id="bExpand" class="filled" type="button">Mở rộng</button></div>
+  <div class="modes" id="rowMode"><button type="button" data-md="normal" class="on">Thường</button><button type="button" data-md="blitz">Tốc chiến</button><button type="button" data-md="siege">Vây hãm</button></div>
   <div class="row" id="rowAtk"><button id="bAtk50" class="filled" type="button">Tấn công 50%</button><button id="bAtk100" class="filled" type="button">Toàn lực</button></div>
+  <div class="row" id="rowConq" style="display:none"><button id="bConqN" class="tonal" type="button"></button><button id="bConqC" class="tonal" type="button"></button></div>
   <div class="row"><button id="bWar" class="tonal" type="button">Tuyên chiến</button></div>
   <div class="row" id="rowStrike" style="display:none"></div>
   <button id="bClose" class="tonal" type="button" style="width:100%;margin-top:10px">Đóng</button>
@@ -368,9 +458,8 @@ input:focus,select:focus{border-color:var(--pr);box-shadow:0 0 0 1px var(--pr)}
 
 <section id="menu" class="sheetbox hidden">
   <div class="grab"></div>
-  <div class="tabs" id="mTabs">
-    <button data-tab="nation" class="on">Quốc gia</button><button data-tab="dip">Ngoại giao</button><button data-tab="shop">Cửa hàng</button><button data-tab="rank">Xếp hạng</button><button data-tab="set">Cài đặt</button><button data-tab="chat">Chat</button>
-  </div>
+  <div class="mhero" id="mHero"></div>
+  <div class="tabs" id="mTabs"><button data-tab="nation" class="on"><span class="ti"><span class="mi">flag</span></span><small>Quốc gia</small></button><button data-tab="help"><span class="ti"><span class="mi">help</span></span><small>Hướng dẫn</small></button><button data-tab="dip"><span class="ti"><span class="mi">handshake</span></span><small>Ngoại giao</small></button><button data-tab="shop"><span class="ti"><span class="mi">storefront</span></span><small>Cửa hàng</small></button><button data-tab="rank"><span class="ti"><span class="mi">leaderboard</span></span><small>Xếp hạng</small></button><button data-tab="set"><span class="ti"><span class="mi">settings</span></span><small>Cài đặt</small></button><button data-tab="chat"><span class="ti"><span class="mi">forum</span></span><small>Chat</small></button></div>
   <div id="mBody"></div>
   <div id="mChat" class="hidden">
     <div id="chatList"></div>
@@ -496,9 +585,12 @@ const CFG = {
   itemInflate: .15,                 // CÂN BẰNG: giá vật phẩm +15% cho mỗi cái đang tồn kho (chống tích trữ bom)
   comeback: .12, comebackMax: 3,    // CÂN BẰNG: nước vừa mất vùng được +12% phòng thủ mỗi vùng mất gần đây (tối đa +36%)
   retreatBack: .7, queueMax: 6, opsBase: 3,
+  pushRatio: 1.6, counterRatio: 2.6, pushMax: 3,   // PHẢN CÔNG: giải phóng thắng ≥1.6× thì đẩy lùi (lấy lại tới 3 vùng kề vừa mất), ≥2.6× thì chiếm luôn 1 vùng của địch
+  capLoot: .3,   // thủ đô thất thủ: kẻ chiếm cướp 30% tiền
   portMax: 4, portRange: 70, portInc: 6, portFly: .7, portSea: .75,   // CẢNG: tối đa 4, +70 tầm hải quân, +6 thu nhập, tàu nhanh -30%, mở rộng biển -25% tiền
   samMax: 3, samChance: .22, samCap: .8,
-  cityMax: 3, cityInc: 9, cityArmy: 8, portDef: .75,   // THÀNH PHỐ (kiểu OpenFront): +9 thu nhập, +8 quân tối đa mỗi cấp · CẢNG phòng thủ: địch đổ bộ vào vùng có cảng yếu đi 25%   // PHÒNG KHÔNG KHU VỰC: mỗi cấp +22% chặn đòn đánh vào vùng và vùng kề (tối đa 80%)
+  cityMax: 3, cityInc: 9, cityArmy: 8, portDef: .75,
+  radarMax: 2, tradeInc: 3,   // RADAR: mỗi cấp tăng 35% hiệu quả phòng không khu vực · TUYẾN THƯƠNG MẠI: mỗi cặp cảng +3 thu nhập   // THÀNH PHỐ (kiểu OpenFront): +9 thu nhập, +8 quân tối đa mỗi cấp · CẢNG phòng thủ: địch đổ bộ vào vùng có cảng yếu đi 25%   // PHÒNG KHÔNG KHU VỰC: mỗi cấp +22% chặn đòn đánh vào vùng và vùng kề (tối đa 80%)
   rebelChance: .01,   // 1/100 mỗi lần kiểm tra (25s) của mỗi nước ≥6 vùng: phiến quân ly khai lập quốc gia mới
   retakeWin: 300, retakeDur: .6, retakeAtk: 1.3, resistEvery: 20   // GIẢI PHÓNG: chiếm lại vùng vừa mất (300s) nhanh ×0.6 và +30% lực; dân vùng bị chiếm có thể nổi dậy
 };
@@ -534,10 +626,10 @@ const ITEMS = {
   boost:    { n: 'Kinh tế thời chiến', ic: 'trending_up', g: 'buff', t: 'buff', cost: 350, max: 5, dur: 90, d: 'Thu nhập ×1.5 trong 90s.' }
 };
 // ---- Icon: đổi emoji → Google Material Symbols (tự động cho mọi chuỗi hiển thị) ----
-const EMO = { '🛢': 'oil_barrel', '🌾': 'grass', '🏭': 'factory', '🏛': 'account_balance', '🚚': 'local_shipping', '📦': 'package_2', '✏': 'edit', '🧪': 'science', '📉': 'trending_down', '☀': 'wb_sunny', '🦠': 'coronavirus', '🔬': 'biotech', '💰': 'payments', '🪙': 'paid', '🪖': 'military_tech', '🗺': 'map', '👥': 'groups', '🛡': 'shield', '⚔': 'swords', '🤝': 'handshake', '🕊': 'spa', '👑': 'workspace_premium', '🏰': 'fort', '🏴': 'flag', '🏳': 'flag', '🔥': 'local_fire_department', '☠': 'dangerous', '🌐': 'public', '🌍': 'public', '🎁': 'redeem', '🤖': 'smart_toy', '👤': 'person', '💤': 'bedtime', '📡': 'wifi', '📴': 'wifi_off', '🌱': 'eco', '🔁': 'replay', '↩': 'undo', '⏳': 'hourglass_top', '🏆': 'emoji_events', '🔊': 'volume_up', '🔇': 'volume_off', '⚠': 'warning', '❌': 'cancel', '✖': 'close', '💔': 'heart_broken', '⛑': 'health_and_safety', '⚙': 'settings', '🛒': 'storefront', '🚀': 'rocket_launch', '💥': 'explosion', '✓': 'check', '✗': 'close', '▶': 'play_arrow', '☰': 'menu', '⟳': 'refresh', '⛵': 'sailing' };
+const EMO = { '🛢': 'oil_barrel', '🌾': 'grass', '🏭': 'factory', '🏛': 'account_balance', '🚚': 'local_shipping', '📦': 'package_2', '✏': 'edit', '🧪': 'science', '📉': 'trending_down', '☀': 'wb_sunny', '🦠': 'coronavirus', '🔬': 'biotech', '💰': 'payments', '🪙': 'paid', '🪖': 'military_tech', '🗺': 'map', '👥': 'groups', '🛡': 'shield', '⚔': 'swords', '🤝': 'handshake', '🕊': 'spa', '👑': 'workspace_premium', '🏰': 'fort', '🏴': 'flag', '🏳': 'flag', '🔥': 'local_fire_department', '☠': 'dangerous', '🌐': 'public', '🌍': 'public', '🎁': 'redeem', '🤖': 'smart_toy', '👤': 'person', '💤': 'bedtime', '📡': 'radar', '📴': 'wifi_off', '🌱': 'eco', '🔁': 'replay', '↩': 'undo', '⏳': 'hourglass_top', '🏆': 'emoji_events', '🔊': 'volume_up', '🔇': 'volume_off', '⚠': 'warning', '❌': 'cancel', '✖': 'close', '💔': 'heart_broken', '⛑': 'health_and_safety', '⚙': 'settings', '🛒': 'storefront', '🚀': 'rocket_launch', '💥': 'explosion', '✓': 'check', '✗': 'close', '▶': 'play_arrow', '☰': 'menu', '⟳': 'refresh', '⛵': 'sailing', '⚓': 'anchor', '🏙': 'location_city', '📻': 'cell_tower', '🎯': 'target', '🧭': 'explore', '💡': 'lightbulb', '🏗': 'construction', '📖': 'menu_book', '✅': 'check_circle', '⬜': 'radio_button_unchecked', '⛏': 'hardware', '🔍': 'search', '⚡': 'bolt', '📈': 'trending_up', '⚖': 'balance', '🚩': 'flag', '📢': 'campaign', '☢': 'radiation', '💣': 'bomb', '🛩': 'flight', '✈': 'flight_takeoff', '🛰': 'satellite_alt', '🕵': 'visibility_off', '🎆': 'celebration', '⭐': 'star', '★': 'star', '🗑': 'delete', '💸': 'sell' };
 const EMO_RE = new RegExp('(' + Object.keys(EMO).sort((a, b) => b.length - a.length).join('|') + ')\\uFE0F?', 'g');
 let ICON_OK = true;
-const EXTRA_E = { rocket_launch: '🚀', whatshot: '🔥', electric_bolt: '⚡', flight: '🛩️', scatter_plot: '🎆', bolt: '⚡', rocket: '🚀', satellite_alt: '🛰️', sell: '💸', local_fire_department: '🔥',  bomb: '💣', crisis_alert: '☢️', diplomacy: '🤝', flight_takeoff: '✈️', visibility_off: '🕵️', campaign: '📢', volunteer_activism: '🎁', speed: '⚡', trending_up: '📈', my_location: '🎯', rocket_launch: '🚀', swords: '⚔️', explosion: '💥' };
+const EXTRA_E = { leaderboard: '🏆', forum: '💬', help: '❓', radar: '📡', cell_tower: '📻', location_city: '🏙️', anchor: '⚓', rocket_launch: '🚀', whatshot: '🔥', electric_bolt: '⚡', flight: '🛩️', scatter_plot: '🎆', bolt: '⚡', rocket: '🚀', satellite_alt: '🛰️', sell: '💸', local_fire_department: '🔥',  bomb: '💣', crisis_alert: '☢️', diplomacy: '🤝', flight_takeoff: '✈️', visibility_off: '🕵️', campaign: '📢', volunteer_activism: '🎁', speed: '⚡', trending_up: '📈', my_location: '🎯', rocket_launch: '🚀', swords: '⚔️', explosion: '💥' };
 const ICE = (() => { const m = Object.assign({}, EXTRA_E); for (const e in EMO) if (!m[EMO[e]]) m[EMO[e]] = e; return m; })();
 let FONT_READY = false; const _icv = document.createElement('canvas').getContext('2d'), _icc = {};
 function iconOk(n) {   // ligature không có trong font sẽ vẽ thành CHỮ dài → đo bề rộng để phát hiện
@@ -721,7 +813,7 @@ function incomeOf(st, id) {
   const n = st.nations[id], own = regionsOf(st, id); if (!n || !own.length) return 0;
   let s = 0; for (const r of own) { const k = resOf(r); let m = isOcc(st, r.id) ? CFG.occIncome : 1; if (k) m *= 1 + RES[k].inc * evMul(st, k) * (1 + .6 * ((st.mine && st.mine[r.id]) || 0)); if (n.sub && n.sub.includes(r.id)) m *= 1.25; let f = 1; const shr = st.share && st.share[r.id]; if (shr) for (const q in shr) f -= shr[q]; s += r.inc * m * Math.max(.2, f); }
   if (st.share) for (const rid in st.share) { const f = st.share[rid][id]; if (!f || !st.owner[rid]) continue; const q = regOf[rid]; if (q) s += q.inc * f * .85; }   // thu phần của vùng mình chiếm chung
-  s += portCnt(st, id) * CFG.portInc + cityLv(st, id) * CFG.cityInc; const avg = Math.max(3, avgRegions(st)), catchUp = 1 + .35 * clamp((avg - own.length) / avg, 0, 1);   // kéo kẻ yếu lên
+  s += portCnt(st, id) * CFG.portInc + cityLv(st, id) * CFG.cityInc + portCnt(st, id) * Math.max(0, portCnt(st, id) - 1) * CFG.tradeInc; const avg = Math.max(3, avgRegions(st)), catchUp = 1 + .35 * clamp((avg - own.length) / avg, 0, 1);   // kéo kẻ yếu lên
   let up = 0; for (const r of own) up += r.sz * CFG.terrUpkeep;
   const om = ownedMap(st); let tot = 0; for (const k in om) tot += om[k].length;
   const share = tot ? own.length / tot : 0, lead = share > CFG.leaderShare ? 1 - CFG.leaderTax * (share - CFG.leaderShare) / (1 - CFG.leaderShare) : 1;
@@ -737,9 +829,10 @@ const portCnt = (st, id) => regionsOf(st, id).filter(r => BLD(st, r.id) && BLD(s
 const portCost = (st, id) => Math.round(320 * (1 + .6 * portCnt(st, id)));
 const samCost = (st, rid) => Math.round(200 * (((BLD(st, rid) || {}).a || 0) + 1) * (1 + .02 * regionsOf(st, st.owner[rid]).length));
 const isCoast = r => { for (let k = 0; k < 8; k++) { const a = k * .785; for (const d of [5, 9]) if (!isLand(r.seed[0] + Math.cos(a) * d, r.seed[1] + Math.sin(a) * d)) return true; } return false; };
-function samCover(st, rid, oid) { let c = (BLD(st, rid) || {}).a || 0; for (const j of ngh[rid]) if (st.owner[j] === oid) c += ((BLD(st, j) || {}).a || 0) * .6; return c; }
+function samCover(st, rid, oid) { let c = (BLD(st, rid) || {}).a || 0, rd = (BLD(st, rid) || {}).r || 0; for (const j of ngh[rid]) if (st.owner[j] === oid) { c += ((BLD(st, j) || {}).a || 0) * .6; rd += ((BLD(st, j) || {}).r || 0) * .6; } return c * (1 + .35 * rd); }
 const cityLv = (st, id) => regionsOf(st, id).reduce((a, r) => a + ((BLD(st, r.id) || {}).c || 0), 0);
 const cityCost = (st, rid) => Math.round(260 * (((BLD(st, rid) || {}).c || 0) + 1) * (1 + .03 * regionsOf(st, st.owner[rid]).length));
+const radarCost = (st, rid) => Math.round(240 * (((BLD(st, rid) || {}).r || 0) + 1) * (1 + .02 * regionsOf(st, st.owner[rid]).length));
 const techCost = (lv, k) => Math.round(120 * Math.pow(lv + 1, 1.6) * ((TECHS[k] && TECHS[k].m) || 1) * (lv >= CFG.techMax ? CFG.overCost : 1));
 function powerSur(st, n) {   // GIÁ THEO SỨC MẠNH: nước càng to so với bình quân càng phải trả đắt
   if (!st || !n) return 0; const c = regionsOf(st, n.id).length, r = c / Math.max(3, avgRegions(st));
@@ -756,6 +849,8 @@ const sellValue = (st, r) => {
 const opsMax = (st, id) => CFG.opsBase + Math.floor(regionsOf(st, id).length / 6);
 function underdog(st, id) { const c = regionsOf(st, id).length; return c < Math.max(3, avgRegions(st)) * .6; }
 const fatigueMul = (st, n) => { const f = n.fat; return f && st.t - f.at < CFG.fatigueWin ? 1 - Math.min(CFG.fatigueMax, f.c) * CFG.fatigue : 1; };
+const MODES = { normal: { pw: 1, dur: 1, fly: 1 }, blitz: { pw: .85, dur: .55, fly: .7 }, siege: { pw: 1.3, dur: 1.5, fly: 1.1 } };   // Thường · Tốc chiến · Vây hãm
+const bpMul = (st, nid, rid) => { let c = 0; for (const j of ngh[rid]) if (st.owner[j] === nid) c++; return 1 + Math.min(.4, .08 * Math.max(0, c - 1)); };   // gọng kìm: giáp biên nhiều phía thì mạnh hơn
 function defOf(st, r) {
   const en = st.nations[st.owner[r.id]]; let d = r.defR * .5 + (en ? en.army * .12 : 0) + 6;
   if (en && en.capital === r.id) d *= CFG.capDef; else if (en && en.sub && en.sub.includes(r.id)) d *= 1.3;
@@ -823,7 +918,7 @@ function checkNation(st, name, leader, color, flag) {
 const r1 = x => Math.round(x * 10) / 10, r2 = x => Math.round(x * 100) / 100;
 
 const Sim = (() => {
-  let lastReal = 0, tickBusy = false, S = null, ops = new Map(), pend = new Map(), queues = new Map(), busyMap = new Map(), props = new Map(), timer = null, opSeq = 0, propSeq = 0, ticks = 0, layout = null, hostPid = null;
+  let lastReal = 0, tickBusy = false, S = null, ops = new Map(), pend = new Map(), queues = new Map(), conq = new Map(), busyMap = new Map(), props = new Map(), timer = null, opSeq = 0, propSeq = 0, ticks = 0, layout = null, hostPid = null;
   const lastChat = {};
   const emit = e => net.bcast(Object.assign({ t: 'ev' }, e));
   const toastN = (nid, m) => emit({ e: 'toast', m, to: nid });
@@ -849,7 +944,7 @@ const Sim = (() => {
     start();
   }
   function start() { clearInterval(timer); lastReal = 0; tickBusy = false; timer = setInterval(tick, 1000); }
-  function stop() { clearInterval(timer); ops.forEach(o => { clearTimeout(o.timer); clearTimeout(o.luckT); }); ops.clear(); pend.clear(); queues.clear(); busyMap.clear(); }
+  function stop() { clearInterval(timer); ops.forEach(o => { clearTimeout(o.timer); clearTimeout(o.luckT); }); ops.clear(); pend.clear(); queues.clear(); conq.clear(); busyMap.clear(); }
 
   function spawnAI(k) {
     const caps = Object.values(S.nations).map(n => regOf[n.capital].seed), free = regions.filter(r => !r.anta && !S.owner[r.id]);
@@ -858,7 +953,7 @@ const Sim = (() => {
       for (let t = 0; t < 50; t++) { const r = pick(free), d = caps.length ? Math.min(...caps.map(c => dist2(c, r.seed))) : 999; if (d > bd) { bd = d; best = r; } }
       free.splice(free.indexOf(best), 1); caps.push(best.seed);
       const idx = Object.values(S.nations).filter(n => n.ai).length, id = 'ai' + (++S.seq), h = (idx * 67 + 25) % 360, c = `hsl(${h},60%,48%)`;
-      S.nations[id] = { id, name: AI_NAMES[idx % AI_NAMES.length], leader: 'AI', ai: true, color: c, flag: mkFlag([c, '#fff', `hsl(${(h + 150) % 360},55%,42%)`]),
+      S.nations[id] = { id, name: AI_NAMES[idx % AI_NAMES.length] + (idx >= AI_NAMES.length ? ' ' + (Math.floor(idx / AI_NAMES.length) + 1) : ''), leader: 'AI', ai: true, color: c, flag: mkFlag([c, '#fff', `hsl(${(h + 150) % 360},55%,42%)`]),
         money: 150, army: 15, capital: best.id, tech: { mil: 0, eco: 0, adm: 0, def: 0, log: 0 }, war: {}, ally: {}, truce: {}, policy: 'eco', shield: 0, born: 0, inv: {}, buff: {},
         rel: {}, aggr: rnd(.3, 1), bonus: [0, .85, 1, 1.2][S.level], nextAi: rnd(5, 20) };
       setOwner(S, best.id, id);
@@ -914,7 +1009,7 @@ const Sim = (() => {
   }
 
   // ---------- chiến dịch (mở rộng / tấn công) ----------
-  function startOp(nid, rid, kind, frac) {
+  function startOp(nid, rid, kind, frac, mode) {
     const n = S.nations[nid], r = regOf[rid]; if (!n || !r) return 'Lệnh không hợp lệ';
     for (const o2 of ops.values()) if (o2.rid === rid && o2.nid === nid) return 'Bạn đang chiếm vùng này rồi';   // nhiều nước được chiếm CÙNG LÚC một vùng
     if (nOps(nid) >= opsMax(S, nid)) return `Chỉ chỉ huy được ${opsMax(S, nid)} chiến dịch cùng lúc`;
@@ -932,12 +1027,12 @@ const Sim = (() => {
       const en = S.nations[o]; if (!en || o === nid) return 'Không thể tấn công vùng này';
       if (!atWar(n, en)) return 'Chưa có chiến tranh với nước đó';
       frac = clamp(+frac || .5, .1, 1); op.sent = Math.floor(n.army * frac); if (op.sent < 1) return 'Không còn quân';
-      const lo = S.lost && S.lost[rid], lib = !!(lo && lo.n === nid && S.t - lo.t < CFG.retakeWin), att = op.sent * (sea ? CFG.seaPower * (BLD(S, rid) && BLD(S, rid).p ? CFG.portDef : 1) : 1) * attMul(n) * fatigueMul(S, n) * (lib ? CFG.retakeAtk : 1) * rnd(.85, 1.15), def = defOf(S, r) * rnd(.95, 1.25);
+      const lo = S.lost && S.lost[rid], lib = !!(lo && lo.n === nid && S.t - lo.t < CFG.retakeWin), att = op.sent * (sea ? CFG.seaPower * (BLD(S, rid) && BLD(S, rid).p ? CFG.portDef : 1) : 1) * attMul(n) * fatigueMul(S, n) * (lib ? CFG.retakeAtk : 1) * rnd(.85, 1.15) * (MODES[mode] || MODES.normal).pw * bpMul(S, nid, rid), def = defOf(S, r) * rnd(.95, 1.25);
       op.win = att > def; op.ratio = att / def; op.def = def; n.army -= op.sent; n.shield = 0;
       op.dur = Math.min(45000, (9000 + 1100 * Math.sqrt(r.defR)) * clamp(1.5 - op.ratio * .25, .7, 1.25)) / S.speed;
-      if (lib) { op.rt = 1; op.dur = op.dur * CFG.retakeDur; } op.dur *= (n.buff && n.buff.haste > S.t) ? .6 : 1;
+      if (lib) { op.rt = 1; op.dur = op.dur * CFG.retakeDur; } op.dur *= ((n.buff && n.buff.haste > S.t) ? .6 : 1) * (MODES[mode] || MODES.normal).dur;
     }
-    op.fly = Math.round(clamp(dist2(src.seed, r.seed) * 26, 2500, 9000) * (sea ? 1.3 * (BLD(S, src.id) && BLD(S, src.id).p ? CFG.portFly : 1) : 1) / Math.sqrt(S.speed));
+    op.fly = Math.round(clamp(dist2(src.seed, r.seed) * 26, 2500, 9000) * (sea ? 1.3 * (BLD(S, src.id) && BLD(S, src.id).p ? CFG.portFly : 1) : 1) * (kind === 'expand' ? 1 : (MODES[mode] || MODES.normal).fly) / Math.sqrt(S.speed));
     ops.set(op.id, op); if (!busyMap.has(rid)) busyMap.set(rid, op.id);
     op.timer = setTimeout(() => endOp(op.id), op.fly + op.dur + 150);
     if (Math.random() < CFG.luck) {   // 1/40: đột kích thần tốc
@@ -961,7 +1056,7 @@ const Sim = (() => {
       en.army = Math.max(0, en.army - Math.min(en.army * .35, Math.ceil(op.sent * .25)));
       if (op.win) {
         n.army += Math.max(0, op.sent - Math.ceil(op.def * .9)); res.loot = Math.round(10 + r.inc * CFG.loot); n.money += res.loot;
-        conquer(n, en, r, res);
+        conquer(n, en, r, Object.assign(res, { ratio: op.ratio }));
       } else {
         n.army += Math.floor(op.sent * .15); emit(res);
         toastN(n.id, `❌ Đánh ${nameOf(r)} thất bại`); toastN(en.id, `🛡️ Đẩy lùi ${n.name} tại ${nameOf(r)}`);
@@ -1006,9 +1101,16 @@ const Sim = (() => {
     emit(res);
     toastN(n.id, lib ? `🏳️ Giải phóng ${nameOf(r)} khỏi ${en.name}!` : `🏴 Chiếm ${nameOf(r)} từ ${en.name}!`); toastN(en.id, `🔥 Mất ${nameOf(r)} vào tay ${n.name}`);
     if (wasCap || !n.ai || !en.ai) sysLog(`🏴 ${n.name} chiếm ${nameOf(r)} từ ${en.name}${wasCap ? ' — thủ đô thất thủ!' : ''}`);
-    if (wasCap) { en.army *= CFG.capFallArmy; en.money *= CFG.capFallMoney; }
+    if (wasCap) { n.money += Math.round(en.money * CFG.capLoot); en.army *= CFG.capFallArmy; en.money *= CFG.capFallMoney; }
     if (!regionsOf(S, en.id).length) eliminate(en, n);
     else if (wasCap) en.capital = regionsOf(S, en.id).reduce((b, x) => x.pop > b.pop ? x : b).id;
+    if (lib && res.ratio >= CFG.pushRatio && regionsOf(S, en.id).length) {   // ĐẨY LÙI / PHẢN CÔNG
+      const got = [];
+      for (const j of ngh[r.id]) { const x = regOf[j], l = S.lost[j]; if (got.length < CFG.pushMax && x && S.owner[j] === en.id && l && l.n === n.id && S.t - l.t < CFG.retakeWin && !busyMap.has(j) && en.capital !== j) { setOwner(S, j, n.id); delete S.occ[j]; delete S.lost[j]; delete S.fort[j]; if (S.bld) delete S.bld[j]; got.push(x); } }
+      let hit = 0;
+      if (res.ratio >= CFG.counterRatio) { const cand = [r, ...got].flatMap(q => ngh[q.id]).filter(j => regOf[j] && S.owner[j] === en.id && !busyMap.has(j) && en.capital !== j); if (cand.length) { const j = cand.reduce((b, q) => regOf[q].defR < regOf[b].defR ? q : b); S.lost[j] = { n: en.id, t: S.t }; setOwner(S, j, n.id); S.occ[j] = S.t + CFG.occ; delete S.fort[j]; if (S.bld) delete S.bld[j]; got.push(regOf[j]); hit = 1; } }
+      if (got.length) { toastN(n.id, `💪 Phản công thắng lớn! Đẩy lùi ${en.name}, lấy thêm ${got.length} vùng${hit ? ' (có đất của địch)' : ''}`); toastN(en.id, `🔥 ${n.name} phản công, bạn mất thêm ${got.length} vùng`); sysLog(`💪 ${n.name} phản công đẩy lùi ${en.name}, +${got.length} vùng`); snap(true); if (!regionsOf(S, en.id).length) eliminate(en, n); }
+    }
   }
   function eliminate(en, by) {
     for (const [id, o] of [...ops]) if (o.nid === en.id) { clearTimeout(o.timer); clearTimeout(o.luckT); ops.delete(id); unbusy(o.rid, id); flushPend(o.rid); emit({ e: 'opEnd', id, nid: en.id, rid: o.rid, kind: o.kind, win: false, void: true }); }
@@ -1207,6 +1309,63 @@ const Sim = (() => {
       }
       if (!q.length) queues.delete(nid);
     }
+    pumpConq();
+  }
+  // ---------- CHINH PHỤC TOÀN BỘ: tự nhả chiến dịch từng đợt tới khi chiếm hết (một quốc gia, hoặc cả một nước trên bản đồ) ----------
+  function conqTargets(nid, c) {
+    const out = [];
+    for (const r of regions) {
+      if (r.anta || S.owner[r.id] === nid) continue;
+      if (c.to ? S.owner[r.id] !== c.to : r.iso !== c.iso) continue;
+      if (claimKind(nid, r.id)) out.push(r);
+    }
+    return out;
+  }
+  const conqLabel = c => c.to ? (S.nations[c.to] ? S.nations[c.to].name : '?') : byId[c.iso].properties.NAME;
+  const conqEmit = (nid, c, on) => emit({ e: 'conq', nid, on, label: c ? conqLabel(c) : '', to: c ? c.to || null : null, iso: c ? c.iso || null : null });
+  function conqStop(nid, quiet) { if (!conq.delete(nid)) return; conqEmit(nid, null, false); if (!quiet) toastN(nid, '⏹ Đã dừng chiến dịch chinh phục'); }
+  function addAI(k, lv) {
+    k = clamp(Math.floor(+k) || 0, 0, 8);
+    if ([1, 2, 3].includes(+lv)) { S.level = +lv; for (const x of Object.values(S.nations)) if (x.ai) x.bonus = [0, .85, 1, 1.2][S.level]; emit({ e: 'lvl', lv: S.level }); sysLog(`⚙️ Độ khó AI: ${['', 'Dễ', 'Thường', 'Khó'][S.level]}`); }
+    if (k) {
+      const room = S.cap - Object.keys(S.nations).length; if (room <= 0) return `Phòng đã đủ ${S.cap} quốc gia`;
+      const before = new Set(Object.keys(S.nations)); spawnAI(Math.min(k, room));
+      const add = Object.values(S.nations).filter(x => !before.has(x.id));
+      for (const x of add) emit({ e: 'nat', n: pubN(x), rid: x.capital });
+      if (add.length) sysLog(`🤖 Thêm ${add.length} AI vào ván`); snap(true);
+    }
+    return null;
+  }
+  function conquerAll(nid, m) {
+    const n = S.nations[nid]; if (!n) return 'Lệnh không hợp lệ';
+    const c = { f: m.f ? clamp(+m.f, .1, 1) : 0 };
+    if (m.to) { const en = S.nations[m.to]; if (!en || en.id === nid) return 'Quốc gia không hợp lệ'; if (!atWar(n, en)) return 'Chưa có chiến tranh với nước đó — hãy tuyên chiến trước'; c.to = m.to; }
+    else if (m.iso && byId[m.iso]) c.iso = m.iso; else return 'Lệnh không hợp lệ';
+    if (!conqTargets(nid, c).length) return 'Không có vùng nào để chiếm (vùng của nước chưa tuyên chiến sẽ bị bỏ qua)';
+    conq.set(nid, c); conqEmit(nid, c, true); toastN(nid, `🚩 Chinh phục toàn bộ ${conqLabel(c)} — quân tự tiến từng đợt`);
+    pump(); return null;
+  }
+  function pumpConq() {
+    for (const [nid, c] of [...conq]) {
+      const n = S.nations[nid]; if (!n) { conqStop(nid, true); continue; }
+      const en = c.to && S.nations[c.to]; if (c.to && en && !atWar(n, en)) { conqStop(nid); continue; }
+      const all = conqTargets(nid, c);
+      if (!all.length) { conqStop(nid, true); toastN(nid, `🏁 Đã chiếm hết ${conqLabel(c)}`); continue; }
+      const mine = new Set(); for (const o of ops.values()) if (o.nid === nid) mine.add(o.rid);
+      for (const q of queues.get(nid) || []) mine.add(q.rid);
+      const bord = r => { let k = 0; for (const j of ngh[r.id]) if (S.owner[j] === nid) k++; return k; };
+      const cand = all.filter(r => !mine.has(r.id) && reachFor(S, nid, r)).map(r => ({ r, a: bord(r), d: defOf(S, r) })).sort((x, y) => y.a - x.a || x.d - y.d);   // ưu tiên vùng giáp nhiều đất mình (gọng kìm), rồi vùng yếu nhất
+      for (const { r, d } of cand) {
+        const slots = opsMax(S, nid) - nOps(nid); if (slots <= 0) break;
+        const kind = claimKind(nid, r.id), sea = reachFor(S, nid, r) === 'sea'; let f = c.f || 1 / slots;
+        if (kind === 'attack') {
+          const est = fr => Math.floor(n.army * fr) * (sea ? CFG.seaPower : 1) * attMul(n) * fatigueMul(S, n) * bpMul(S, nid, r.id);
+          if (est(f) < d * 1.3) { if (nOps(nid) === 0 && est(1) >= d * 1.3) f = 1; else continue; }   // chưa đủ quân thì chờ, không đem quân đi chết
+        }
+        const e = startOp(nid, r.id, kind, f);
+        if (e === 'Không đủ tiền' || e === 'Không còn quân' || (e && e.indexOf('3 quân') > 0)) break;
+      }
+    }
   }
   function retreat(nid, rid) {
     for (const [id, o] of ops) if (o.rid === rid && o.nid === nid) {
@@ -1232,6 +1391,7 @@ const Sim = (() => {
       case 'tech': { const k = m.k; if (!TK.includes(k) || tl(n, k) >= TMAX()) { err = 'Đã tối đa'; break; } const c = techCost(tl(n, k), k); if (n.money < c) err = 'Không đủ tiền'; else { n.money -= c; n.tech[k] = tl(n, k) + 1; toastN(nid, `🔬 ${TECHS[k].n} Lv${n.tech[k]}${n.tech[k] === 4 || n.tech[k] === 8 || n.tech[k] === 12 ? ' — đạt mốc đặc biệt!' : n.tech[k] > CFG.techMax ? ' (Đột phá)' : ''}`); } break; }
       case 'policy': n.policy = n.policy === 'mil' ? 'eco' : 'mil'; break;
       case 'port': { const rid = m.rid, b = S.bld[rid] || {}; if (S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể xây ở đây'; break; } if (b.p) { err = 'Đã có cảng'; break; } if (!isCoast(regOf[rid])) { err = 'Cảng chỉ xây ở vùng ven biển'; break; } if (portCnt(S, nid) >= CFG.portMax) { err = 'Tối đa ' + CFG.portMax + ' cảng'; break; } const c = portCost(S, nid); if (n.money < c) { err = 'Không đủ tiền'; break; } n.money -= c; b.p = 1; S.bld[rid] = b; emit({ e: 'bld', rid, b: Object.assign({}, b) }); toastN(nid, `⚓ Xây cảng ở ${nameOf(regOf[rid])}: tàu nhanh hơn, tầm biển xa hơn, +thu nhập`); break; }
+      case 'radar': { const rid = m.rid, b = S.bld[rid] || {}; if (S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể xây ở đây'; break; } if ((b.r || 0) >= CFG.radarMax) { err = 'Radar đã tối đa'; break; } const c = radarCost(S, rid); if (n.money < c) { err = 'Không đủ tiền'; break; } n.money -= c; b.r = (b.r || 0) + 1; S.bld[rid] = b; emit({ e: 'bld', rid, b: Object.assign({}, b) }); toastN(nid, `📻 Radar cấp ${b.r} ở ${nameOf(regOf[rid])}: phòng không khu vực mạnh hơn`); break; }
       case 'city': { const rid = m.rid, b = S.bld[rid] || {}; if (S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể xây ở đây'; break; } if ((b.c || 0) >= CFG.cityMax) { err = 'Thành phố đã tối đa'; break; } const c = cityCost(S, rid); if (n.money < c) { err = 'Không đủ tiền'; break; } n.money -= c; b.c = (b.c || 0) + 1; S.bld[rid] = b; emit({ e: 'bld', rid, b: Object.assign({}, b) }); toastN(nid, `🏙️ Thành phố cấp ${b.c} ở ${nameOf(regOf[rid])}: +thu nhập, +quân tối đa`); break; }
       case 'sam': { const rid = m.rid, b = S.bld[rid] || {}; if (S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể xây ở đây'; break; } if ((b.a || 0) >= CFG.samMax) { err = 'Phòng không đã tối đa'; break; } const c = samCost(S, rid); if (n.money < c) { err = 'Không đủ tiền'; break; } n.money -= c; b.a = (b.a || 0) + 1; S.bld[rid] = b; emit({ e: 'bld', rid, b: Object.assign({}, b) }); toastN(nid, `📡 Căn cứ phòng không cấp ${b.a} ở ${nameOf(regOf[rid])}`); break; }
       case 'fort': { const rid = m.rid; if (S.owner[rid] !== nid || busyMap.has(rid)) { err = 'Không thể xây ở đây'; break; } const lv = S.fort[rid] || 0; if (lv >= CFG.fortMax) { err = 'Pháo đài đã tối đa'; break; } const c = fortCost(S, rid); if (n.money < c) err = 'Không đủ tiền'; else { n.money -= c; S.fort[rid] = lv + 1; emit({ e: 'fort', rid, lv: lv + 1 }); toastN(nid, `🏰 Xây pháo đài cấp ${lv + 1} ở ${nameOf(regOf[rid])}`); } break; }
@@ -1261,8 +1421,11 @@ const Sim = (() => {
         n.money -= c; S.mine[rid] = lv + 1; emit({ e: 'mine', rid, lv: lv + 1 }); toastN(nid, `⛏️ Khai thác ${RES[resOf(r)].n} ở ${nameOf(r)} lên Lv${lv + 1}`); break;
       }
       case 'expand': err = startOp(nid, m.rid, 'expand'); break;
-      case 'attack': err = startOp(nid, m.rid, 'attack', m.f); break;
+      case 'attack': err = startOp(nid, m.rid, 'attack', m.f, m.mode); break;
       case 'claim': err = claim(nid, m.rid, m.f); break;
+      case 'conquer': err = conquerAll(nid, m); break;
+      case 'addai': err = pid === hostPid ? addAI(m.k, m.lv) : 'Chỉ chủ phòng mới thêm được AI'; break;
+      case 'conquerStop': conqStop(nid); break;
       case 'retreat': err = retreat(nid, m.rid); break;
       case 'buy': { const it = ITEMS[m.k]; if (!it) { err = 'Vật phẩm không tồn tại'; break; } if (it.req && n.tech.mil < it.req) { err = `Cần Quân sự Lv${it.req}`; break; } if ((n.inv[m.k] || 0) >= it.max) { err = 'Kho đã đầy'; break; } const pc = itemCost(n, m.k, S); if (n.money < pc) { err = 'Không đủ tiền'; break; } n.money -= pc; n.inv[m.k] = (n.inv[m.k] || 0) + 1; toastN(nid, `🛒 Đã mua ${it.n}`); break; }
       case 'use': err = useItem(n, m.k, m.rid); break;
@@ -1886,8 +2049,8 @@ function drawFlags0() {
 }
 function drawBld() {
   if (!V || !flagsG) return; const k = zoomT.k, bl = [];
-  for (const rid in (V.bld || {})) { const b = V.bld[rid], r = regOf[rid]; if (r && V.owner[rid] && b && (b.p || b.a || b.c)) bl.push({ id: rid, r, t: (b.c ? '🏙️' + (b.c > 1 ? b.c : '') : '') + (b.p ? '⚓' : '') + (b.a ? '📡' + (b.a > 1 ? b.a : '') : '') }); }
-  flagsG.selectAll('text.bld').data(bl, d => d.id).join('text').attr('class', 'bld').attr('text-anchor', 'middle').style('pointer-events', 'none').style('font-size', (11 / k) + 'px').attr('transform', d => `translate(${d.r.seed[0]},${d.r.seed[1] + 11 / k})`).text(d => d.t);
+  for (const rid in (V.bld || {})) { const b = V.bld[rid], r = regOf[rid]; if (r && V.owner[rid] && b && (b.p || b.a || b.c || b.r)) bl.push({ id: rid, r, t: (b.r ? MIS('cell_tower') : '') + (b.c ? MIS('location_city') + (b.c > 1 ? b.c : '') : '') + (b.p ? MIS('anchor') : '') + (b.a ? MIS('radar') + (b.a > 1 ? b.a : '') : '') }); }
+  flagsG.selectAll('text.bld').data(bl, d => d.id).join('text').attr('class', 'bld').attr('text-anchor', 'middle').style('pointer-events', 'none').style('font-size', (11 / k) + 'px').attr('transform', d => `translate(${d.r.seed[0]},${d.r.seed[1] + 11 / k})`).html(d => d.t);
 }
 const arCache = {};
 const regArea = r => { if (arCache[r.iso] === undefined) arCache[r.iso] = path.area(byId[r.iso]) || 1; return arCache[r.iso] / r.K; };
@@ -2204,7 +2367,7 @@ const CAP = (() => {
     if (r.cell) { const b = bboxOf(r); x0 = Math.max(x0, b[0]); y0 = Math.max(y0, b[1]); x1 = Math.min(x1, b[2]); y1 = Math.min(y1, b[3]); }
     if (!(x1 > x0 && y1 > y0)) { x0 = r.seed[0] - 5; x1 = r.seed[0] + 5; y0 = r.seed[1] - 5; y1 = r.seed[1] + 5; }
     const pad = Math.max(x1 - x0, y1 - y0) * .3 + 4, X0 = x0 - pad, Y0 = y0 - pad, W = x1 - x0 + 2 * pad, H = y1 - y0 + 2 * pad;
-    const G = clamp(Math.round(Math.max(W, H) * css / (PERF.low ? 1.8 : 1.3)), 90, PERF.low ? 320 : 460), cs = Math.max(W, H) / G, gw = Math.ceil(W / cs), gh = Math.ceil(H / cs);
+    const G = clamp(Math.round(Math.max(W, H) * css / (PERF.low ? 2.3 : 1.7)), 90, PERF.low ? 250 : 380), cs = Math.max(W, H) / G, gw = Math.ceil(W / cs), gh = Math.ceil(H / cs);
     scratch.width = gw; scratch.height = gh;
     const setT = () => sctx.setTransform(1 / cs, 0, 0, 1 / cs, -X0 / cs, -Y0 / cs), fillShape = o => { sctx.save(); setT(); sctx.clip(P('k' + o.iso, d0[o.iso])); if (o.cell) sctx.clip(P('c' + o.id, cellD(o))); sctx.fillStyle = '#000'; sctx.fillRect(X0, Y0, W, H); sctx.restore(); };
     sctx.setTransform(1, 0, 0, 1, 0, 0); sctx.clearRect(0, 0, gw, gh); fillShape(r);
@@ -2214,43 +2377,87 @@ const CAP = (() => {
     sctx.save(); setT(); sctx.beginPath(); sctx.arc(E.e[0], E.e[1], cs * 2.2, 0, 6.283); sctx.fillStyle = '#000'; sctx.fill(); sctx.restore();   // luôn có điểm xuất phát (đổ bộ / không giáp biên)
     const sd = sctx.getImageData(0, 0, gw, gh).data, D = new Float32Array(gw * gh);
     for (let i = 0; i < D.length; i++) D[i] = sd[i * 4 + 3] > 140 ? 0 : 1e9;
-    for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) { const i = y * gw + x; let d = D[i];
-      if (x > 0) d = Math.min(d, D[i - 1] + 1); if (y > 0) { d = Math.min(d, D[i - gw] + 1); if (x > 0) d = Math.min(d, D[i - gw - 1] + 1.4142); if (x < gw - 1) d = Math.min(d, D[i - gw + 1] + 1.4142); } D[i] = d; }
-    for (let y = gh - 1; y >= 0; y--) for (let x = gw - 1; x >= 0; x--) { const i = y * gw + x; let d = D[i];
-      if (x < gw - 1) d = Math.min(d, D[i + 1] + 1); if (y < gh - 1) { d = Math.min(d, D[i + gw] + 1); if (x < gw - 1) d = Math.min(d, D[i + gw + 1] + 1.4142); if (x > 0) d = Math.min(d, D[i + gw - 1] + 1.4142); } D[i] = d; }
     // "địa hình" cố định (nhiễu giá trị mượt, theo id vùng) làm mặt trận tiến nhanh chậm khác nhau — hữu cơ nhưng KHÔNG ngẫu nhiên theo thời gian
     let sd0 = hash(r.id) || 1; const rnd0 = () => (sd0 = Math.imul(sd0, 1664525) + 1013904223 >>> 0) / 4294967296, LN = 7, lat = Array.from({ length: (LN + 1) * (LN + 1) }, rnd0);
     const sm = t => t * t * (3 - 2 * t), noise = (u, v) => { const xi = Math.min(LN - 1, Math.floor(u)), yi = Math.min(LN - 1, Math.floor(v)), fx = sm(u - xi), fy = sm(v - yi), a = lat[yi * (LN + 1) + xi], b = lat[yi * (LN + 1) + xi + 1], c = lat[(yi + 1) * (LN + 1) + xi], d = lat[(yi + 1) * (LN + 1) + xi + 1]; return (a + (b - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy; };
-    let maxD = 4;
-    for (let y = 0, i = 0; y < gh; y++) for (let x = 0; x < gw; x++, i++) { if (D[i] > 0 && D[i] < 1e8) D[i] *= .72 + .56 * noise(x / gw * LN, y / gh * LN); if (tm[i] && D[i] < 1e8 && D[i] > maxD) maxD = D[i]; }
-    return { X0, Y0, cs, gw, gh, tm, D, maxD };
+    // ---- PHƯƠNG THỨC CHIẾM MỚI (học thuật toán chiếm của OpenFront / Territorial.io): mặt trận là "lan tràn theo ưu tiên" từ MỌI ô giáp biên của bên công ----
+    //  · nhiều ô xuất phát dọc biên chung → biên chung càng dài, mặt trận càng rộng và tiến càng nhanh (OpenFront)
+    //  · mỗi ô có chi phí chiếm riêng (địa hình mượt + nhiễu từng ô) → mép tiến lởm chởm tự nhiên như flood-fill thật (Territorial)
+    //  · ô có nhiều ô kề đã bị chiếm thì rẻ hơn → các hốc lõm được lấp trước, mặt trận gọn như quân đội tràn qua (OpenFront)
+    //  · chỉ lan trong ranh giới vùng đích (đi vòng theo hình dạng thật), vùng bị chia cắt thì lấp cuối cùng
+    let Lb = null, seam = null, nSide = 1, meetI = -1;   // Lb: ô này bị chiếm từ PHÍA nào · seam: đường hai mũi tiến gặp nhau (gọng kìm)
+    { const INF = 1e9, N = gw * gh, cost = new Float32Array(N), done = new Uint8Array(N), hk = [], hi = [];
+      const push = (k, i) => { let n = hk.length; hk.push(k); hi.push(i); while (n > 0) { const q = (n - 1) >> 1; if (hk[q] <= k) break; hk[n] = hk[q]; hi[n] = hi[q]; n = q; } hk[n] = k; hi[n] = i; };
+      let pK = 0, pI = 0; const pop = () => { const k0 = hk[0], i0 = hi[0], k = hk.pop(), i = hi.pop(), n = hk.length; if (n) { let c = 0; for (;;) { let l = 2 * c + 1; if (l >= n) break; if (l + 1 < n && hk[l + 1] < hk[l]) l++; if (hk[l] >= k) break; hk[c] = hk[l]; hi[c] = hi[l]; c = l; } hk[c] = k; hi[c] = i; } pK = k0; pI = i0; };
+      // chi phí từng ô: địa hình mượt + nhiễu ô mạnh hơn (Territorial) + phòng thủ dày ở lõi vùng (thủ đô/pháo đài của bên thủ)
+      const hs = ((r.seed[0] - X0) / cs), hy = ((r.seed[1] - Y0) / cs), hR = Math.max(6, Math.min(gw, gh) * .22);
+      for (let y = 0, i = 0; y < gh; y++) for (let x = 0; x < gw; x++, i++) if (tm[i]) { const dd = Math.hypot(x - hs, y - hy) / hR, core = dd < 1 ? 1 + .38 * (1 - dd) * (1 - dd) : 1;
+        cost[i] = (.55 + .9 * noise(x / gw * LN, y / gh * LN)) * (.8 + .4 * (((Math.imul(i, 2654435761) >>> 8) & 255) / 255)) * core; }
+      const DX = [1, -1, 0, 0, 1, -1, 1, -1], DY = [0, 0, 1, -1, 1, 1, -1, -1];
+      // ---- CHIẾM 2 BÊN (gọng kìm, kiểu Dummynation): các ô tiếp giáp tách thành từng "phía" (cụm liên thông riêng); mỗi phía là một mũi tiến độc lập, hai mũi gặp nhau ở giữa ----
+      const contact = [], cl = new Int16Array(N).fill(-1);
+      for (let y = 0, i = 0; y < gh; y++) for (let x = 0; x < gw; x++, i++) if (D[i] === 0) for (let k = 0; k < 8; k++) { const xx = x + DX[k], yy = y + DY[k]; if (xx >= 0 && yy >= 0 && xx < gw && yy < gh && tm[yy * gw + xx]) { contact.push(i); cl[i] = -2; break; } }
+      const csz = []; for (const c0 of contact) if (cl[c0] === -2) { const id = csz.length, st = [c0]; cl[c0] = id; let n = 0; while (st.length) { const c = st.pop(); n++; const cx = c % gw, cy = (c / gw) | 0; for (let k = 0; k < 8; k++) { const xx = cx + DX[k], yy = cy + DY[k]; if (xx < 0 || yy < 0 || xx >= gw || yy >= gh) continue; const j = yy * gw + xx; if (cl[j] === -2) { cl[j] = id; st.push(j); } } } csz.push(n); }
+      const rank = csz.map((n, id) => id).sort((a, b) => csz[b] - csz[a]), off = csz.map(() => 0); nSide = csz.filter(n => n >= 4).length || 1;
+      rank.forEach((id, q) => { off[id] = q === 0 ? 0 : .6 + 1.8 * (((Math.imul((hash(r.id) || 1) + id * 7919, 2654435761) >>> 9) & 255) / 255); });   // phía chính ra quân trước, phía kia lệch nhịp nhẹ
+      Lb = new Uint8Array(N).fill(255);
+      for (const i of contact) { const h0 = ((Math.imul(i ^ 0x9e3779b9, 2246822519) >>> 9) & 255) / 255 * .9, dI = -h0 + off[cl[i]]; D[i] = dI; Lb[i] = Math.min(250, cl[i]); push(dI, i); }   // mỗi ô biên xuất quân lệch nhau → mặt trận răng cưa (OpenFront)
+      while (hk.length) {
+        pop(); const d = pK, i = pI; if (done[i]) continue; done[i] = 1; const x = i % gw, y = (i / gw) | 0;
+        for (let k = 0; k < 8; k++) { const xx = x + DX[k], yy = y + DY[k]; if (xx < 0 || yy < 0 || xx >= gw || yy >= gh) continue; const j = yy * gw + xx; if (!tm[j] || done[j]) continue;
+          let nb = 0; if (xx > 0 && done[j - 1]) nb++; if (xx < gw - 1 && done[j + 1]) nb++; if (yy > 0 && done[j - gw]) nb++; if (yy < gh - 1 && done[j + gw]) nb++;
+          if (xx > 0 && yy > 0 && done[j - gw - 1]) nb += .5; if (xx < gw - 1 && yy > 0 && done[j - gw + 1]) nb += .5; if (xx > 0 && yy < gh - 1 && done[j + gw - 1]) nb += .5; if (xx < gw - 1 && yy < gh - 1 && done[j + gw + 1]) nb += .5;
+          // ô bị bao quanh (nhiều ô kề đã chiếm) rẻ rất nhiều → lấp hốc trước; tiến xa khỏi biên thì chậm dần nhẹ (quá tay)
+          const nd = d + (k < 4 ? 1 : 1.4142) * cost[j] * Math.max(.4, 1 - .12 * nb) * (1 + .0016 * Math.max(0, d)); if (nd < D[j]) { D[j] = nd; Lb[j] = Lb[i]; push(nd, j); } }
+      }
+      if (nSide >= 2) { const sm2 = []; let bm = 1e9; for (let y = 0, i = 0; y < gh; y++) for (let x = 0; x < gw; x++, i++) if (tm[i] && Lb[i] !== 255) { const a = Lb[i]; let hit = 0; if (x < gw - 1 && tm[i + 1] && Lb[i + 1] !== 255 && Lb[i + 1] !== a) hit = 1; if (y < gh - 1 && tm[i + gw] && Lb[i + gw] !== 255 && Lb[i + gw] !== a) hit = 1; if (hit && D[i] < INF * .5) { sm2.push(i); if (D[i] < bm) { bm = D[i]; meetI = i; } } } seam = Int32Array.from(sm2); if (seam.length < 3) { seam = null; meetI = -1; } }
+      let reach = 4; for (let i = 0; i < N; i++) if (tm[i] && D[i] < INF * .5 && D[i] > reach) reach = D[i];
+      for (let i = 0; i < N; i++) if (tm[i] && D[i] >= INF * .5) D[i] = reach * 1.03;   // vùng bị chia cắt: lấp sau cùng
+      for (let it = 0; it < 3; it++) { const C = D.slice(); for (let y = 0, i = 0; y < gh; y++) for (let x = 0; x < gw; x++, i++) if (D[i] >= INF * .5) { let m = INF; for (let k = 0; k < 8; k++) { const xx = x + DX[k], yy = y + DY[k]; if (xx >= 0 && yy >= 0 && xx < gw && yy < gh && C[yy * gw + xx] < m) m = C[yy * gw + xx]; } if (m < INF * .5) D[i] = m; } }   // nới ra ngoài mép vùng 3 ô để không hở viền
+    }
+    let maxD = 4; const NZ = new Float32Array(gw * gh);
+    for (let y = 0, i = 0; y < gh; y++) for (let x = 0; x < gw; x++, i++) { NZ[i] = noise(y / gh * LN * .9 + .3, x / gw * LN * .9) - .5; if (tm[i] && D[i] < 1e8 && D[i] > maxD) maxD = D[i]; }
+    return { X0, Y0, cs, gw, gh, tm, D, maxD, NZ, Lb, seam, nSide, meetI };
   }
   function addSweep(r, E, color, dur, win, ratio, kind, update, defColor, nid) {
     const atk = kind === 'attack', closeness = Math.min(1, 1 / ratio), peak = .25 + .5 * Math.min(1, ratio), t0 = performance.now(), WMAX = .965;
     const cols = atk ? ['#fff', '#ffd54f', '#ff7043', win ? color : '#e53935'] : ['#fff', color, color];
-    const darkC = d3.rgb(color).darker(.9).formatHex(), m0 = mapScale();
+    const darkC = d3.rgb(color).darker(.9).formatHex(), m0 = mapScale(), dkC = d3.rgb(color).darker(.75).formatHex();
     const kP = P('k' + r.iso, d0[r.iso]), cP = r.cell ? P('c' + r.id, cellD(r)) : null;
-    let F, gw, gh, tm, D, cs, cssB = 0, W2 = 0, Fp, nb0, nb1, vis, stamp = 0, used = [];
+    let tX = 0, tY = 0, tLo = null, tHi = null, actT = [], troops = [], hatch = null, actMain = [], actB = [];
+    let F, gw, gh, tm, D, NZ, tqK = -1, pcP = null, cs, cssB = 0, W2 = 0, Fp, nb0, nb1, vis, stamp = 0, used = [];
     const build = css => {
-      cssB = css; F = buildField(r, E, nid, css); ({ gw, gh, tm, D, cs } = F);
+      cssB = css; F = buildField(r, E, nid, css); ({ gw, gh, tm, D, cs, NZ } = F); tqK = -1; tLo = null;
       W2 = gw + 2; const H2 = gh + 2; Fp = new Float32Array(W2 * H2); nb0 = new Int32Array(2 * W2 * H2).fill(-1); nb1 = new Int32Array(2 * W2 * H2).fill(-1); vis = new Int32Array(2 * W2 * H2); used = [];
     };
     build(m0.f / dpr);
-    let acc = 0, boomT = 0;
+    let acc = 0, boomT = 0, pcB = null, met = false, seamAcc = 0;
     // ---- đường đồng mức (marching squares) của trường khoảng cách → đường cong VECTOR mượt ở mọi mức zoom (không còn vỡ pixel) ----
     const link = (e1, e2) => { if (nb0[e1] < 0) { nb0[e1] = e2; used.push(e1); } else nb1[e1] = e2; if (nb0[e2] < 0) { nb0[e2] = e1; used.push(e2); } else nb1[e2] = e1; };
-    function contour(th) {
-      const H2 = gh + 2; Fp.fill(1e4);
-      for (let y = 0; y < gh; y++) { const row = (y + 1) * W2 + 1, src = y * gw; for (let x = 0; x < gw; x++) { const v = D[src + x] - th; Fp[row + x] = v > 1e4 ? 1e4 : v; } }
+    const TS = 16;
+    const buildTiles = () => {      // min/max của trường D trong từng ô 16×16 (tính 1 lần / lần dựng trường) → bỏ qua ô nằm hẳn trong hoặc ngoài mặt trận
+      const H2 = gh + 2; tX = Math.ceil((W2 - 1) / TS); tY = Math.ceil((H2 - 1) / TS); tLo = new Float32Array(tX * tY); tHi = new Float32Array(tX * tY);
+      for (let ty = 0; ty < tY; ty++) for (let tx = 0; tx < tX; tx++) { let lo = 1e4, hi = -1e4;
+        for (let py = ty * TS; py <= Math.min(H2 - 1, ty * TS + TS); py++) for (let px = tx * TS; px <= Math.min(W2 - 1, tx * TS + TS); px++) { const rx = px - 1, ry = py - 1; let v = 1e4; if (rx >= 0 && ry >= 0 && rx < gw && ry < gh) { v = D[ry * gw + rx]; if (v > 1e4) v = 1e4; } if (v < lo) lo = v; if (v > hi) hi = v; }
+        tLo[ty * tX + tx] = lo; tHi[ty * tX + tx] = hi; }
+    };
+    function contour(th, wob) {
+      const H2 = gh + 2; if (!tLo) buildTiles(); const mg = Math.abs(wob) * .5 + .02; actT = [];
       for (let i = 0; i < used.length; i++) { nb0[used[i]] = -1; nb1[used[i]] = -1; } used.length = 0;
-      for (let y = 0; y < H2 - 1; y++) for (let x = 0; x < W2 - 1; x++) {
-        const i = y * W2 + x, A = Fp[i] < 0, B = Fp[i + 1] < 0, C = Fp[i + W2 + 1] < 0, Dd = Fp[i + W2] < 0, c = (A ? 1 : 0) | (B ? 2 : 0) | (C ? 4 : 0) | (Dd ? 8 : 0);
-        if (c === 0 || c === 15) continue;
-        const T = i * 2, Bt = (i + W2) * 2, L = i * 2 + 1, R = (i + 1) * 2 + 1;
-        switch (c) {
-          case 1: case 14: link(L, T); break; case 2: case 13: link(T, R); break; case 3: case 12: link(L, R); break;
-          case 4: case 11: link(R, Bt); break; case 6: case 9: link(T, Bt); break; case 7: case 8: link(L, Bt); break;
-          case 5: link(L, T); link(R, Bt); break; case 10: link(T, R); link(L, Bt); break;
+      for (let ty = 0; ty < tY; ty++) for (let tx = 0; tx < tX; tx++) {
+        const ti = ty * tX + tx; if (tLo[ti] - th - mg >= 0 || tHi[ti] - th + mg < 0) continue;   // cả ô cùng một phía → không có đường đồng mức
+        actT.push(ti);
+        const x0 = tx * TS, y0 = ty * TS, x1 = Math.min(W2 - 1, x0 + TS), y1 = Math.min(H2 - 1, y0 + TS);
+        for (let py = y0; py <= y1; py++) for (let px = x0; px <= x1; px++) { const rx = px - 1, ry = py - 1; if (rx < 0 || ry < 0 || rx >= gw || ry >= gh) { Fp[py * W2 + px] = 1e4; continue; } const q = ry * gw + rx, v = D[q] - th + wob * NZ[q]; Fp[py * W2 + px] = v > 1e4 ? 1e4 : v; }
+        for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+          const i = y * W2 + x, A = Fp[i] < 0, B = Fp[i + 1] < 0, C = Fp[i + W2 + 1] < 0, Dd = Fp[i + W2] < 0, c = (A ? 1 : 0) | (B ? 2 : 0) | (C ? 4 : 0) | (Dd ? 8 : 0);
+          if (c === 0 || c === 15) continue;
+          const T = i * 2, Bt = (i + W2) * 2, L = i * 2 + 1, R = (i + 1) * 2 + 1;
+          switch (c) {
+            case 1: case 14: link(L, T); break; case 2: case 13: link(T, R); break; case 3: case 12: link(L, R); break;
+            case 4: case 11: link(R, Bt); break; case 6: case 9: link(T, Bt); break; case 7: case 8: link(L, Bt); break;
+            case 5: link(L, T); link(R, Bt); break; case 10: link(T, R); link(L, Bt); break;
+          }
         }
       }
       const path2 = new Path2D(); stamp++;
@@ -2262,6 +2469,7 @@ const CAP = (() => {
         const s0 = used[u]; if (vis[s0] === stamp) continue; const ids = []; let prev = -1, cur = s0;
         for (let g = 0; g < 400000; g++) { vis[cur] = stamp; ids.push(cur); const n0 = nb0[cur], nx = n0 !== prev ? n0 : nb1[cur]; if (nx < 0 || nx === s0 || vis[nx] === stamp) break; prev = cur; cur = nx; }
         if (ids.length < 3) continue;
+        const stp = ids.length > 1400 ? 3 : ids.length > 600 ? 2 : 1; if (stp > 1) { const keep = []; for (let q = 0; q < ids.length; q += stp) keep.push(ids[q]); ids.length = 0; ids.push(...keep); }
         const P = ids.map(pt), n = P.length, md = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2], m = md(P[n - 1], P[0]);
         path2.moveTo(m[0], m[1]);
         for (let i = 0; i < n; i++) { const e = md(P[i], P[(i + 1) % n]); path2.quadraticCurveTo(P[i][0], P[i][1], e[0], e[1]); }
@@ -2269,31 +2477,118 @@ const CAP = (() => {
       }
       return loops ? path2 : null;
     }
+    // ---- KIỂU DUMMYNATION (xem từng khung hình video mẫu): đất bị chiếm = màu bên công TỐI đi, mép mặt trận MỀM (chuyển màu dần, hơi nóng ở phía bên thủ), quân hiệu tròn viền kim loại + đuôi ghim đứng ngay tuyến đầu và trượt theo mặt trận ----
+    let pinPos = [], pinTgt = [], pinAt = 0;
+    let pinSz = [];
+    const sampleFront = (th, tol, n, arr) => {      // lấy mẫu ô nằm trên mặt trận: chỉ duyệt các ô lớn mà đường đồng mức đi qua (không quét cả lưới)
+      const out = [], actT = arr || actMain; if (!actT.length) return out;
+      for (let k = 0; k < n; k++) { const ti = actT[(Math.random() * actT.length) | 0], tx = ti % tX, ty = (ti / tX) | 0, rx = tx * TS + ((Math.random() * TS) | 0) - 1, ry = ty * TS + ((Math.random() * TS) | 0) - 1; if (rx < 0 || ry < 0 || rx >= gw || ry >= gh) continue; const i = ry * gw + rx; if (tm[i] && Math.abs(D[i] - th) < tol) out.push(i); }
+      return out;
+    };
+    function updPins(th) {
+      const pts = sampleFront(th, 1.4, PERF.low ? 140 : 260);
+      if (pts.length < 2) return;
+      const kx = i => i % gw, ky = i => (i / gw) | 0, tg = [], sz = [], avg = pts.length;
+      const bin = (arr, KM) => { let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+        for (const i of arr) { const a = kx(i), b = ky(i); if (a < x0) x0 = a; if (a > x1) x1 = a; if (b < y0) y0 = b; if (b > y1) y1 = b; }
+        const key = x1 - x0 >= y1 - y0 ? kx : ky, K = clamp(Math.round(Math.sqrt(arr.length) / 2.4), 1, KM); arr.sort((a, b) => key(a) - key(b));   // mặt trận càng dài càng nhiều quân hiệu, rải đều dọc tuyến
+        for (let k = 0; k < K; k++) { const a = Math.floor(k * arr.length / K), b = Math.floor((k + 1) * arr.length / K), n = b - a; if (n < 1) continue; let mx = 0, my = 0; for (let q = a; q < b; q++) { mx += kx(arr[q]); my += ky(arr[q]); } tg.push([F.X0 + (mx / n + .5) * cs, F.Y0 + (my / n + .5) * cs]); sz.push(.72 + .5 * (((Math.imul(k * 2 + arr.length, 2654435761) >>> 11) & 255) / 255)); } };
+      const KM = PERF.low ? 4 : 7;
+      if (F.nSide >= 2) { const g = new Map(); for (const i of pts) { const l = F.Lb[i]; if (!g.has(l)) g.set(l, []); g.get(l).push(i); } [...g.keys()].sort((a, b) => a - b).forEach(l => { if (g.get(l).length >= 3) bin(g.get(l), Math.ceil(KM / 2)); }); }   // gọng kìm: mỗi phía một nhóm quân hiệu riêng
+      if (!tg.length) bin(pts, KM);
+      if (tg.length) sz[0] = 1.28;   // một quân hiệu chủ lực to nhất
+      pinTgt = tg; pinSz = sz;
+      while (pinPos.length < pinTgt.length) pinPos.push(pinTgt[pinPos.length].slice()); pinPos.length = pinTgt.length;
+    }
+    // ---- QUÂN LÍNH nhỏ chạy trong đất đã chiếm, từ phía sau tiến ra tuyến đầu (như video mẫu) ----
+    function updTroops(th, dt, u, m, al, now0) {
+      const want = PERF.low ? 3 : sweeps.size > 4 ? 4 : clamp(Math.round(4 + 5 * Math.min(1, ratio)), 4, 9);
+      while (troops.length < want) troops.push({ x: 0, y: 0, tx: 0, ty: 0, sp: 6 + Math.random() * 9, ph: Math.random() * 6.28, on: false });
+      troops.length = want;
+      const cellAt = (x, y) => { const rx = Math.floor((x - F.X0) / cs), ry = Math.floor((y - F.Y0) / cs); return rx >= 0 && ry >= 0 && rx < gw && ry < gh ? ry * gw + rx : -1; };
+      ctx.save(); ctx.setTransform(m.f, 0, 0, m.f, m.tx, m.ty); ctx.globalAlpha = al;
+      for (let q = 0; q < troops.length; q++) { const t = troops[q];
+        if (!t.on || Math.hypot(t.tx - t.x, t.ty - t.y) < 2.5) {                 // cần điểm xuất phát mới: một ô đã chiếm, rồi đi tới quân hiệu gần mặt trận
+          let sx = E.e[0], sy = E.e[1];
+          for (let k = 0; k < 14; k++) { const i = (Math.random() * tm.length) | 0; if (tm[i] && D[i] < th - 2.5) { sx = F.X0 + ((i % gw) + .5) * cs; sy = F.Y0 + (((i / gw) | 0) + .5) * cs; break; } }
+          const pt = pinTgt.length ? pinTgt[(q + (Math.random() * 3 | 0)) % pinTgt.length] : [sx, sy]; t.x = sx; t.y = sy; t.tx = pt[0] + (Math.random() - .5) * 6; t.ty = pt[1] + (Math.random() - .5) * 6; t.on = true; }
+        const dx = t.tx - t.x, dy = t.ty - t.y, L = Math.hypot(dx, dy) || 1, stp = Math.min(L, t.sp * dt), nx = t.x + dx / L * stp, ny = t.y + dy / L * stp, ci = cellAt(nx, ny);
+        if (ci >= 0 && tm[ci] && D[ci] < th + 1.2) { t.x = nx; t.y = ny; } else t.on = false;   // gặp đất chưa chiếm thì dừng, chọn đường khác
+        const r = 2.5 * u, bob = Math.abs(Math.sin(now0 * .012 + t.ph)) * r * .5;
+        ctx.fillStyle = '#26303b'; ctx.fillRect(t.x - r * .7, t.y - bob - r * .2, r * 1.4, r * 1.5);              // thân
+        ctx.beginPath(); ctx.arc(t.x, t.y - bob - r * 1.15, r * .8, 0, 6.283); ctx.fillStyle = color; ctx.fill(); ctx.lineWidth = .9 * u; ctx.strokeStyle = '#fff'; ctx.stroke();   // mũ/đầu màu bên công
+      }
+      ctx.restore();
+    }
+    function drawPins(u, al, dt, m) {
+      if (al <= 0) return; const k = 1 - Math.exp(-dt * 5), R = 9 + 4 * Math.min(1, Math.sqrt(ratio) / 1.5);
+      ctx.save(); ctx.setTransform(m.f, 0, 0, m.f, m.tx, m.ty); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = al;
+      pinPos.forEach((q, i) => {
+        const t = pinTgt[i]; if (t) { q[0] += (t[0] - q[0]) * k; q[1] += (t[1] - q[1]) * k; }
+        const r = R * u * (pinSz[i] || 1) * (PERF.low ? .85 : 1); ctx.save(); ctx.translate(q[0], q[1] - r * 1.1);
+        ctx.fillStyle = '#2d3643'; ctx.beginPath(); ctx.moveTo(-r * .6, r * .6); ctx.lineTo(r * .6, r * .6); ctx.lineTo(0, r * 1.9); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, r * 1.14, 0, 6.283); ctx.fillStyle = '#8c97a6'; ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, 6.283); ctx.fillStyle = color; ctx.fill();
+        ctx.beginPath(); ctx.arc(-r * .22, -r * .3, r * .62, 0, 6.283); ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fill();
+        ctx.fillStyle = '#ffd54f'; ctx.beginPath(); for (let j = 0; j < 10; j++) { const a = -1.5708 + j * .6283, rr = j % 2 ? r * .26 : r * .56; ctx[j ? 'lineTo' : 'moveTo'](Math.cos(a) * rr, Math.sin(a) * rr); } ctx.closePath(); ctx.fill();
+        ctx.restore();
+      });
+      ctx.restore();
+    }
     const sw = {
       rid: r.id, fo: null,
       fadeOut(ms) { if (!sw.fo) { sw.fo = { t0: performance.now(), ms: ms || 320 }; kick(); } },
       draw(now, dt, m) {
         let fa = 1; if (sw.fo) { fa = 1 - (now - sw.fo.t0) / sw.fo.ms; if (fa <= 0) { sweeps.delete(sw); return; } }
         if (m.f / dpr > cssB * 1.7 && cssB < 400) build(m.f / dpr);       // zoom gần → dựng lại trường khoảng cách sắc nét hơn
-        const x = Math.min(1, Math.max(0, (now - t0) / dur));
+        const DN = setOn('dn'), x = Math.min(1, Math.max(0, (now - t0) / dur));
         if (!sw.fo && win && now - t0 > dur + 2600) sw.fadeOut(500);       // chưa thấy kết quả từ chủ phòng → không giữ màu giả
         if (!sw.fo && !busy.has(sw.rid)) sw.fadeOut(260);                   // chiến dịch đã kết thúc/bị huỷ → tắt hiệu ứng
         const base = win ? x * WMAX : (x < .62 ? peak * x / .62 : peak * (1 - (x - .62) / .38));
         const p = Math.max(0, Math.min(win ? WMAX : 1, base + .07 * closeness * Math.sin(x * 18.85) * Math.sin(Math.PI * x)));
-        const th = p * (F.maxD + 2.5), u = dpr / m.f;                       // u = 1px màn hình tính theo đơn vị bản đồ
-        const path2 = (PERF.low && sweeps.size > 3 && (sw._n = (sw._n || 0) + 1) % 2 && sw._p) ? sw._p : (sw._p = contour(th));
+        // ---- PHẢN CÔNG (kiểu Dummynation): bên thủ không đứng yên — từng đợt phản kích đẩy lùi mặt trận, để lại dải màu bên thủ phía sau tuyến đầu rồi bên công lại ép tới ----
+        sw.ph = sw.ph || Math.random() * 6.28;
+        let surge = 0, push = 0; const ND = F.maxD + 2.5, cnt = win ? 2 : 3;
+        if (atk && defColor && p > .03) { const env = win ? Math.pow(1 - x, 1.3) * Math.min(1, x / .12) : Math.min(1, x / .12) * (x > .85 ? Math.max(0, (1 - x) / .15) : 1);
+          for (let q = 0; q < cnt; q++) { const c = (q + .6 + .25 * Math.sin(sw.ph * (q + 1))) / (cnt + .4), w = .075 + .035 * closeness, t = (x - c) / w; if (Math.abs(t) < 1) { const b = Math.cos(t * 1.5708); surge = Math.max(surge, b * b); } }
+          surge *= env * (.35 + .65 * closeness); push = surge * ND * (.045 + .05 * closeness); }
+        const th = p * ND - push, u = dpr / m.f, depth = surge * ND * (.05 + .09 * closeness);   // u = 1px màn hình tính theo đơn vị bản đồ · depth = bề dày dải phản công
+        // MẶT TRẬN ĐẨY QUA ĐẨY LẠI: đường chiến tuyến gợn sóng theo thời gian (bên công ép tới, bên thủ đẩy lùi); chỉ dựng lại đường cong 30Hz (66ms khi máy yếu / nhiều mặt trận) để nhẹ máy
+        sw.ph = sw.ph || Math.random() * 6.28; const wob = (1.6 + 3.8 * closeness) * Math.sin(now * .0043 + sw.ph) * (win ? 1 - Math.max(0, (x - .86) / .14) : 1) * (DN ? .5 : 1), tq = (now / (PERF.low || sweeps.size > 3 ? 66 : 33)) | 0;
+        if (tqK !== tq || !pcP) { tqK = tq; pcP = contour(th, wob); actMain = actT; pcB = depth > .5 ? contour(th - depth, wob * 1.4) : null; actB = pcB ? actT : []; }
+        const path2 = pcP;
         if (path2) {
           ctx.save(); ctx.setTransform(m.f, 0, 0, m.f, m.tx, m.ty); ctx.clip(kP); if (cP) ctx.clip(cP); ctx.globalAlpha = fa; ctx.globalCompositeOperation = sw.sec ? 'destination-over' : 'source-over';   // nhiều nước cùng chiếm 1 vùng: bên sau chỉ tô phần chưa bị bên trước chiếm, không đè lên
-          ctx.fillStyle = color; ctx.fill(path2, 'evenodd');
-          ctx.clip(path2, 'evenodd'); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-          ctx.strokeStyle = 'rgba(255,255,255,.38)'; ctx.lineWidth = 9 * u; ctx.stroke(path2);      // vệt sáng mềm phía trong mặt trận
-          ctx.strokeStyle = darkC; ctx.lineWidth = 3.6 * u; ctx.stroke(path2);                       // viền sẫm sắc nét như biên giới thật
+          ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+          if (DN) {
+            const lite = PERF.low || sweeps.size > 2;       // nhiều mặt trận cùng lúc / máy yếu: bớt lớp nét mềm cho nhẹ
+            if (atk && !lite) { ctx.strokeStyle = 'rgba(255,176,90,.15)'; for (const w of [26, 12]) { ctx.lineWidth = w * u; ctx.stroke(path2); } }   // hơi nóng phía bên thủ
+            ctx.globalAlpha = fa * .9; ctx.fillStyle = dkC; ctx.fill(path2, 'evenodd');                                                     // đất bị chiếm: màu bên công tối đi
+            if (pcB) { const bp = new Path2D(); bp.addPath(path2); bp.addPath(pcB); ctx.save(); ctx.globalAlpha = fa * Math.min(.75, .25 + surge); ctx.fillStyle = defColor; ctx.fill(bp, 'evenodd');   // dải đất bên thủ đoạt lại
+              ctx.clip(bp, 'evenodd'); ctx.globalAlpha = fa * .8; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4 * u; ctx.setLineDash([6 * u, 6 * u]); ctx.lineDashOffset = now * .03 * u; ctx.stroke(pcB); ctx.setLineDash([]); ctx.restore(); }   // nét đứt chạy NGƯỢC chiều: quân thủ phản kích
+            ctx.clip(path2, 'evenodd'); ctx.globalAlpha = fa * .22; ctx.strokeStyle = defColor || color; for (const w of lite ? [16] : [22, 10]) { ctx.lineWidth = w * u; ctx.stroke(path2); }   // mép mềm chuyển màu dần
+            if (!hatch) { const c = document.createElement('canvas'); c.width = c.height = 8; const g = c.getContext('2d'); g.strokeStyle = 'rgba(0,0,0,.34)'; g.lineWidth = 2; g.beginPath(); g.moveTo(-2, 10); g.lineTo(10, -2); g.moveTo(-2, 2); g.lineTo(2, -2); g.moveTo(6, 10); g.lineTo(10, 6); g.stroke(); hatch = ctx.createPattern(c, 'repeat'); }
+            if (hatch) { hatch.setTransform(new DOMMatrix().scale(u)); ctx.globalAlpha = fa * .9; ctx.strokeStyle = hatch; ctx.lineWidth = 30 * u; ctx.stroke(path2); }   // vùng đang giao tranh: dải SỌC CHÉO sát tuyến đầu (như video mẫu)
+            ctx.globalAlpha = fa; ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 1.4 * u; ctx.stroke(path2);
+            ctx.beginPath(); ctx.rect(0, 0, 0, 0); ctx.clip();                                                                              // bỏ qua các nét kiểu cũ bên dưới
+          } else { ctx.fillStyle = color; ctx.fill(path2, 'evenodd'); ctx.clip(path2, 'evenodd'); }
+          ctx.strokeStyle = 'rgba(255,255,255,.32)'; ctx.lineWidth = 12 * u; ctx.stroke(path2);      // vệt sáng mềm phía trong mặt trận
+          ctx.strokeStyle = defColor || darkC; ctx.globalAlpha = fa * .85; ctx.lineWidth = 6 * u; ctx.stroke(path2); ctx.globalAlpha = fa;   // dải kháng cự màu bên thủ
+          ctx.strokeStyle = darkC; ctx.lineWidth = 2.6 * u; ctx.stroke(path2);                       // viền sẫm sắc nét như biên giới thật
+          if (atk) { ctx.setLineDash([9 * u, 7 * u]); ctx.lineDashOffset = -now * .02 * u; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.5 * u; ctx.stroke(path2); ctx.setLineDash([]); }   // nét đứt trắng chạy dọc chiến tuyến
           ctx.restore();
         }
+        if (DN && path2) { if (now - pinAt > (PERF.low ? 260 : 160)) { pinAt = now; updPins(th); } const pa = fa * (p < .96 ? 1 : Math.max(0, (1 - p) / .04)); updTroops(th, dt, u, m, pa, now); drawPins(u, pa, dt, m); }
+        if (F.seam && !sw.fo) {                                  // GỌNG KÌM: hai mũi tiến gặp nhau → nổ một lần, rồi tia lửa dọc đường giáp
+          const sD = F.D[F.meetI], mx = F.X0 + ((F.meetI % gw) + .5) * cs, my = F.Y0 + (((F.meetI / gw) | 0) + .5) * cs;
+          if (!met && th >= sD) { met = true; FX.flash(mx, my, '#fff', 34, .5); FX.ring(mx, my, '#fff', 40, .8, 3); FX.ring(mx, my, color, 62, 1, 2.4, .1); FX.text(mx, my - 16 / zoomT.k, '🔱 Gọng kìm!', '#fff', 1.6, 12); }
+          if (met) { seamAcc += dt * PERF.spark * 7; while (seamAcc >= 1) { seamAcc--; const q = F.seam[(Math.random() * F.seam.length) | 0], dq = D[q]; if (dq > th + .2) continue; const age = th - dq; if (age > 7) continue; FX.spark(F.X0 + ((q % gw) + .5) * cs, F.Y0 + (((q / gw) | 0) + .5) * cs, pick(['#fff', '#ffd54f', color]), 55, .5, 1.8); } }
+        }
         if (!sw.fo && (p > .02 && p < .995 || !win)) {            // tia lửa / nổ đúng trên mặt trận
-          acc += dt * PERF.spark * (atk ? 10 + 22 * closeness : 6); boomT -= dt;
-          const front = () => { for (let k = 0; k < 14; k++) { const i = (Math.random() * tm.length) | 0; if (tm[i] && Math.abs(D[i] - th) < .9) return [F.X0 + ((i % gw) + .5) * cs, F.Y0 + (((i / gw) | 0) + .5) * cs]; } return null; };
-          while (acc >= 1) { acc--; const qq = front(); if (!qq) continue; FX.spark(qq[0], qq[1], pick(cols), atk ? 90 : 55, atk ? .55 : .8, atk ? 2.2 : 2); if (atk && Math.random() < .45) FX.ember(qq[0], qq[1], '#ff7043'); }
+          acc += dt * PERF.spark * (atk ? 10 + 22 * closeness : 6) * (DN ? .45 : 1); boomT -= dt;
+          const front = () => { const a = sampleFront(th, .9, 6); return a.length ? [F.X0 + ((a[0] % gw) + .5) * cs, F.Y0 + (((a[0] / gw) | 0) + .5) * cs] : null; };
+          if (pcB && Math.random() < .5) { const a = sampleFront(th - depth, .9, 6, actB); if (a.length) FX.spark(F.X0 + ((a[0] % gw) + .5) * cs, F.Y0 + (((a[0] / gw) | 0) + .5) * cs, pick([defColor, '#fff']), 70, .5, 2); }
+          while (acc >= 1) { acc--; const qq = front(); if (!qq) continue; FX.spark(qq[0], qq[1], pick(defColor && Math.random() < .35 ? [defColor, '#fff'] : cols), atk ? 90 : 55, atk ? .55 : .8, atk ? 2.2 : 2); if (atk && Math.random() < .45) FX.ember(qq[0], qq[1], '#ff7043'); }
           if (atk && boomT <= 0) { boomT = .5 + 1.4 * (1 - closeness) + Math.random() * .7; const qq = front(); if (qq) { FX.flash(qq[0], qq[1], '#ffb74d', 18, .32); FX.ring(qq[0], qq[1], '#ffcc80', 14, .6, 2); FX.smoke(qq[0], qq[1], 1.6, 5); } }
         }
         update(x, win ? Math.min(1, p / WMAX) : p);
@@ -2515,6 +2810,7 @@ function refreshInfo() {
     if (mineR) { const pc = portCost(V, n.id); $('bPort').textContent = b.p ? '⚓ Đã có cảng' : `⚓ Xây cảng (${pc}💰)`; $('bPort').disabled = !!b.p || n.money < pc || bz || portCnt(V, n.id) >= CFG.portMax;
       $('bSam').textContent = sl >= CFG.samMax ? '📡 Phòng không tối đa' : `📡 Phòng không ${sl + 1} (${samCost(V, id)}💰)`; $('bSam').disabled = sl >= CFG.samMax || n.money < samCost(V, id) || bz; } }
   { const b = BLD(V, id) || {}, cl = b.c || 0; $('bCity').style.display = mineR ? '' : 'none'; if (mineR) { const cc = cityCost(V, id); $('bCity').textContent = cl >= CFG.cityMax ? '🏙️ Thành phố tối đa' : `🏙️ Thành phố ${cl + 1} (${cc}💰)`; $('bCity').disabled = cl >= CFG.cityMax || n.money < cc || bz; } }
+  { const rl = (BLD(V, id) || {}).r || 0; $('bRadar').style.display = mineR ? '' : 'none'; $('rowBld').style.display = mineR ? '' : 'none'; if (mineR) { const rc = radarCost(V, id); $('bRadar').textContent = rl >= CFG.radarMax ? '📻 Radar tối đa' : `📻 Radar ${rl + 1} (${rc}💰)`; $('bRadar').disabled = rl >= CFG.radarMax || n.money < rc || bz; } }
   { const rk = resOf(r), ml = (V.mine && V.mine[id]) || 0, pa = (V.prosp && V.prosp[id]) || 0; $('rowMine').style.display = mineR ? '' : 'none';
     if (mineR) { if (!rk) { const pc = prospCost(V, n.id, pa); $('bMine').textContent = pa >= 3 ? '⛏️ Vùng đã cạn' : `⛏️ Tìm mỏ (${pc}💰) · lần ${pa + 1}/3`; $('bMine').dataset.m = 'prospect'; $('bMine').disabled = pa >= 3 || n.money < pc || bz; }
       else { const mc = mineCost(ml); $('bMine').textContent = ml >= 3 ? `⛏️ Mỏ tối đa Lv3` : `⛏️ Khai thác ${RES[rk].n} Lv${ml}→${ml + 1} (${mc}💰)`; $('bMine').dataset.m = 'mine'; $('bMine').disabled = ml >= 3 || n.money < mc || bz; } } }
@@ -2525,13 +2821,13 @@ function refreshInfo() {
   $('rowSbx').style.display = V.sandbox && n ? '' : 'none';
   { const kn = n && (mineR || (n.known && n.known[id])); $('rowSurvey').style.display = n && !kn ? '' : 'none'; if (n && !kn) { $('bSurvey').textContent = '🔍 Thăm dò tài nguyên (120💰)'; $('bSurvey').disabled = n.money < 120; } }
   $('bExpand').style.display = (!o && n) ? '' : 'none'; $('bExpand').textContent = `Mở rộng${k === 'sea' ? ' đường biển' : ''} (${cost}💰)`; $('bExpand').disabled = !k || !n || n.money < cost || myBz;
-  $('rowAtk').style.display = (enemy && n) ? '' : 'none';
+  $('rowAtk').style.display = (enemy && n) ? '' : 'none'; $('rowMode').style.display = $('rowAtk').style.display;
   const odds = $('iOdds'); odds.className = 'odds'; odds.textContent = '';
   if (enemy && n) {
-    const d = defOf(V, r), lbR = (V.lost && V.lost[id] && V.lost[id].n === n.id && V.t - V.lost[id].t < CFG.retakeWin) ? CFG.retakeAtk : 1, pw = fr => winProb(Math.floor(n.army * fr) * (k === 'sea' ? CFG.seaPower : 1) * attMul(n) * (n.fm || 1) * lbR, d), p5 = pw(.5), p1 = pw(1);
+    const d = defOf(V, r), lbR = (V.lost && V.lost[id] && V.lost[id].n === n.id && V.t - V.lost[id].t < CFG.retakeWin) ? CFG.retakeAtk : 1, pw = fr => winProb(Math.floor(n.army * fr) * (k === 'sea' ? CFG.seaPower : 1) * attMul(n) * (n.fm || 1) * lbR * (MODES[ATKMODE] || MODES.normal).pw * bpMul(V, n.id, id), d), p5 = pw(.5), p1 = pw(1);
     $('bAtk50').textContent = `Tấn công 50% · ${Math.round(p5 * 100)}%`; $('bAtk100').textContent = `Toàn lực · ${Math.round(p1 * 100)}%`;
     $('bAtk50').disabled = $('bAtk100').disabled = !war || !k || n.army < 1 || myBz;
-    if (war) { odds.textContent = k ? `Tỉ lệ thắng ước tính (toàn lực): ${Math.round(p1 * 100)}%${k === 'sea' ? ' — đổ bộ: lực −40%' : ''}` : 'Không thể tiến tới vùng này'; odds.classList.add(p1 > .7 ? 'good' : p1 > .35 ? 'mid' : 'bad'); }
+    if (war) { odds.textContent = k ? `Tỉ lệ thắng ước tính (toàn lực): ${Math.round(p1 * 100)}%${k === 'sea' ? ' — đổ bộ: lực −40%' : ''}${lbR > 1 ? ' · phản công: thắng đậm sẽ đẩy lùi, chiếm thêm đất địch' : ''}${bpMul(V, n.id, id) > 1 ? ' · gọng kìm +' + Math.round((bpMul(V, n.id, id) - 1) * 100) + '%' : ''}` : 'Không thể tiến tới vùng này'; odds.classList.add(p1 > .7 ? 'good' : p1 > .35 ? 'mid' : 'bad'); }
   }
   const canWar = enemy && n && !war;
   $('bWar').style.display = canWar ? '' : 'none';
@@ -2552,6 +2848,7 @@ $('bFort').onclick = () => cur && cmd('fort', { rid: cur.id });
 $('bPort').onclick = () => cur && cmd('port', { rid: cur.id });
 $('bSam').onclick = () => cur && cmd('sam', { rid: cur.id });
 $('bCity').onclick = () => cur && cmd('city', { rid: cur.id });
+$('bRadar').onclick = () => cur && cmd('radar', { rid: cur.id });
 $('bMine').onclick = () => cur && cmd($('bMine').dataset.m, { rid: cur.id });
 $('bSell').onclick = () => { if (!cur) return; const v = sellValue(V, cur); if (ask('sell' + cur.id, `Bán ${nameOf(cur)} lấy ${v}💰 (vùng thành đất trống)`)) { cmd('sell', { rid: cur.id }); SND.play('coin'); closeInfo(); } };
 $('bSub').onclick = () => cur && cmd('subcap', { rid: cur.id });
@@ -2560,8 +2857,10 @@ $('bFree2').onclick = () => cur && cmd('sbx', { a: 'free', rid: cur.id });
 $('bSurvey').onclick = () => cur && cmd('survey', { rid: cur.id });
 $('bMove').onclick = () => cur && ask('move' + cur.id, 'Dời thủ đô về đây? Tốn 600💰') && cmd('movecap', { rid: cur.id });
 $('bExpand').onclick = () => cur && cmd('expand', { rid: cur.id });
-$('bAtk50').onclick = () => cur && cmd('attack', { rid: cur.id, f: .5 });
-$('bAtk100').onclick = () => cur && cmd('attack', { rid: cur.id, f: 1 });
+let ATKMODE = 'normal';
+$('rowMode').onclick = ev => { const b = ev.target.closest('button'); if (!b) return; ATKMODE = b.dataset.md; [...$('rowMode').children].forEach(x => x.classList.toggle('on', x === b)); if (cur) refreshInfo(); };
+$('bAtk50').onclick = () => cur && cmd('attack', { rid: cur.id, f: .5, mode: ATKMODE });
+$('bAtk100').onclick = () => cur && cmd('attack', { rid: cur.id, f: 1, mode: ATKMODE });
 $('bWar').onclick = () => cur && V.owner[cur.id] && cmd('war', { to: V.owner[cur.id] });
 $('bClose').onclick = closeInfo;
 $('bSnd').onclick = () => { $('bSnd').textContent = SND.toggle() ? '🔊' : '🔇'; };
@@ -2662,7 +2961,7 @@ function setTab(t) {
 }
 // ---- Cài đặt (bản đồ · máy chủ · âm thanh · tài khoản) ----
 const SET = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem('gs_set') || '{}'); } catch (e) {} return o; })();
-const SETDEF = { labels: 1, army: 1, borders: 1, fx: 1, haptic: 1 };
+const SETDEF = { labels: 1, army: 1, borders: 1, fx: 1, haptic: 1, dn: 0 };
 const setOn = k => (SET[k] === undefined ? SETDEF[k] : SET[k]) ? 1 : 0;
 function applySet() { const c = document.documentElement.classList; c.toggle('set-nolabels', !setOn('labels')); c.toggle('set-noarmy', !setOn('army')); c.toggle('set-noborders', !setOn('borders')); c.toggle('set-nofx', !setOn('fx')); }
 applySet();
@@ -2680,7 +2979,11 @@ function drawSettings(el) {
     ${row('groups', 'Số quân', 'Hiện số quân trên vùng', sw('army'))}
     ${row('border_style', 'Đường viền vùng', 'Viền mờ giữa các vùng trong một nước', sw('borders'))}
     ${row('auto_awesome', 'Hiệu ứng chiến đấu', 'Tắt để mượt hơn trên máy yếu', sw('fx'))}
+    ${row('palette', 'Kiểu chiếm Dummynation', 'Mặt trận mềm, đất chiếm tối màu, quân hiệu đứng ở tuyến đầu', sw('dn'))}
     ${row('speed', `Đồ hoạ: ${PERF.mode === 'auto' ? 'Tự động' : PERF.mode === 'low' ? 'Thấp (mượt)' : 'Cao'}`, 'Đổi sẽ tải lại trang (ván được lưu)', '<button type="button" data-act="quality">Đổi</button>')}
+    ${(host || net.mode === 'solo') ? `<h3>AI & độ khó</h3>
+    ${row('smart_toy', `${V ? Object.values(V.nations).filter(x => x.ai).length : 0} AI · ${V ? Object.keys(V.nations).length : 0}/${CFG.maxNations} quốc gia`, 'Thêm AI vào ván đang chơi', '<span class="bs">' + [1, 3, 5].map(x => `<button type="button" data-act="addai" data-n="${x}">+${x}</button>`).join('') + '</span>')}
+    ${row('local_fire_department', 'Độ khó AI', 'Áp dụng ngay cho mọi AI', '<span class="bs">' + [[1, 'Dễ'], [2, 'Thường'], [3, 'Khó']].map(([v, l]) => `<button type="button" data-act="lvl" data-v="${v}" style="${V && (V.level || 2) === v ? 'background:var(--pr);color:var(--on-pr)' : ''}">${l}</button>`).join('') + '</span>')}` : ''}
     <h3>Máy chủ / Phòng</h3>
     ${row('dns', host ? 'Phòng ' + esc(code) : mode, `Vai trò: ${mode} · Online: <b id="setOn">–</b>`)}
     ${row('lan', 'Máy chủ ghép nối', esc(peerLabel(NETCFG)) + (FB.ok() ? ' · Firebase ✓' : ' · Firebase ✗'))}
@@ -2691,9 +2994,42 @@ function drawSettings(el) {
     ${host ? `<div class="dz"><h4>Vùng nguy hiểm</h4><small class="muted">Xoá phòng ${esc(code)}: đuổi mọi người, xoá khỏi danh sách và xoá bản lưu. Không hoàn tác được. Nhập mã phòng để xác nhận.</small><input id="delCode" type="text" maxlength="5" placeholder="${esc(code)}" autocomplete="off"><button type="button" id="delGo" data-act="delroom" disabled>Xoá phòng này</button></div>` : ''}`;
   const o = $('setOn'); if (o) o.textContent = host ? Object.keys(net.conns || {}).length + 1 : V ? Object.values(V.nations).filter(n => !n.ai && n.online).length : 1;
 }
+// ---- Hướng dẫn · nhiệm vụ làm quen · tour lần đầu ----
+function drawHelp(el) {
+  setTimeout(() => { el.innerHTML = icoHtml(el.innerHTML); }, 0);
+  const n = me(), mine = n ? regionsOf(V, n.id) : [], has = k => mine.some(r => BLD(V, r.id) && BLD(V, r.id)[k]);
+  const T = [['Lập quốc gia', !!n], ['Có từ 3 vùng', mine.length >= 3], ['Xây pháo đài', mine.some(r => V.fort[r.id])], ['Xây cảng ⚓', has('p')], ['Xây phòng không 📡', has('a')], ['Xây thành phố 🏙️', has('c')], ['Xây radar 📻', has('r')], ['Có từ 10 vùng', mine.length >= 10]];
+  const done = T.filter(t => t[1]).length, card = (ic, t, b) => `<div class="hcard"><div class="hh"><span>${ic}</span><b>${t}</b></div>${b}</div>`;
+  el.innerHTML = `<div class="hcard"><div class="hh"><span>🎯</span><b>Nhiệm vụ làm quen · ${done}/${T.length}</b></div><div class="hbar"><i style="width:${done / T.length * 100}%"></i></div>${T.map(t => `<div class="hq1 ${t[1] ? 'ok' : ''}">${t[1] ? '✅' : '⬜'} ${t[0]}</div>`).join('')}</div>`
+    + card('🧭', 'Bắt đầu', '<p>Chạm một vùng trống để <b>lập quốc gia</b>. Sau đó chạm vùng kề lãnh thổ để <b>mở rộng</b>. Vùng bên kia biển cần đường biển (tốn thêm tiền).</p>')
+    + card('⚔️', 'Chiến đấu', '<p>Đánh vùng có chủ cần nhiều quân hơn phòng thủ. Pháo đài tăng phòng thủ. Nhiều nước có thể cùng chiếm một vùng: bên đến trước giữ phần đã chiếm.</p>')
+    + card('🛡️', 'Phản công & đẩy lùi', `<p>Vùng vừa bị chiếm trong ${CFG.retakeWin}s: đánh lại được lợi +30% lực và nhanh hơn. Thắng từ ${CFG.pushRatio}× sức thủ thì đẩy lùi địch, lấy lại các vùng kề vừa mất (tối đa ${CFG.pushMax}). Thắng từ ${CFG.counterRatio}× thì chiếm luôn một vùng của địch. Thắng sát nút thì chỉ lấy lại đúng vùng đó, biên giới về như cũ.</p>`)
+    + card('⚔️', 'Biến thể chiếm đất', '<p><b>Thường</b>: cân bằng. <b>Tốc chiến</b>: xong sớm 45%, lực −15% (dồn dập kiểu Territorial, OpenFront). <b>Vây hãm</b>: chậm hơn 50% nhưng lực +30% (kiểu Age of History). <b>Gọng kìm</b>: tự động, vùng đích giáp càng nhiều vùng của bạn lực càng tăng, tối đa +40%. <b>Thủ đô thất thủ</b>: kẻ chiếm cướp 30% tiền.</p>')
+    + card('⚓', 'Cảng', `<p>Chỉ xây ở vùng ven biển, tối đa ${CFG.portMax} cảng. Tầm biển xa hơn, tàu nhanh hơn 30%, mở rộng qua biển rẻ hơn 25%, đổ bộ vào vùng có cảng yếu đi 25%. Mỗi cặp cảng cộng thêm thu nhập.</p>`)
+    + card('📡', 'Phòng không & Radar', `<p>Mỗi cấp phòng không tăng ${CFG.samChance * 100}% cơ hội bắn hạ đòn tấn công vào vùng và vùng kề (tối đa ${CFG.samCap * 100}%). Radar tăng 35% mỗi cấp hiệu quả đó. EMP vô hiệu hoá phòng không.</p>`)
+    + card('🏙️', 'Thành phố & Kinh tế', `<p>Mỗi cấp thành phố: +${CFG.cityInc} thu nhập, +${CFG.cityArmy} quân tối đa. Thu nhập còn tăng theo số vùng và số cảng.</p>`)
+    + card('💡', 'Mẹo', '<p>Công trình bị phá khi vùng bị chiếm, nên xây ở vùng sau lưng. Đặt phòng không ở thủ đô trước. Mở Cửa hàng để mua vật phẩm khi dư tiền.</p>')
+    + '<button type="button" class="tonal" id="helpTour">Xem lại hướng dẫn nhanh</button>';
+}
+const TOUR = [['🧭', 'Chào mừng, Tổng tư lệnh!', 'Chạm một vùng trống trên bản đồ để lập quốc gia. Kéo để di chuyển, chụm hai ngón để thu phóng.'], ['🗺️', 'Mở rộng lãnh thổ', 'Chạm vùng kề lãnh thổ rồi bấm chiếm. Đánh vùng có chủ cần nhiều quân hơn bên phòng thủ.'], ['🏗️', 'Xây công trình', 'Chạm vùng của bạn: pháo đài, ⚓ cảng, 📡 phòng không, 🏙️ thành phố, 📻 radar.'], ['💰', 'Kinh tế & quân đội', 'Thu nhập tăng theo số vùng, cảng và thành phố. Nhớ tuyển quân trước khi tấn công.'], ['📖', 'Cần xem lại?', 'Mở Menu, chọn tab Hướng dẫn để xem nhiệm vụ làm quen và mẹo chơi bất cứ lúc nào.']];
+function startTour(force) {
+  if (!force) { try { if (localStorage.getItem('gs_tour')) return; } catch (e) {} }
+  const old = document.getElementById('tour'); if (old) old.remove();
+  const el = document.createElement('div'); el.id = 'tour'; document.body.appendChild(el); let i = 0;
+  const end = () => { el.remove(); try { localStorage.setItem('gs_tour', '1'); } catch (e) {} };
+  const draw = () => { const t = TOUR[i]; el.innerHTML = icoHtml(`<div class="tcardx" role="dialog"><div class="tico">${t[0]}</div><h2>${t[1]}</h2><p>${t[2]}</p><div class="tdots">${TOUR.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div><div class="tbtn"><button type="button" class="text" id="tSkip">Bỏ qua</button><button type="button" class="filled" id="tNext">${i === TOUR.length - 1 ? 'Bắt đầu chơi' : 'Tiếp'}</button></div></div>`); document.getElementById('tSkip').onclick = end; document.getElementById('tNext').onclick = () => { if (++i >= TOUR.length) end(); else draw(); }; };
+  draw();
+}
+$('mBody').addEventListener('click', ev => { if (ev.target.closest('#helpTour')) { closeMenu(); startTour(true); } });
+function drawHero() {
+  const n = me(), h = $('mHero'); if (!h) return;
+  h.innerHTML = n ? `<div class="hf">${flagImg(n)}</div><div class="ht"><b>${esc(n.name)}</b><small>${esc(n.leader || '')}</small></div><div class="hs"><span>${I('payments')}${esc($('hMoney').textContent)}</span><span>${I('groups')}${esc($('hPop').textContent)}</span><span>${I('swords')}${esc($('hArmy').textContent)}</span></div>` : `<div class="ht"><b>Chưa có quốc gia</b><small>Chạm một vùng trống để lập quốc gia</small></div>`;
+}
 function drawMenu() {
   if ($('menu').classList.contains('hidden') || menuTab === 'chat' || !V) return;
+  try { drawHero(); } catch (e) {}
   const n = me(), el = $('mBody');
+  if (menuTab === 'help') return drawHelp(el);
   if (menuTab === 'set') return drawSettings(el);
   if (menuTab === 'rank') {
     el.innerHTML = rankList().map((x, i) => `<div class="mrow ${x.n.id === ME.nid ? 'me' : ''}"><span>${i + 1}. ${flagImg(x.n)}${esc(x.n.name)}<span class="tag">${x.n.ai ? '🤖' : x.n.online ? '👤' : '💤'}</span><small>🗺️ ${x.c} vùng · 👥 ${Math.round(x.p)}M · 🪖 ${Math.floor(x.n.army)} · 💰 ${fmt(x.n.money)}</small></span></div>`).join('')
@@ -2768,6 +3104,8 @@ async function doDelRoom() {   // chủ phòng: đóng phòng, đuổi mọi ng�
 $('mBody').onclick = ev => {
   const b = ev.target.closest('button'); if (!b || b.disabled) return; const a = b.dataset.act, i = b.dataset.i;
   if (a === 'tog') { const k = b.dataset.k; SET[k] = setOn(k) ? 0 : 1; try { localStorage.setItem('gs_set', JSON.stringify(SET)); } catch (e) {} applySet(); drawMenu(); return; }
+  if (a === 'addai') { cmd('addai', { k: +b.dataset.n }); return; }
+  if (a === 'lvl') { cmd('addai', { k: 0, lv: +b.dataset.v }); return; }
   if (a === 'snd') { SND.toggle(); drawMenu(); return; }
   if (a === 'copyinv') { $('bRoom').click(); return; }
   if (a === 'login') { AUTH.toggle(); return; }
@@ -2816,7 +3154,7 @@ function applyWelcome(m) {
   V = m.S; V.ver = 0; V.occ = V.occ || {}; V.fort = V.fort || {}; V.bld = V.bld || {}; V.weak = V.weak || {}; V.lost = V.lost || {}; ME.pid = m.you.pid; ME.nid = m.you.nid;
   prevOwn = {}; busy.clear(); myOps.clear(); for (const k in busyN) delete busyN[k]; m.ops.forEach(rid => { busy.add(rid); busyN[rid] = 1; }); [...anims.keys()].forEach(id => dropAnim(id)); FX.clear(); fxG.selectAll('*').remove(); sweepG.selectAll('*').remove(); arrowG.selectAll('*').remove();
   chatLog.length = 0; (V.log || []).forEach(s => chatLog.push({ sys: true, m: s })); renderChat();
-  $('lobby').classList.add('hidden'); $('loading').classList.add('hidden'); setBanner(null);
+  $('lobby').classList.add('hidden'); $('loading').classList.add('hidden'); setBanner(null); setTimeout(() => startTour(), 900);
   refreshAll(false);
 }
 function applySnap(m) {
@@ -2833,6 +3171,8 @@ function onEv(m) {
   switch (m.e) {
     case 'ship': onShip(m); break;
     case 'toast': if (m.to === '*' || m.to === ME.nid) toast(m.m); break;
+    case 'lvl': V.level = m.lv; if (!$('menu').classList.contains('hidden')) drawMenu(); break;
+    case 'conq': if (m.nid === ME.nid) { CONQ = m.on ? { label: m.label, to: m.to, iso: m.iso } : null; updateConqChip(); } break;
     case 'log': V.log.push(m.m); if (V.log.length > 60) V.log.shift(); pushChat({ sys: true, m: m.m }); break;
     case 'chat': pushChat({ from: m.from, m: m.m, mine: m.nid && m.nid === ME.nid }); break;
     case 'you': ME.nid = m.nid; closeFound(); updateHud(); SND.play('win'); break;
@@ -2844,7 +3184,7 @@ function onEv(m) {
     case 'own': onOwn(m); break;
     case 'strike': onStrike(m); break;
     case 'hit': onHit(m); break;
-    case 'bld': V.bld = V.bld || {}; if (m.b && (m.b.p || m.b.a || m.b.c)) V.bld[m.rid] = m.b; else delete V.bld[m.rid]; if (cur) refreshInfo(); drawFlags(); { const r = regOf[m.rid]; if (r) { FX.ring(r.seed[0], r.seed[1], m.b && m.b.p ? '#4fc3f7' : '#81c784', 26, .9, 2.5); SND.play('tick'); } } break;
+    case 'bld': V.bld = V.bld || {}; if (m.b && (m.b.p || m.b.a || m.b.c || m.b.r)) V.bld[m.rid] = m.b; else delete V.bld[m.rid]; if (cur) refreshInfo(); drawFlags(); { const r = regOf[m.rid]; if (r) { FX.ring(r.seed[0], r.seed[1], m.b && m.b.p ? '#4fc3f7' : '#81c784', 26, .9, 2.5); SND.play('tick'); } } break;
     case 'fort': V.fort[m.rid] = m.lv; if (cur) refreshInfo(); { const r = regOf[m.rid]; FX.ring(r.seed[0], r.seed[1], '#bdbdbd', 24, .8, 2.5); SND.play('tick'); } break;
     case 'op': onOp(m); break;
     case 'opEnd': onOpEnd(m); break;
@@ -3031,6 +3371,131 @@ function dockSync() { const d = $('dock'); if (!d) return; const open = !$('menu
   }
   sel.innerHTML = '<option value="110" selected>Chuẩn (không tải được bản chi tiết)</option>';
 })();
+// =====================================================================================
+//  PRO — chiếm hết quốc gia, phím tắt, tooltip, chuột phải, thanh trạng thái
+// =====================================================================================
+let CONQ = null;
+const claimable = (n, x) => { if (x.anta || V.owner[x.id] === n.id) return false; const o = V.owner[x.id]; return !o || !!(V.nations[o] && atWar(n, V.nations[o])); };
+function updateConqRow() {
+  const row = $('rowConq'), r = cur, n = me(); if (!r || !V || !n) { row.style.display = 'none'; return; }
+  const o = V.owner[r.id], on = o && V.nations[o]; if (o === n.id) { row.style.display = 'none'; return; }
+  const cc = regions.filter(x => x.iso === r.iso && claimable(n, x)).length, nm = byId[r.iso].properties.NAME;
+  const cnt = on ? Object.keys(V.owner).filter(k => V.owner[k] === on.id).length : 0;
+  row.style.display = (on || cc) ? '' : 'none';
+  const bn = $('bConqN'), bc = $('bConqC');
+  bn.style.display = on ? '' : 'none';
+  if (on) {
+    const war = atWar(n, on); let why = ''; if (!war) { if (allied(n, on)) why = 'liên minh'; else if (protectedN(V, on)) why = 'đang bảo hộ'; else if (truced(V, n, on)) why = 'hưu chiến'; }
+    bn.textContent = `${war ? '🏴' : '⚔️'} ${war ? 'Chiếm hết' : 'Tuyên chiến & chiếm hết'} ${on.name} (${cnt})${why ? ' — ' + why : ''}`; bn.disabled = !!why;
+  }
+  bc.style.display = cc ? '' : 'none'; bc.textContent = `🌍 Chiếm cả ${nm} (${cc})`;
+}
+(function () { const f = refreshInfo; refreshInfo = function () { f(); updateConqRow(); }; })();
+$('bConqN').onclick = () => { const n = me(); if (!cur || !n) return; const on = V.nations[V.owner[cur.id]]; if (!on) return; if (!atWar(n, on)) cmd('war', { to: on.id }); cmd('conquer', { to: on.id }); SND.play('tick'); };
+$('bConqC').onclick = () => { if (!cur || !me()) return; cmd('conquer', { iso: cur.iso }); SND.play('tick'); };
+function stopAll() { cmd('conquerStop'); if (cur && myOps.has(cur.id)) cmd('retreat', { rid: cur.id }); }
+$('bStop').onclick = stopAll; $('conqX').onclick = stopAll;
+function updateConqChip() {
+  const chip = $('conqChip'), n = me(); if (!CONQ || !n || !V) { chip.classList.add('hidden'); return; }
+  const left = CONQ.to ? Object.keys(V.owner).filter(k => V.owner[k] === CONQ.to).length : regions.filter(x => x.iso === CONQ.iso && claimable(n, x)).length;
+  $('conqT').textContent = `🚩 ${CONQ.label} · còn ${left} vùng · ⚔️ ${myOps.size}/${opsMax(V, n.id)}`; chip.classList.remove('hidden');
+}
+setInterval(updateConqChip, 800);
+function goCapital() {
+  const n = me(), r = n && regOf[n.capital]; if (!r) return; const k = Math.max(zoomT.k, 3);
+  svg.transition().duration(450).call(zoomB.transform, d3.zoomIdentity.translate(VW / 2 - k * r.seed[0], VH / 2 - k * r.seed[1]).scale(k));
+}
+$('bCap').onclick = goCapital;
+// ---- tooltip khi rê chuột ----
+const tipEl = $('tip'); let tipEv = null, tipRaf = 0;
+const regionAt = ev => { const el = document.elementFromPoint(ev.clientX, ev.clientY), r = el && el.__data__; return r && r.id && regOf[r.id] === r ? r : null; };
+function drawTip() {
+  tipRaf = 0; const ev = tipEv; if (!ev || !V) return; const r = regionAt(ev); if (!r) { tipEl.style.display = 'none'; return; }
+  const n = me(), o = V.owner[r.id], on = o && V.nations[o], nm = byId[r.iso].properties.NAME + (r.K > 1 ? ` · vùng ${r.i + 1}/${r.K}` : '');
+  let h = `<b>${esc(nm)}</b><br>`;
+  if (!on) h += 'Đất trống'; else h += `${esc(on.name)}${n && o === n.id ? ' (bạn)' : ''}`;
+  if (on && !(n && o === n.id)) {
+    h += ` · 🛡️ ${Math.round(defOf(V, r))}`;
+    if (n && atWar(n, on)) { const k = reachFor(V, n.id, r); if (k) { const p = winProb(Math.floor(n.army) * (k === 'sea' ? CFG.seaPower : 1) * attMul(n) * (n.fm || 1) * bpMul(V, n.id, r.id), defOf(V, r)); h += `<br>Toàn lực: <span class="${p > .7 ? 'g' : p > .35 ? 'm' : 'b'}">${Math.round(p * 100)}%</span> · chuột phải để chiếm`; } else h += '<br><span class="b">Chưa tiến tới được</span>'; }
+    else if (n) h += '<br>Chưa có chiến tranh (V để tuyên chiến)';
+  } else if (!on && n) { const k = reachFor(V, n.id, r); h += k ? ` · ${Math.round(expandCost(regionsOf(V, n.id).length, r) * (k === 'sea' ? CFG.seaCost * (portCnt(V, n.id) ? CFG.portSea : 1) : 1))}💰 · chuột phải để chiếm` : ' · <span class="b">Chưa tiến tới được</span>'; }
+  tipEl.innerHTML = h; tipEl.style.display = 'block';
+  const w = tipEl.offsetWidth, hh = tipEl.offsetHeight; tipEl.style.transform = `translate(${Math.min(ev.clientX + 16, innerWidth - w - 8)}px,${Math.min(ev.clientY + 16, innerHeight - hh - 8)}px)`;
+}
+$('map').addEventListener('pointermove', ev => { if (ev.pointerType !== 'mouse' || ev.buttons) { tipEl.style.display = 'none'; return; } tipEv = ev; if (!tipRaf) tipRaf = requestAnimationFrame(drawTip); });
+$('map').addEventListener('pointerleave', () => { tipEl.style.display = 'none'; });
+// ---- chuột phải = chiếm / xếp hàng chiếm vùng đó ----
+$('map').addEventListener('contextmenu', ev => {
+  ev.preventDefault(); const n = me(), r = V && n && regionAt(ev); if (!r) return;
+  if (aimItem) return aimTarget(r);
+  if (V.owner[r.id] === n.id) return showInfo(r);
+  freeClaim(r);
+});
+// ---- phím tắt ----
+const HOTKEYS = [['Q', 'Tấn công 50% / mở rộng vùng đang chọn'], ['E', 'Tấn công toàn lực / mở rộng'], ['C', 'Chiếm hết quốc gia của vùng đang chọn'], ['Shift+C', 'Chiếm cả nước trên bản đồ'], ['V', 'Tuyên chiến'], ['X', 'Dừng chiếm / rút quân'], ['R', 'Tuyển quân +10'], ['F', 'Chiếm tự do'], ['G', 'Đổi kiểu đánh (Thường/Tốc chiến/Vây hãm)'], ['B', 'Xây pháo đài'], ['H', 'Về thủ đô'], ['T / M', 'Cửa hàng / Menu'], ['W A S D', 'Di chuyển bản đồ (hoặc phím mũi tên)'], ['+ / −', 'Phóng to / thu nhỏ'], ['Chuột phải', 'Chiếm nhanh vùng dưới con trỏ'], ['Space / Esc', 'Đóng bảng, huỷ ngắm, thoát chiếm tự do'], ['?', 'Bảng phím tắt này']];
+function toggleKeys(on) { const el = $('keys'), show = on === undefined ? el.classList.contains('hidden') : on; if (show) el.innerHTML = '<div class="kc"><h2>⌨️ Phím tắt</h2>' + HOTKEYS.map(([k, d]) => `<div class="kr"><kbd>${k}</kbd><span>${d}</span></div>`).join('') + '<p class="muted">Chạm bất kỳ đâu để đóng.</p></div>'; el.classList.toggle('hidden', !show); }
+$('keys').onclick = () => toggleKeys(false); $('bKeys').onclick = () => toggleKeys(true);
+[['bAtk50', 'Q'], ['bAtk100', 'E'], ['bWar', 'V'], ['bFort', 'B'], ['bConqN', 'C'], ['bConqC', 'Shift+C'], ['bRecruit', 'R']].forEach(([id, k]) => { $(id).title = 'Phím tắt: ' + k; });
+const clickIf = id => { const b = $(id); if (b && b.offsetParent !== null && !b.disabled) { b.click(); return true; } return false; };
+const heldK = new Set(); let panRaf = 0;
+function panLoop() {
+  panRaf = 0; if (!heldK.size) return; const k = zoomT.k, sp = 9 / k;
+  const dx = (heldK.has('d') || heldK.has('arrowright') ? 1 : 0) - (heldK.has('a') || heldK.has('arrowleft') ? 1 : 0), dy = (heldK.has('s') || heldK.has('arrowdown') ? 1 : 0) - (heldK.has('w') || heldK.has('arrowup') ? 1 : 0);
+  if (dx || dy) svg.call(zoomB.translateBy, -dx * sp, -dy * sp); panRaf = requestAnimationFrame(panLoop);
+}
+const PAN = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
+addEventListener('keyup', ev => { heldK.delete(ev.key.toLowerCase()); });
+addEventListener('blur', () => heldK.clear());
+addEventListener('keydown', ev => {
+  const t = ev.target, tag = t && t.tagName; if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+  if (ev.ctrlKey || ev.metaKey || ev.altKey || !V || !$('lobby').classList.contains('hidden') || !$('loading').classList.contains('hidden')) return;
+  const k = ev.key.toLowerCase();
+  if (k === '?' || (k === '/' && ev.shiftKey)) { toggleKeys(); return ev.preventDefault(); }
+  if (!$('keys').classList.contains('hidden')) { if (k === 'escape' || k === ' ') toggleKeys(false); return; }
+  if (!$('sheet').classList.contains('hidden')) return;   // đang lập quốc gia
+  if (PAN.includes(k)) { ev.preventDefault(); heldK.add(k); if (!panRaf) panRaf = requestAnimationFrame(panLoop); return; }
+  if (k === 'escape' || k === ' ') { ev.preventDefault(); if (aimItem) endAim(); else if (freeMode) setFree(false); else if (!$('info').classList.contains('hidden')) closeInfo(); else if (!$('menu').classList.contains('hidden')) closeMenu(); return; }
+  if (k === '+' || k === '=') return svg.transition().duration(150).call(zoomB.scaleBy, 1.4);
+  if (k === '-' || k === '_') return svg.transition().duration(150).call(zoomB.scaleBy, 1 / 1.4);
+  if (!me()) return;
+  switch (k) {
+    case 'q': if (!clickIf('bAtk50') && !clickIf('bExpand')) toast('Chọn một vùng kề lãnh thổ để tấn công / mở rộng'); break;
+    case 'e': if (!clickIf('bAtk100') && !clickIf('bExpand')) toast('Chọn một vùng kề lãnh thổ để tấn công / mở rộng'); break;
+    case 'c': if (!(ev.shiftKey ? clickIf('bConqC') : (clickIf('bConqN') || clickIf('bConqC')))) toast('Chọn một vùng của nước muốn chiếm'); break;
+    case 'v': clickIf('bWar'); break;
+    case 'x': stopAll(); break;
+    case 'r': $('bQuick').click(); break;
+    case 'f': setFree(!freeMode); break;
+    case 'g': { const bs = [...$('rowMode').children], i = bs.findIndex(b => b.classList.contains('on')), b = bs[(i + 1) % bs.length]; b.click(); toast('Kiểu đánh: ' + b.textContent); break; }
+    case 'b': clickIf('bFort'); break;
+    case 'h': goCapital(); break;
+    case 't': $('bShop').click(); break;
+    case 'm': $('bMenu').click(); break;
+  }
+});
+
+// ---- Emoji → icon trên mọi chữ hiển thị (HTML), tự cập nhật khi nội dung đổi ----
+Object.assign(EMO, { '🏁': 'flag', '⏹': 'stop_circle', '⌨': 'keyboard', '🔱': 'swords', '💬': 'chat', '❓': 'help', '🔄': 'sync' });
+const EMO_RE2 = new RegExp('(' + Object.keys(EMO).sort((a, b) => b.length - a.length).join('|') + ')\\uFE0F?', 'g');
+const EMO_SKIP = /^(SCRIPT|STYLE|TEXTAREA|OPTION|SELECT|TITLE|INPUT)$/;
+function iconify(root) {
+  if (!root || !root.isConnected) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => { const p = n.parentNode; if (!p || p.nodeType !== 1 || EMO_SKIP.test(p.tagName) || p.namespaceURI !== 'http://www.w3.org/1999/xhtml' || p.classList.contains('mi')) return 3; EMO_RE2.lastIndex = 0; return EMO_RE2.test(n.nodeValue) ? 1 : 3; } });
+  const list = []; while (w.nextNode()) list.push(w.currentNode);
+  for (const n of list) { const h = String(n.nodeValue).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])).replace(EMO_RE2, (m, g) => I(EMO[g])); n.parentNode.replaceChild(document.createRange().createContextualFragment(h), n); }
+}
+{ const q = new Set(); let raf = 0;
+  const flush = () => { raf = 0; const a = [...q]; q.clear(); a.forEach(iconify); };
+  new MutationObserver(ms => { for (const m of ms) { const t = m.type === 'characterData' ? m.target.parentNode : m.target; if (t && t.nodeType === 1) q.add(t); } if (!raf) raf = requestAnimationFrame(flush); }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  iconify(document.body); }
+// ---- Nút thao tác nhanh nằm trong tầm ngón cái ----
+['bFree', 'bQuick', 'bStop', 'bCap'].forEach(id => { const b = $(id); $('fab').appendChild(b); b.classList.remove('hidden', 'on'); });
+$('bFree').classList.add('hidden'); $('bQuick').classList.add('hidden');
+$('bStop').title = 'Dừng mọi chiến dịch chiếm'; $('bCap').title = 'Về thủ đô';
+['bStop', 'bCap'].forEach(id => { $(id).textContent = id === 'bStop' ? '⏹' : '🏛️'; });
+// ---- vuốt xuống để đóng bảng ----
+['info', 'menu'].forEach(id => { const el = $(id); let y0 = null; el.addEventListener('touchstart', e => { y0 = el.scrollTop === 0 ? e.touches[0].clientY : null; }, { passive: true }); el.addEventListener('touchend', e => { if (y0 !== null && e.changedTouches[0].clientY - y0 > 90) id === 'info' ? closeInfo() : closeMenu(); y0 = null; }, { passive: true }); });
+
 (async function boot() {
   net.pid = ME.pid = await getPid();
   peerOk = await window.__peerReady;
